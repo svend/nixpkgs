@@ -56,7 +56,6 @@ stdenv.mkDerivation rec {
   propagatedBuildInputs = stdenv.lib.optional stdenv.isDarwin AppKit;
 
   preConfigure = ''
-  sed -ie 's|/bin/bash|/bin/sh|g' ./autogen.sh
   ./autogen.sh
   '';
 
