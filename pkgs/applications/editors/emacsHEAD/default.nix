@@ -32,10 +32,6 @@ stdenv.mkDerivation rec {
     rev = "0880d5f6e1ad5006a022416cd21b974c7f5923b9";
     sha256 = "fe5a7dd38b182f9a39dc748e2f6ab2f1b16aa95ed1833f03e0d76d88d6758cfe";
   };
-  # src = fetchurl {
-  #   url    = "mirror://gnu/emacs/emacs-24.5.tar.xz";
-  #   sha256 = "0kn3rzm91qiswi0cql89kbv6mqn27rwsyjfb8xmwy9m5s8fxfiyx";
-  # };
 
   patches = stdenv.lib.optionals stdenv.isDarwin [
     ./at-fdcwd.patch
