@@ -22,14 +22,14 @@ let
 in
 
 stdenv.mkDerivation rec {
-  name = "emacsHEAD";
+  name = "emacs-head";
 
   builder = ./builder.sh;
 
   src = fetchgit {
     url = "http://git.sv.gnu.org/r/emacs.git";
-    rev = "d443710169d98e73869247fd80e27914f25b784e";
-    sha256 = "bce21c7443c7cc17c9b8b1f843ad5b93146be0dd0ec8691cfd602ede8b76bba8";
+    rev = "ce4eeca8d40edf95eeca05c76f4b474d38ea8d6d";
+    sha256 = "578f13fa2a59d24563f38a63d23b2842b6c20a1d5ff5bc50e23cabb63aabdaf4";
   };
 
   patches = stdenv.lib.optionals stdenv.isDarwin [
