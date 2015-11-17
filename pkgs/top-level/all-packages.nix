@@ -11512,7 +11512,7 @@ let
     external = {
       inherit (haskellPackages) ghc-mod structured-haskell-mode Agda;
       inherit (pythonPackages) elpy;
-      inherit rtags libffi;
+      inherit rtags libffi autoconf automake libpng zlib poppler pkgconfig;
     };
   };
 
