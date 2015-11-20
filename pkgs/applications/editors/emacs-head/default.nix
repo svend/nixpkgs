@@ -22,14 +22,16 @@ let
 in
 
 stdenv.mkDerivation rec {
-  name = "emacs-head";
+  srcRev = "9dcdf99d866f96e46110be5ef3094b4295ef9cf7";
+  srcSha = "665a87ba4796438bc898daf978403d772b178c9b5db322cd81529b988176b9cf";
 
+  name = "emacs-25.0-2015-11-20-${builtins.substring 0 7 srcRev}";
   builder = ./builder.sh;
 
   src = fetchgit {
     url = "http://git.sv.gnu.org/r/emacs.git";
-    rev = "7cd728c813f2c472a2f6a0cb0c3fb3ee46c9d8ad";
-    sha256 = "899edb529f811306f865a0032dd2775f362a6acdf72e534c416911e42113f6fb";
+    rev = srcRev;
+    sha256 = srcSha;
   };
 
   patches = stdenv.lib.optionals stdenv.isDarwin [
