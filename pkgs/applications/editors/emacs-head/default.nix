@@ -22,8 +22,8 @@ let
 in
 
 stdenv.mkDerivation rec {
-  srcRev = "50090b04a6a1d5c0e0e42399d32b8a8b661a61d8";
-  srcSha = "cd874282438cc97c3267eb50622a39b2eb5a48e4689c549cc24bf00ae5346ca4";
+  srcRev = "345bc61796b4f0712fa45d47ed14692c0de628ea";
+  srcSha = "a8c0339f8a5b8bebc9928d6618e2fd9e828f456aac8b49e6308e0fb8cfbf06fb";
   srcDate = "2015-11-23";
 
   name = "emacs-25.0-git-${srcDate}-${builtins.substring 0 7 srcRev}";
