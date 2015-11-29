@@ -57,9 +57,8 @@ stdenv.mkDerivation rec {
 
   propagatedBuildInputs = stdenv.lib.optional stdenv.isDarwin AppKit;
 
-  preConfigure = ''
-  ./autogen.sh
-  '';
+  # preConfigure = "./autogen.sh";
+  preConfigurePhases = [ "./autogen.sh" ];
 
   configureFlags =
     if stdenv.isDarwin
