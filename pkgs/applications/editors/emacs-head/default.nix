@@ -22,9 +22,9 @@ let
 in
 
 stdenv.mkDerivation rec {
-  srcRev = "2ed9de442cf0ff46cf3cf8484b587f7d52a50e3f";
-  srcSha = "6a0b6e113b6b2f347e56eda446c02d370f277f6f28ff6583d57b16eed29d2a27";
-  srcDate = "2015-12-28";
+  srcRev = "86312ffd93e54bc8993740479c9de3df69935185";
+  srcSha = "8a7ff8ba294319ac1f3fe2398e31d78612129730ded54a2a579e8662ffd50970";
+  srcDate = "2015-12-30";
 
   name = "emacs-25.0-git-${srcDate}-${builtins.substring 0 7 srcRev}";
   builder = ./builder.sh;
