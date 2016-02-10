@@ -22,9 +22,10 @@ let
 in
 
 stdenv.mkDerivation rec {
-  srcRev = "8e5046a6e504c2eba349407251b3e2967ff1cfa9";
-  srcSha = "892385af4c4860c687b87d8ef101bf57562b9617858b4e10ab85d07aece4cf1d";
-  srcDate = "2016-01-27";
+  # nix-prefetch-git --rev refs/heads/emacs-25 git://git.savannah.gnu.org/emacs.git 
+  srcRev = "10b8ed27ec91ff52f93eb0297dcc3abb214931aa";
+  srcSha = "8ac5271ad5823dab45a13959ece7ae1508b0df850e8b62fb1fc52165dadc6c8c";
+  srcDate = "2016-02-10";
 
   name = "emacs-25.0-git-${srcDate}-${builtins.substring 0 7 srcRev}";
   builder = ./builder.sh;
@@ -33,79 +34,79 @@ stdenv.mkDerivation rec {
     url = "http://git.sv.gnu.org/r/emacs.git";
     rev = srcRev;
     sha256 = srcSha;
-  };
+    };
 
-  patches = stdenv.lib.optionals stdenv.isDarwin [
+    patches = stdenv.lib.optionals stdenv.isDarwin [
     ./at-fdcwd.patch
-  ];
+    ];
 
-  postPatch = ''
+    postPatch = ''
     sed -i 's|/usr/share/locale|${gettext}/share/locale|g' lisp/international/mule-cmds.el
-  '';
+    '';
 
-  buildInputs =
+    buildInputs =
     [ automake autoconf ncurses gconf libxml2 gnutls alsaLib pkgconfig texinfo acl gpm gettext ]
     ++ stdenv.lib.optional stdenv.isLinux dbus
     ++ stdenv.lib.optionals stdenv.isDarwin
-      [ libpng libjpeg libungif libtiff librsvg imagemagick ]
-    ++ stdenv.lib.optionals withX
-      [ xlibsWrapper libXaw Xaw3d libXpm libpng libjpeg libungif libtiff librsvg libXft
-        imagemagick gconf ]
-    ++ stdenv.lib.optional (withX && withGTK2) gtk2
-    ++ stdenv.lib.optional (withX && withGTK3) gtk3
-    ++ stdenv.lib.optional (stdenv.isDarwin && withX) cairo;
+       [ libpng libjpeg libungif libtiff librsvg imagemagick ]
+       ++ stdenv.lib.optionals withX
+       [ xlibsWrapper libXaw Xaw3d libXpm libpng libjpeg libungif libtiff librsvg libXft
+         imagemagick gconf ]
+         ++ stdenv.lib.optional (withX && withGTK2) gtk2
+         ++ stdenv.lib.optional (withX && withGTK3) gtk3
+         ++ stdenv.lib.optional (stdenv.isDarwin && withX) cairo;
 
-  propagatedBuildInputs = stdenv.lib.optional stdenv.isDarwin AppKit;
+         propagatedBuildInputs = stdenv.lib.optional stdenv.isDarwin AppKit;
 
-  # preConfigure = "./autogen.sh";
-  preConfigurePhases = [ "./autogen.sh" ];
+         # preConfigure = "./autogen.sh";
+         preConfigurePhases = [ "./autogen.sh" ];
 
-  configureFlags =
-    if stdenv.isDarwin
-      then [ "--with-ns" "--disable-ns-self-contained" ]
-    else if withX
-      then [ "--with-x-toolkit=${toolkit}" "--with-xft" ]
-      else [ "--with-x=no" "--with-xpm=no" "--with-jpeg=no" "--with-png=no"
-             "--with-gif=no" "--with-tiff=no" ];
+         configureFlags =
+         if stdenv.isDarwin
+         then [ "--with-ns" "--disable-ns-self-contained" ]
+         else if withX
+         then [ "--with-x-toolkit=${toolkit}" "--with-xft" ]
+         else [ "--with-x=no" "--with-xpm=no" "--with-jpeg=no" "--with-png=no"
+              "--with-gif=no" "--with-tiff=no" ];
 
-  NIX_CFLAGS_COMPILE = stdenv.lib.optionalString (stdenv.isDarwin && withX)
-    "-I${cairo}/include/cairo";
+              NIX_CFLAGS_COMPILE = stdenv.lib.optionalString (stdenv.isDarwin && withX)
+              "-I${cairo}/include/cairo";
 
-  postInstall = ''
-    mkdir -p $out/share/emacs/site-lisp/
-    cp ${./site-start.el} $out/share/emacs/site-lisp/site-start.el
-  '' + stdenv.lib.optionalString stdenv.isDarwin ''
-    mkdir -p $out/Applications
-    mv nextstep/Emacs.app $out/Applications
-  '';
+              postInstall = ''
+              mkdir -p $out/share/emacs/site-lisp/
+              cp ${./site-start.el} $out/share/emacs/site-lisp/site-start.el
+              '' + stdenv.lib.optionalString stdenv.isDarwin ''
+              mkdir -p $out/Applications
+              mv nextstep/Emacs.app $out/Applications
+              '';
 
-  doCheck = false;
+              doCheck = false;
 
-  meta = with stdenv.lib; {
-    description = "GNU Emacs 24, the extensible, customizable text editor";
-    homepage    = http://www.gnu.org/software/emacs/;
-    license     = licenses.gpl3Plus;
-    maintainers = with maintainers; [ chaoflow lovek323 simons the-kenny ];
-    platforms   = platforms.all;
+              meta = with stdenv.lib; {
+              description = "GNU Emacs 24, the extensible, customizable text editor";
+              homepage    = http://www.gnu.org/software/emacs/;
+              license     = licenses.gpl3Plus;
+              maintainers = with maintainers; [ chaoflow lovek323 simons the-kenny ];
+              platforms   = platforms.all;
 
-    # So that Exuberant ctags is preferred
-    priority = 1;
+              # So that Exuberant ctags is preferred
+              priority = 1;
 
-    longDescription = ''
-      GNU Emacs is an extensible, customizable text editor—and more.  At its
-      core is an interpreter for Emacs Lisp, a dialect of the Lisp
-      programming language with extensions to support text editing.
+              longDescription = ''
+              GNU Emacs is an extensible, customizable text editor—and more.  At its
+              core is an interpreter for Emacs Lisp, a dialect of the Lisp
+              programming language with extensions to support text editing.
 
-      The features of GNU Emacs include: content-sensitive editing modes,
-      including syntax coloring, for a wide variety of file types including
-      plain text, source code, and HTML; complete built-in documentation,
-      including a tutorial for new users; full Unicode support for nearly all
-      human languages and their scripts; highly customizable, using Emacs
-      Lisp code or a graphical interface; a large number of extensions that
-      add other functionality, including a project planner, mail and news
-      reader, debugger interface, calendar, and more.  Many of these
-      extensions are distributed with GNU Emacs; others are available
-      separately.
-    '';
-  };
-}
+              The features of GNU Emacs include: content-sensitive editing modes,
+              including syntax coloring, for a wide variety of file types including
+              plain text, source code, and HTML; complete built-in documentation,
+              including a tutorial for new users; full Unicode support for nearly all
+              human languages and their scripts; highly customizable, using Emacs
+              Lisp code or a graphical interface; a large number of extensions that
+              add other functionality, including a project planner, mail and news
+              reader, debugger interface, calendar, and more.  Many of these
+              extensions are distributed with GNU Emacs; others are available
+              separately.
+              '';
+              };
+              }
