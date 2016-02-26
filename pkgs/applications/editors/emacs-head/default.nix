@@ -22,10 +22,10 @@ let
 in
 
 stdenv.mkDerivation rec {
-  # nix-prefetch-git --rev refs/heads/emacs-25 git://git.savannah.gnu.org/emacs.git 
-  srcRev = "10b8ed27ec91ff52f93eb0297dcc3abb214931aa";
-  srcSha = "8ac5271ad5823dab45a13959ece7ae1508b0df850e8b62fb1fc52165dadc6c8c";
-  srcDate = "2016-02-10";
+  # nix-prefetch-git --rev refs/heads/emacs-25 git://git.savannah.gnu.org/emacs.git
+  srcRev = "ec10ef95cf2a5309ec7cb74f1383860a13daa546";
+  srcSha = "423bd5344e4d93cb7dc4bf524e295b05754a75924d9d8fedeba72c3c8103293f";
+  srcDate = "2016-02-26";
 
   name = "emacs-25.0-git-${srcDate}-${builtins.substring 0 7 srcRev}";
   builder = ./builder.sh;
