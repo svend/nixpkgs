@@ -22,7 +22,7 @@ let
 in
 
 stdenv.mkDerivation rec {
-  # nix-prefetch-git --rev refs/heads/emacs-25 git://git.savannah.gnu.org/emacs.git
+  # nix-prefetch-git --rev refs/heads/emacs-25 git://git.sv.gnu.org/emacs.git
   srcRev = "dc42d0ca0b7b6877bd22b91e19c34d3d7d7902f9";
   srcSha = "68293f45b82c843ae401e53b6cba09f6d56bddf084eb0361e260c75c86320b8e";
   srcDate = "2016-02-29";
@@ -31,7 +31,7 @@ stdenv.mkDerivation rec {
   builder = ./builder.sh;
 
   src = fetchgit {
-    url = "http://git.sv.gnu.org/r/emacs.git";
+    url = "git://git.sv.gnu.org/emacs.git";
     rev = srcRev;
     sha256 = srcSha;
     };
