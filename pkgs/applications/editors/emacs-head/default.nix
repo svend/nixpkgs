@@ -9,7 +9,7 @@
 
 assert (libXft != null) -> libpng != null;      # probably a bug
 assert stdenv.isDarwin -> libXaw != null;       # fails to link otherwise
-assert withGTK2 -> withX || stdenv.isDarwin;
+assert withGTK2 -> withX || stdenv.isDarwin;8
 assert withGTK3 -> withX || stdenv.isDarwin;
 assert withGTK2 -> !withGTK3 && gtk2 != null;
 assert withGTK3 -> !withGTK2 && gtk3 != null;
@@ -23,9 +23,9 @@ in
 
 stdenv.mkDerivation rec {
   # nix-prefetch-git --rev refs/heads/emacs-25 git://git.sv.gnu.org/emacs.git
-  srcRev = "dc42d0ca0b7b6877bd22b91e19c34d3d7d7902f9";
-  srcSha = "68293f45b82c843ae401e53b6cba09f6d56bddf084eb0361e260c75c86320b8e";
-  srcDate = "2016-02-29";
+  srcRev = "14810299f24986b746bcd89032ade2eef2d15ceb";
+  srcSha = "e5c732c165e86f68a1cd14db18a429de34025568b94159dc7c1c5a53aec6c357";
+  srcDate = "2016-03-01";
 
   name = "emacs-25.0-git-${srcDate}-${builtins.substring 0 7 srcRev}";
   builder = ./builder.sh;
