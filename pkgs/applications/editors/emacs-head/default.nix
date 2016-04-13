@@ -1,7 +1,8 @@
-{ stdenv, fetchgit, autoconf, automake, ncurses, xlibsWrapper, libXaw, libXpm, Xaw3d
+{ stdenv, lib, fetchgit, ncurses, xlibsWrapper, libXaw, libXpm, Xaw3d
 , pkgconfig, gettext, libXft, dbus, libpng, libjpeg, libungif
 , libtiff, librsvg, texinfo, gconf, libxml2, imagemagick, gnutls
-, alsaLib, cairo, acl, gpm, AppKit
+, alsaLib, cairo, acl, gpm, AppKit, CoreWLAN, Kerberos, GSS, ImageIO
+, autoconf, automake
 , withX ? !stdenv.isDarwin
 , withGTK3 ? false, gtk3 ? null
 , withGTK2 ? true, gtk2
@@ -37,7 +38,7 @@ stdenv.mkDerivation rec {
     sha256 = srcSha;
   };
 
-  patches = stdenv.lib.optionals stdenv.isDarwin [
+  patches = lib.optionals stdenv.isDarwin [
     ./at-fdcwd.patch
   ];
 
@@ -46,18 +47,19 @@ stdenv.mkDerivation rec {
   '';
 
   buildInputs =
-  [ automake autoconf ncurses gconf libxml2 gnutls alsaLib pkgconfig texinfo acl gpm gettext ]
-  ++ stdenv.lib.optional stdenv.isLinux dbus
-  ++ stdenv.lib.optionals stdenv.isDarwin
-     [ libpng libjpeg libungif libtiff librsvg imagemagick ]
-  ++ stdenv.lib.optionals withX
-    [ xlibsWrapper libXaw Xaw3d libXpm libpng libjpeg libungif libtiff librsvg libXft
-      imagemagick gconf ]
-  ++ stdenv.lib.optional (withX && withGTK2) gtk2
-  ++ stdenv.lib.optional (withX && withGTK3) gtk3
-  ++ stdenv.lib.optional (stdenv.isDarwin && withX) cairo;
+    [ ncurses gconf libxml2 gnutls alsaLib pkgconfig texinfo acl gpm gettext
+      autoconf automake ]
+    ++ stdenv.lib.optional stdenv.isLinux dbus
+    ++ stdenv.lib.optionals stdenv.isDarwin
+       [ libpng libjpeg libungif libtiff librsvg imagemagick ]
+    ++ stdenv.lib.optionals withX
+      [ xlibsWrapper libXaw Xaw3d libXpm libpng libjpeg libungif libtiff librsvg libXft
+        imagemagick gconf ]
+    ++ stdenv.lib.optional (withX && withGTK2) gtk2
+    ++ stdenv.lib.optional (withX && withGTK3) gtk3
+    ++ stdenv.lib.optional (stdenv.isDarwin && withX) cairo;
 
-  propagatedBuildInputs = stdenv.lib.optional stdenv.isDarwin AppKit;
+  propagatedBuildInputs = stdenv.lib.optionals stdenv.isDarwin [ AppKit GSS ImageIO ];
 
   # preConfigure = "./autogen.sh";
   preConfigurePhases = [ "./autogen.sh" ];
@@ -73,6 +75,10 @@ stdenv.mkDerivation rec {
   NIX_CFLAGS_COMPILE = stdenv.lib.optionalString (stdenv.isDarwin && withX)
     "-I${cairo}/include/cairo";
 
+  preBuild = ''
+    find . -name '*.elc' -delete
+  '';
+
   postInstall = ''
     mkdir -p $out/share/emacs/site-lisp/
     cp ${./site-start.el} $out/share/emacs/site-lisp/site-start.el
@@ -81,17 +87,15 @@ stdenv.mkDerivation rec {
     mv nextstep/Emacs.app $out/Applications
   '';
 
+  # https://github.com/NixOS/nixpkgs/issues/13573
   doCheck = false;
 
   meta = with stdenv.lib; {
-    description = "GNU Emacs 24, the extensible, customizable text editor";
+    description = "GNU Emacs 25 (pre), the extensible, customizable text editor";
     homepage    = http://www.gnu.org/software/emacs/;
     license     = licenses.gpl3Plus;
-    maintainers = with maintainers; [ chaoflow lovek323 simons the-kenny ];
+    maintainers = with maintainers; [ chaoflow lovek323 simons the-kenny jwiegley ];
     platforms   = platforms.all;
-
-    # So that Exuberant ctags is preferred
-    priority = 1;
 
     longDescription = ''
       GNU Emacs is an extensible, customizable text editor—and more.  At its
