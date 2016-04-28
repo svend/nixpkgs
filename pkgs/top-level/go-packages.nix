@@ -147,11 +147,11 @@ let
   };
 
   tools = buildFromGitHub {
-    rev = "b48dc8da98ae78c3d11f220e7d327304c84e623a";
-    version = "2015-08-24";
+    rev = "c887be1b2ebd11663d4bf2fbca508c449172339e";
+    version = "2016-02-04";
     owner = "golang";
     repo = "tools";
-    sha256 = "187p3jjxrw2qjnzqwwrq7f9w10zh6vcnwnfl3q7ms8rbiffpjy5c";
+    sha256 = "15cm7wmab5na4hphvriazlz639882z0ipb466xmp7500rn6f5kzf";
     goPackagePath = "golang.org/x/tools";
     goPackageAliases = [ "code.google.com/p/go.tools" ];
 
@@ -244,10 +244,10 @@ let
   };
 
   asciinema = buildFromGitHub {
-    rev = "v1.1.1";
+    rev = "v1.2.0";
     owner = "asciinema";
     repo = "asciinema";
-    sha256 = "0k48k8815k433s25lh8my2swl89kczp0m2gbqzjlpy1xwmk06nxc";
+    sha256 = "0wvrq92ackhfycfs1fircs8al3ji69igqqrc55ic29wbpnvz355x";
   };
 
   asmfmt = buildFromGitHub {
@@ -3741,7 +3741,9 @@ let
     disabled = isGo14 || isGo15;
     sha256 = "1f1xm5pyz1hxqm2k74psanirpydf71pmxixplyc2x2w68hgjzi2l";
 
-    buildInputs = [ ];
+    postInstall = ''
+      for i in $bin/bin/{provider,provisioner}-*; do mv $i $bin/bin/terraform-$(basename $i); done
+    '';
   };
 
   testify = buildGoPackage rec {
