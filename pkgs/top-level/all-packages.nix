@@ -1159,6 +1159,8 @@ in
 
   crackxls = callPackage ../tools/security/crackxls { };
 
+  createrepo_c = callPackage ../tools/package-management/createrepo_c { };
+
   cromfs = callPackage ../tools/archivers/cromfs { };
 
   cron = callPackage ../tools/system/cron { };
@@ -1651,8 +1653,6 @@ in
 
   gifsicle = callPackage ../tools/graphics/gifsicle { };
 
-  git-hub = callPackage ../applications/version-management/git-and-tools/git-hub { };
-
   git-lfs = goPackages.git-lfs.bin // { outputs = [ "bin" ]; };
 
   gitfs = callPackage ../tools/filesystems/gitfs { };
@@ -1750,6 +1750,8 @@ in
   grafx2 = callPackage ../applications/graphics/grafx2 {};
 
   grails = callPackage ../development/web/grails { jdk = null; };
+
+  graylog = callPackage ../tools/misc/graylog { };
 
   gprof2dot = callPackage ../development/tools/profiling/gprof2dot {
     # Using pypy provides significant performance improvements (~2x)
@@ -2135,6 +2137,8 @@ in
   lsyncd = callPackage ../applications/networking/sync/lsyncd {
     lua = lua5_2_compat;
   };
+
+  ltwheelconf = callPackage ../applications/misc/ltwheelconf { };
 
   kippo = callPackage ../servers/kippo { };
 
@@ -2994,6 +2998,11 @@ in
 
   qastools = callPackage ../tools/audio/qastools { };
 
+  qesteidutil = qt5.callPackage ../tools/security/qesteidutil { } ;
+  qdigidoc = qt5.callPackage ../tools/security/qdigidoc { } ;
+  esteidfirefoxplugin = callPackage ../applications/networking/browsers/mozilla-plugins/esteidfirefoxplugin { };
+
+
   qgifer = callPackage ../applications/video/qgifer {
     giflib = giflib_4_1;
   };
@@ -3112,6 +3121,8 @@ in
 
   rpm = callPackage ../tools/package-management/rpm { };
 
+  rpm-ostree = callPackage ../tools/misc/rpm-ostree { };
+
   rpmextract = callPackage ../tools/archivers/rpmextract { };
 
   rrdtool = callPackage ../tools/misc/rrdtool { };
@@ -3163,8 +3174,10 @@ in
   screen-message = callPackage ../tools/X11/screen-message { };
 
   screencloud = callPackage ../applications/graphics/screencloud {
-    quazip = qt5.quazip.override { qt = qt4; qmakeHook = qmake4Hook; };
+    quazip = quazip_qt4;
   };
+
+  quazip_qt4 = self.qt5.quazip.override { qt = qt4; qmakeHook = qmake4Hook; };
 
   scrot = callPackage ../tools/graphics/scrot { };
 
@@ -3447,9 +3460,9 @@ in
 
   tor-arm = callPackage ../tools/security/tor/tor-arm.nix { };
 
-  torbutton = callPackage ../tools/security/torbutton { };
-
-  torbrowser = callPackage ../tools/security/tor/torbrowser.nix { };
+  torbrowser = callPackage ../tools/security/tor/torbrowser.nix {
+    inherit (xorg) libXrender libX11 libXext libXt;
+  };
 
   touchegg = callPackage ../tools/inputmethods/touchegg { };
 
@@ -3667,6 +3680,7 @@ in
   };
 
   truecrypt = callPackage ../applications/misc/truecrypt {
+    stdenv = overrideInStdenv stdenv [ useOldCXXAbi ];
     wxGUI = config.truecrypt.wxGUI or true;
   };
 
@@ -7470,6 +7484,10 @@ in
     mesa = null;
   };
 
+  libdigidoc = callPackage ../development/libraries/libdigidoc { };
+
+  libdigidocpp = callPackage ../development/libraries/libdigidocpp { };
+
   libdiscid = callPackage ../development/libraries/libdiscid { };
 
   libdivsufsort = callPackage ../development/libraries/libdivsufsort { };
@@ -7637,6 +7655,8 @@ in
 
   libharu = callPackage ../development/libraries/libharu { };
 
+  libhif = callPackage ../tools/package-management/libhif { sphinx = python27Packages.sphinx; };
+
   libHX = callPackage ../development/libraries/libHX { };
 
   libibmad = callPackage ../development/libraries/libibmad { };
@@ -7713,6 +7733,8 @@ in
 
   librelp = callPackage ../development/libraries/librelp { };
 
+  librepo = callPackage ../tools/package-management/librepo { };
+
   libresample = callPackage ../development/libraries/libresample {};
 
   librevenge = callPackage ../development/libraries/librevenge {};
@@ -7722,6 +7744,8 @@ in
   libsamplerate = callPackage ../development/libraries/libsamplerate { };
 
   libsieve = callPackage ../development/libraries/libsieve { };
+
+  libsolv = callPackage ../development/libraries/libsolv { };
 
   libspectre = callPackage ../development/libraries/libspectre { };
 
@@ -8558,6 +8582,8 @@ in
 
   qt4 = self.kde4.qt4;
 
+  qt4_clang = lowPrio (self.qt4.override { stdenv = clangStdenv; });
+
   qt48 = callPackage ../development/libraries/qt-4.x/4.8 {
     # GNOME dependencies are not used unless gtkStyle == true
     mesa = mesa_noglu;
@@ -9167,6 +9193,8 @@ in
 
   xercesc = callPackage ../development/libraries/xercesc {};
 
+  xalanc = callPackage ../development/libraries/xalanc {};
+
   # Avoid using this. It isn't really a wrapper anymore, but we keep the name.
   xlibsWrapper = callPackage ../development/libraries/xlibs-wrapper {
     packages = [
@@ -9179,6 +9207,8 @@ in
   xmlrpc_c = callPackage ../development/libraries/xmlrpc-c { };
 
   xmlsec = callPackage ../development/libraries/xmlsec { };
+
+  xml-security-c = callPackage ../development/libraries/xml-security-c { };
 
   xlslib = callPackage ../development/libraries/xlslib { };
 
@@ -10430,6 +10460,8 @@ in
   linuxConsoleTools = callPackage ../os-specific/linux/consoletools { };
 
   openiscsi = callPackage ../os-specific/linux/open-iscsi { };
+
+  openisns = callPackage ../os-specific/linux/open-isns { };
 
   tgt = callPackage ../tools/networking/tgt { };
 
@@ -11873,7 +11905,7 @@ in
 
   cinelerra = callPackage ../applications/video/cinelerra { };
 
-  clawsMail = callPackage ../applications/networking/mailreaders/claws-mail {
+  claws-mail = callPackage ../applications/networking/mailreaders/claws-mail {
     inherit (gnome3) gsettings_desktop_schemas;
     enableNetworkManager = config.networking.networkmanager.enable or false;
   };
@@ -13798,9 +13830,7 @@ in
   siproxd = callPackage ../applications/networking/siproxd { };
 
   skype = callPackage_i686 ../applications/networking/instant-messengers/skype {
-    qt4 = pkgsi686Linux.qt4.override {
-      stdenv = pkgsi686Linux.clangStdenv;
-    };
+    qt4 = pkgsi686Linux.qt4_clang;
   };
 
   skype4pidgin = callPackage ../applications/networking/instant-messengers/pidgin-plugins/skype4pidgin { };
@@ -14101,7 +14131,7 @@ in
     enableXMPP      = config.tomahawk.enableXMPP      or true;
     enableKDE       = config.tomahawk.enableKDE       or false;
     enableTelepathy = config.tomahawk.enableTelepathy or false;
-    quazip = qt5.quazip.override { qt = qt4; };
+    quazip = quazip_qt4;
   };
 
   torchPackages = recurseIntoAttrs ( callPackage ../applications/science/machine-learning/torch {
@@ -14581,6 +14611,8 @@ in
   xpraGtk3 = callPackage ../tools/X11/xpra/gtk3.nix { inherit (texFunctions) fontsConf; inherit (python3Packages) buildPythonApplication python cython pygobject3 pycairo; };
 
   xrestop = callPackage ../tools/X11/xrestop { };
+
+  xsd = callPackage ../development/libraries/xsd { };
 
   xscreensaver = callPackage ../misc/screensavers/xscreensaver {
     inherit (gnome) libglade;
@@ -16662,4 +16694,6 @@ in
   golden-cheetah = qt5.callPackage ../applications/misc/golden-cheetah {};
 
   tomb = callPackage ../os-specific/linux/tomb {};
+
+  imatix_gsl = callPackage ../development/tools/imatix_gsl {};
 }

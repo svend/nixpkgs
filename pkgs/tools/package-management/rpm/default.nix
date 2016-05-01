@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, cpio, zlib, bzip2, file, elfutils, libarchive, nspr, nss, popt, db, xz, python }:
+{ stdenv, fetchurl, cpio, zlib, bzip2, file, elfutils, libarchive, nspr, nss, popt, db, xz, python, lua, pkgconfig }:
 
 stdenv.mkDerivation rec {
   name = "rpm-4.12.0";
@@ -8,7 +8,10 @@ stdenv.mkDerivation rec {
     sha256 = "18hk47hc755nslvb7xkq4jb095z7va0nlcyxdpxayc4lmb8mq3bp";
   };
 
-  buildInputs = [ cpio zlib bzip2 file libarchive nspr nss popt db xz python ];
+  buildInputs = [ cpio zlib bzip2 file libarchive nspr nss db xz python lua pkgconfig ];
+
+  # rpm/rpmlib.h includes popt.h, and then the pkg-config file mentions these as linkage requirements
+  propagatedBuildInputs = [ popt nss db bzip2 libarchive ];
 
   # Note: we don't add elfutils to buildInputs, since it provides a
   # bad `ld' and other stuff.
@@ -21,13 +24,13 @@ stdenv.mkDerivation rec {
     substituteInPlace configure --replace 'python''${PYTHON_VERSION}' ${python.executable}
   '';
 
-  configureFlags = "--with-external-db --without-lua --enable-python";
+  configureFlags = "--with-external-db --with-lua --enable-python --localstatedir=/var --sharedstatedir=/com";
 
   meta = with stdenv.lib; {
     homepage = http://www.rpm.org/;
     license = licenses.gpl2;
     description = "The RPM Package Manager";
-    maintainers = [ maintainers.mornfall ];
+    maintainers = with maintainers; [ mornfall copumpkin ];
     platforms = platforms.linux;
   };
 }
