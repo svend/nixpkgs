@@ -1,4 +1,6 @@
-{stdenv, fetchgit, qt5, cgal, boost, gmp, mpfr, flex, bison, dxflib, readline }: 
+{ stdenv, fetchgit, cgal, boost, gmp, mpfr, flex, bison, dxflib, readline
+, qtbase, qmakeHook, mesa_glu
+}:
 
 stdenv.mkDerivation rec {
   version = "0.9.5";
@@ -9,13 +11,8 @@ stdenv.mkDerivation rec {
     rev = "refs/tags/v${version}";
     sha256 = "15c18jvgbwyrfhv7r35ih0gzx35vjlsbi984h1sckgh2z17hjq8l";
   };
-  
-  buildInputs = [qt5.base cgal boost gmp mpfr flex bison dxflib readline ];
 
-  configurePhase = ''
-    qmake;
-    sed -e "s@/usr/@$out/@g" -i $(find . -name Makefile)
-  '';
+  buildInputs = [ qtbase qmakeHook cgal boost gmp mpfr flex bison dxflib readline mesa_glu ];
 
   meta = {
     license = stdenv.lib.licenses.gpl3;

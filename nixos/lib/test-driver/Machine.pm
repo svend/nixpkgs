@@ -381,6 +381,11 @@ sub waitForUnit {
             my $info = $self->getUnitInfo($unit);
             my $state = $info->{ActiveState};
             die "unit ‘$unit’ reached state ‘$state’\n" if $state eq "failed";
+            if ($state eq "inactive") {
+                my ($status, $jobs) = $self->execute("systemctl list-jobs --full 2>&1");
+                die "unit ‘$unit’ is inactive and there are no pending jobs\n"
+                    if $jobs =~ /No jobs/; # FIXME: fragile
+            }
             return 1 if $state eq "active";
         };
     });
@@ -538,7 +543,7 @@ sub waitForX {
         retry sub {
             my ($status, $out) = $self->execute("journalctl -b SYSLOG_IDENTIFIER=systemd | grep 'session opened'");
             return 0 if $status != 0;
-            ($status, $out) = $self->execute("xwininfo -root > /dev/null 2>&1");
+            ($status, $out) = $self->execute("[ -e /tmp/.X11-unix/X0 ]");
             return 1 if $status == 0;
         }
     });

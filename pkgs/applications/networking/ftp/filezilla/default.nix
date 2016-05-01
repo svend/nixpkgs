@@ -1,13 +1,13 @@
 { stdenv, fetchurl, dbus, gnutls, wxGTK30, libidn, tinyxml, gettext
-, pkgconfig, xdg_utils, gtk2, sqlite, pugixml }:
+, pkgconfig, xdg_utils, gtk2, sqlite, pugixml, libfilezilla, nettle }:
 
-let version = "3.14.1"; in
+let version = "3.17.0"; in
 stdenv.mkDerivation {
   name = "filezilla-${version}";
 
   src = fetchurl {
     url = "mirror://sourceforge/project/filezilla/FileZilla_Client/${version}/FileZilla_${version}_src.tar.bz2";
-    sha256 = "0v6lb7miy6jbnswii816na8818xqxlvs1vadnii21xfmrsv7225i";
+    sha256 = "0vb5zqpvh0fi0a7nkz79cdmbzjk1cpmbyqx77nfkvd1kz1fcsqrp";
   };
 
   configureFlags = [
@@ -16,7 +16,7 @@ stdenv.mkDerivation {
 
   buildInputs = [
     dbus gnutls wxGTK30 libidn tinyxml gettext pkgconfig xdg_utils gtk2 sqlite
-    pugixml ];
+    pugixml libfilezilla nettle ];
 
   meta = with stdenv.lib; {
     homepage = http://filezilla-project.org/;

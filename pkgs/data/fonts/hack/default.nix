@@ -1,14 +1,14 @@
 { stdenv, fetchurl, unzip }:
 
-let version = "2.017"; in
-stdenv.mkDerivation {
+stdenv.mkDerivation rec {
   name = "hack-font-${version}";
+  version = "2.020";
 
   src = let
     version_ = with stdenv.lib;
       concatStringsSep "_" (splitString "." version);
   in fetchurl {
-    sha256 = "1bspjdllmwbb7bs5rcdghyvvl4xf3pw5nss1z3zxc805pysxyy0c";
+    sha256 = "16kkmc3psckw1b7k07ccn1gi5ymhlg9djh43nqjzg065g6p6d184";
     url = "https://github.com/chrissimpkins/Hack/releases/download/v${version}/Hack-v${version_}-ttf.zip";
   };
 
@@ -22,7 +22,6 @@ stdenv.mkDerivation {
   '';
 
   meta = with stdenv.lib; {
-    inherit version;
     description = "A typeface designed for source code";
     longDescription = ''
       Hack is hand groomed and optically balanced to be a workhorse face for

@@ -1,24 +1,15 @@
 { stdenv, fetchFromGitHub, icmake, libmilter, libX11, openssl, readline
 , utillinux, yodl }:
 
-let version = "4.00.00"; in
-stdenv.mkDerivation {
+stdenv.mkDerivation rec {
   name = "bobcat-${version}";
+  version = "4.02.00";
 
   src = fetchFromGitHub {
-    sha256 = "0wdb25sgw7i3jk3lbja6b4ipqfg1sncam6adg2bn8l5fcinrpwgs";
+    sha256 = "1hl5b2g4cmxcafkcpr4vs0c705cy254g0h410zi5wxnygjam8adn";
     rev = version;
     repo = "bobcat";
     owner = "fbb-git";
-  };
-
-  meta = with stdenv.lib; {
-    inherit version;
-    description = "Brokken's Own Base Classes And Templates";
-    homepage = https://fbb-git.github.io/bobcat/;
-    license = licenses.gpl3;
-    platforms = platforms.linux;
-    maintainers = with maintainers; [ nckx ];
   };
 
   buildInputs = [ libmilter libX11 openssl readline utillinux ];
@@ -28,7 +19,7 @@ stdenv.mkDerivation {
 
   postPatch = ''
     substituteInPlace INSTALL.im --replace /usr $out
-    patchShebangs ./build
+    patchShebangs .
   '';
 
   buildPhase = ''
@@ -37,6 +28,14 @@ stdenv.mkDerivation {
   '';
 
   installPhase = ''
-    ./build install
+    ./build install x
   '';
+
+  meta = with stdenv.lib; {
+    description = "Brokken's Own Base Classes And Templates";
+    homepage = https://fbb-git.github.io/bobcat/;
+    license = licenses.gpl3;
+    platforms = platforms.linux;
+    maintainers = with maintainers; [ nckx ];
+  };
 }

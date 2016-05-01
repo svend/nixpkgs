@@ -109,8 +109,7 @@ in stdenv.mkDerivation {
 
     cp ${installer} $out/bin/xquartz-install
 
-    rm -rf $out/LaunchAgents
-    rm -rf $out/LaunchDaemons
+    rm -rf $out/LaunchAgents $out/LaunchDaemons
 
     fontsConfPath=$out/etc/X11/fonts.conf
     cp ${fontsConf} $fontsConfPath
@@ -160,7 +159,7 @@ in stdenv.mkDerivation {
       --replace "@ENCODINGSDIR@"    "${xorg.encodings}/share/fonts/X11/encodings" \
       --replace "@MKFONTDIR@"       "${xorg.mkfontdir}/bin/mkfontdir" \
       --replace "@MKFONTSCALE@"     "${xorg.mkfontscale}/bin/mkfontscale" \
-      --replace "@FC_CACHE@"        "${fontconfig}/bin/fc-cache" \
+      --replace "@FC_CACHE@"        "${fontconfig.bin}/bin/fc-cache" \
       --replace "@FONTCONFIG_FILE@" "$fontsConfPath"
 
     cp ${./xinitrc} $out/etc/X11/xinit/xinitrc

@@ -23,7 +23,7 @@ stdenv.mkDerivation {
   checkTarget = "test-release"; # this would be the target
 
   installPhase = ''
-    installBin \
+    install -Dt "$out/bin/" \
         src/bitmonerod \
         src/connectivity_tool \
         src/simpleminer \
@@ -34,7 +34,7 @@ stdenv.mkDerivation {
     description = "Private, secure, untraceable currency";
     homepage = http://monero.cc/;
     license = licenses.bsd3;
-    maintainers = [ maintainers.emery ];
+    maintainers = [ maintainers.ehmry ];
     platforms = [ "x86_64-linux" ];
   };
 }

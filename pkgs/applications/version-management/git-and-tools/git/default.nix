@@ -1,4 +1,5 @@
-{ fetchurl, stdenv, curl, openssl, zlib, expat, perl, python, gettext, cpio, gnugrep, gzip
+{ fetchurl, stdenv, curl, openssl, zlib, expat, perl, python, gettext, cpio
+, gnugrep, gzip, openssh
 , asciidoc, texinfo, xmlto, docbook2x, docbook_xsl, docbook_xml_dtd_45
 , libxslt, tcl, tk, makeWrapper, libiconv
 , svnSupport, subversionClient, perlLibs, smtpPerlLibs
@@ -9,7 +10,7 @@
 }:
 
 let
-  version = "2.6.3";
+  version = "2.8.0";
   svn = subversionClient.override { perlBindings = true; };
 in
 
@@ -18,15 +19,23 @@ stdenv.mkDerivation {
 
   src = fetchurl {
     url = "https://www.kernel.org/pub/software/scm/git/git-${version}.tar.xz";
-    sha256 = "18vxb5fmwmrps504m23a4xdl29m7ibca3hmz0mn9jc38sz9y95yn";
+    sha256 = "0k77b5x41k80fqqmkmg59rdvs92xgp73iigh01l49h383r7rl2cs";
   };
 
   patches = [
     ./docbook2texi.patch
     ./symlinks-in-bin.patch
-    ./cert-path.patch
+    ./git-sh-i18n.patch
+    ./ssh-path.patch
     ./ssl-cert-file.patch
   ];
+
+  postPatch = ''
+    for x in connect.c git-gui/lib/remote_add.tcl ; do
+      substituteInPlace "$x" \
+        --subst-var-by ssh "${openssh}/bin/ssh"
+    done
+  '';
 
   buildInputs = [curl openssl zlib expat gettext cpio makeWrapper libiconv]
     ++ stdenv.lib.optionals withManual [ asciidoc texinfo xmlto docbook2x
@@ -34,7 +43,11 @@ stdenv.mkDerivation {
     ++ stdenv.lib.optionals guiSupport [tcl tk];
 
   # required to support pthread_cancel()
-  NIX_LDFLAGS = stdenv.lib.optionalString (!stdenv.isDarwin) "-lgcc_s";
+  NIX_LDFLAGS = stdenv.lib.optionalString (!stdenv.cc.isClang) "-lgcc_s"
+              + stdenv.lib.optionalString (stdenv.isFreeBSD) "-lthr";
+
+  # without this, git fails when trying to check for /etc/gitconfig existence
+  propagatedSandboxProfile = stdenv.lib.sandbox.allowDirectoryList "/etc";
 
   makeFlags = "prefix=\${out} sysconfdir=/etc/ PERL_PATH=${perl}/bin/perl SHELL_PATH=${stdenv.shell} "
       + (if pythonSupport then "PYTHON_PATH=${python}/bin/python" else "NO_PYTHON=1")
@@ -80,6 +93,10 @@ stdenv.mkDerivation {
       sed -i -e 's|	perl -ne|	${perl}/bin/perl -ne|g' \
              -e 's|	perl -e|	${perl}/bin/perl -e|g' \
              $out/libexec/git-core/{git-am,git-submodule}
+
+      # Fix references to gettext.
+      substituteInPlace $out/libexec/git-core/git-sh-i18n \
+          --subst-var-by gettext ${gettext}
 
       # gzip (and optionally bzip2, xz, zip) are runtime dependencies for
       # gitweb.cgi, need to patch so that it's found
@@ -140,7 +157,7 @@ stdenv.mkDerivation {
   meta = {
     homepage = http://git-scm.com/;
     description = "Distributed version control system";
-    license = stdenv.lib.licenses.gpl2Plus;
+    license = stdenv.lib.licenses.gpl2;
 
     longDescription = ''
       Git, a popular distributed version control system designed to

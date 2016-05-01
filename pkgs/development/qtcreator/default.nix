@@ -1,10 +1,13 @@
-{ stdenv, fetchurl, makeWrapper, qtLib, withDocumentation ? false }:
+{ stdenv, fetchurl, makeWrapper
+, qtbase, makeQtWrapper, qtquickcontrols, qtscript, qtdeclarative, qmakeHook
+, withDocumentation ? false
+}:
 
 with stdenv.lib;
 
 let
-  baseVersion = "3.4";
-  revision = "2";
+  baseVersion = "3.6";
+  revision = "0";
   version = "${baseVersion}.${revision}";
 in
 
@@ -13,23 +16,20 @@ stdenv.mkDerivation rec {
 
   src = fetchurl {
     url = "http://download.qt-project.org/official_releases/qtcreator/${baseVersion}/${version}/qt-creator-opensource-src-${version}.tar.gz";
-    sha256 = "1asbfphws0aqs92gjgh0iqzr1911kg51r9al44jxpfk88yazjzgm";
+    sha256 = "1v0x5asx9fj331jshial97gk7bwlb1a0k05h4zr22gh5cd4i0c5i";
   };
 
-  buildInputs = [ makeWrapper qtLib.base qtLib.script qtLib.quickcontrols qtLib.declarative ];
+  buildInputs = [ makeWrapper qtbase qtscript qtquickcontrols qtdeclarative ];
+
+  nativeBuildInputs = [ qmakeHook makeQtWrapper ];
 
   doCheck = false;
 
   enableParallelBuilding = true;
 
-  preConfigure = ''
-    qmake -spec linux-g++ qtcreator.pro
-  '';
+  buildFlags = optional withDocumentation "docs";
 
-  buildFlags = optionalString withDocumentation " docs";
-
-  installFlags = "INSTALL_ROOT=$(out)"
-    + optionalString withDocumentation " install_docs";
+  installFlags = [ "INSTALL_ROOT=$(out)" ] ++ optional withDocumentation "install_docs";
 
   postInstall = ''
     # Install desktop file
@@ -44,13 +44,7 @@ stdenv.mkDerivation rec {
     Type=Application
     Categories=Qt;Development;IDE;
     __EOF__
-    # Wrap the qtcreator binary
-    addToSearchPath QML2_IMPORT_PATH "${qtLib.quickcontrols}/lib/qt5/qml"
-    addToSearchPath QML2_IMPORT_PATH "${qtLib.declarative}/lib/qt5/qml"
-    wrapProgram $out/bin/qtcreator \
-      --prefix QT_PLUGIN_PATH : "$QT_PLUGIN_PATH" \
-      --prefix QML_IMPORT_PATH : "$QML_IMPORT_PATH" \
-      --prefix QML2_IMPORT_PATH : "$QML2_IMPORT_PATH"
+    wrapQtProgram $out/bin/qtcreator
   '';
 
   meta = {

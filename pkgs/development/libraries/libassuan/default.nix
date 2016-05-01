@@ -1,12 +1,15 @@
 { fetchurl, stdenv, pth, libgpgerror }:
 
 stdenv.mkDerivation rec {
-  name = "libassuan-2.3.0";
+  name = "libassuan-2.4.2";
 
   src = fetchurl {
     url = "mirror://gnupg/libassuan/${name}.tar.bz2";
-    sha256 = "0lh4698pgb2wjrrrbdk14llizad5l74f8pdbg4ma4zq4fbsrkjc7";
+    sha256 = "086bbcdnvs48qq5g4iac7dpk76j0q3jrp16mchdvyx0b720xq1mv";
   };
+
+  outputs = [ "dev" "out" "info" ];
+  outputBin = "dev"; # libassuan-config
 
   buildInputs = [ libgpgerror pth ];
 
@@ -14,7 +17,7 @@ stdenv.mkDerivation rec {
 
   # Make sure includes are fixed for callers who don't use libassuan-config
   postInstall = ''
-    sed -i 's,#include <gpg-error.h>,#include "${libgpgerror}/include/gpg-error.h",g' $out/include/assuan.h
+    sed -i 's,#include <gpg-error.h>,#include "${libgpgerror.dev}/include/gpg-error.h",g' $dev/include/assuan.h
   '';
 
   meta = {

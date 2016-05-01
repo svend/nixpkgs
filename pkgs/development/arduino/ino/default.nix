@@ -1,12 +1,12 @@
-{ stdenv, fetchurl, buildPythonPackage, pythonPackages, picocom
+{ stdenv, fetchurl, buildPythonApplication, pythonPackages, picocom
 , avrdude, arduino-core, avrgcclibc }:
 
-buildPythonPackage rec {
+buildPythonApplication rec {
   name = "ino-0.3.6";
   namePrefix = "";
 
   src = fetchurl {
-    url = "http://pypi.python.org/packages/source/i/ino/${name}.tar.gz";
+    url = "mirror://pypi/i/ino/${name}.tar.gz";
     sha256 = "0k6lzfcn55favbj0w4afrvnmwyskf7bgzg9javv2ycvskp35srwv";
   };
 

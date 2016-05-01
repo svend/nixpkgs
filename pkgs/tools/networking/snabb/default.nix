@@ -1,12 +1,30 @@
-{stdenv, fetchurl}:
+{ stdenv, lib, fetchFromGitHub, bash, makeWrapper, git, mariadb, diffutils, which, coreutils, procps, nettools }:
 
 stdenv.mkDerivation rec {
-  name = "snabb-2015.10";
+  name = "snabb-${version}";
+  version = "2016.04";
 
-  src = fetchurl {
-    url = "https://github.com/SnabbCo/snabbswitch/archive/v2015.10.tar.gz";
-    sha256 = "15cmw7k2siy9m7s1383l1h8kix8cwb143yvwhxdahbnx4lfnzfz8";
+  src = fetchFromGitHub {
+    owner = "snabbco";
+    repo = "snabb";
+    rev = "v${version}";
+    sha256 = "1b5g477zy6cr5d9171xf8zrhhq6wxshg4cn78i5bki572q86kwlx";
   };
+
+  buildInputs = [ makeWrapper ];
+
+  patchPhase = ''
+    patchShebangs .
+
+    # some hardcodeism
+    for f in $(find src/program/snabbnfv/ -type f); do
+      substituteInPlace $f --replace "/bin/bash" "${bash}/bin/bash"
+    done
+
+    # We need a way to pass $PATH to the scripts
+    sed -i '2iexport PATH=${git}/bin:${mariadb}/bin:${which}/bin:${procps}/bin:${coreutils}/bin' src/program/snabbnfv/neutron_sync_master/neutron_sync_master.sh.inc
+    sed -i '2iexport PATH=${git}/bin:${coreutils}/bin:${diffutils}/bin:${nettools}/bin' src/program/snabbnfv/neutron_sync_agent/neutron_sync_agent.sh.inc
+  '';
 
   installPhase = ''
     mkdir -p $out/bin
@@ -26,7 +44,7 @@ stdenv.mkDerivation rec {
     '';
     platforms = [ "x86_64-linux" ];
     license = licenses.asl20;
-    maintainers = [ maintainers.lukego ];
+    maintainers = [ maintainers.lukego maintainers.iElectric ];
   };
 }
 

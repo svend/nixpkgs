@@ -5,11 +5,11 @@
 
 stdenv.mkDerivation rec {
   name = "aria2-${version}";
-  version = "1.19.2";
+  version = "1.22.0";
 
   src = fetchurl {
     url = "https://github.com/tatsuhiro-t/aria2/releases/download/release-${version}/${name}.tar.xz";
-    sha256 = "0gnm1b7yp5q6fcajz1ln2f1rv64p6dv0nz9bcwpqrkcmsinlh19n";
+    sha256 = "12agwdvvkr34wqhyyfp418dj0k7nbr297qmcd3wj5kkn7brv6gxc";
   };
 
   nativeBuildInputs = [ pkgconfig ];
@@ -17,6 +17,8 @@ stdenv.mkDerivation rec {
     stdenv.lib.optional stdenv.isDarwin Security;
 
   configureFlags = [ "--with-ca-bundle=/etc/ssl/certs/ca-certificates.crt" ];
+
+  enableParallelBuilding = true;
 
   meta = with stdenv.lib; {
     homepage = https://github.com/tatsuhiro-t/aria2;

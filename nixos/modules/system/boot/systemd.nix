@@ -61,6 +61,8 @@ let
       "systemd-user-sessions.service"
       "dbus-org.freedesktop.login1.service"
       "dbus-org.freedesktop.machine1.service"
+      "org.freedesktop.login1.busname"
+      "org.freedesktop.machine1.busname"
       "user@.service"
 
       # Journal.
@@ -69,6 +71,7 @@ let
       "systemd-journal-flush.service"
       "systemd-journal-gatewayd.socket"
       "systemd-journal-gatewayd.service"
+      "systemd-journald-audit.socket"
       "systemd-journald-dev-log.socket"
       "syslog.socket"
 
@@ -99,7 +102,7 @@ let
       # Maintaining state across reboots.
       "systemd-random-seed.service"
       "systemd-backlight@.service"
-      "systemd-rfkill@.service"
+      "systemd-rfkill.service"
 
       # Hibernate / suspend.
       "hibernate.target"
@@ -109,8 +112,6 @@ let
       "systemd-hibernate.service"
       "systemd-suspend.service"
       "systemd-hybrid-sleep.service"
-      "systemd-shutdownd.socket"
-      "systemd-shutdownd.service"
 
       # Reboot stuff.
       "reboot.target"
@@ -148,7 +149,18 @@ let
       "systemd-tmpfiles-setup-dev.service"
 
       # Misc.
+      "org.freedesktop.systemd1.busname"
       "systemd-sysctl.service"
+      "dbus-org.freedesktop.timedate1.service"
+      "dbus-org.freedesktop.locale1.service"
+      "dbus-org.freedesktop.hostname1.service"
+      "org.freedesktop.timedate1.busname"
+      "org.freedesktop.locale1.busname"
+      "org.freedesktop.hostname1.busname"
+      "systemd-timedated.service"
+      "systemd-localed.service"
+      "systemd-hostnamed.service"
+      "systemd-binfmt.service"
     ]
 
     ++ cfg.additionalUpstreamSystemUnits;
@@ -174,8 +186,9 @@ let
     ];
 
   makeJobScript = name: text:
-    let x = pkgs.writeTextFile { name = "unit-script"; executable = true; destination = "/bin/${shellEscape name}"; inherit text; };
-    in "${x}/bin/${shellEscape name}";
+    let mkScriptName =  s: (replaceChars [ "\\" ] [ "-" ] (shellEscape s) );
+        x = pkgs.writeTextFile { name = "unit-script"; executable = true; destination = "/bin/${mkScriptName name}"; inherit text; };
+    in "${x}/bin/${mkScriptName name}";
 
   unitConfig = { name, config, ... }: {
     config = {
@@ -200,6 +213,8 @@ let
           { X-Restart-Triggers = toString config.restartTriggers; }
         // optionalAttrs (config.description != "") {
           Description = config.description;
+        } // optionalAttrs (config.onFailure != []) {
+          OnFailure = toString config.onFailure;
         };
     };
   };
@@ -366,6 +381,7 @@ in
 
     systemd.package = mkOption {
       default = pkgs.systemd;
+      defaultText = "pkgs.systemd";
       type = types.package;
       description = "The systemd package.";
     };
@@ -454,6 +470,13 @@ in
         For each <literal>NAME = VALUE</literal> pair of the attrSet, a link is generated from
         <literal>/etc/systemd/system-generators/NAME</literal> to <literal>VALUE</literal>.
       '';
+    };
+
+    systemd.generator-packages = mkOption {
+      default = [];
+      type = types.listOf types.package;
+      example = literalExample "[ pkgs.systemd-cryptsetup-generator ]";
+      description = "Packages providing systemd generators.";
     };
 
     systemd.defaultUnit = mkOption {
@@ -612,7 +635,18 @@ in
 
     environment.systemPackages = [ systemd ];
 
-    environment.etc = {
+    environment.etc = let
+      # generate contents for /etc/systemd/system-generators from
+      # systemd.generators and systemd.generator-packages
+      generators = pkgs.runCommand "system-generators" { packages = cfg.generator-packages; } ''
+        mkdir -p $out
+        for package in $packages
+        do
+          ln -s $package/lib/systemd/system-generators/* $out/
+        done;
+        ${concatStrings (mapAttrsToList (generator: target: "ln -s ${target} $out/${generator};\n") cfg.generators)}
+      '';
+    in ({
       "systemd/system".source = generateUnits "system" cfg.units upstreamSystemUnits upstreamSystemWants;
 
       "systemd/user".source = generateUnits "user" cfg.user.units upstreamUserUnits [];
@@ -651,7 +685,9 @@ in
 
         ${concatStringsSep "\n" cfg.tmpfiles.rules}
       '';
-    } // mapAttrs' (n: v: nameValuePair "systemd/system-generators/${n}" {"source"=v;}) cfg.generators;
+
+      "systemd/system-generators" = { source = generators; };
+    });
 
     system.activationScripts.systemd = stringAfter [ "groups" ]
       ''
@@ -758,13 +794,13 @@ in
     systemd.services."systemd-rfkill@".restartIfChanged = false;
     systemd.services."user@".restartIfChanged = false;
     systemd.services.systemd-journal-flush.restartIfChanged = false;
-    systemd.services.systemd-journald.restartIfChanged = false; # FIXME: shouldn't be necessary with systemd 219
     systemd.services.systemd-random-seed.restartIfChanged = false;
     systemd.services.systemd-remount-fs.restartIfChanged = false;
     systemd.services.systemd-update-utmp.restartIfChanged = false;
     systemd.services.systemd-user-sessions.restartIfChanged = false; # Restart kills all active sessions.
     systemd.targets.local-fs.unitConfig.X-StopOnReconfiguration = true;
     systemd.targets.remote-fs.unitConfig.X-StopOnReconfiguration = true;
+    systemd.services.systemd-binfmt.wants = [ "proc-sys-fs-binfmt_misc.automount" ];
 
     # Don't bother with certain units in containers.
     systemd.services.systemd-remount-fs.unitConfig.ConditionVirtualization = "!container";

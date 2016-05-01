@@ -73,7 +73,7 @@ stdenv.mkDerivation rec {
 
   ldpath = stdenv.lib.makeLibraryPath buildInputs
     + stdenv.lib.optionalString (stdenv.system == "x86_64-linux")
-      (":" + stdenv.lib.makeSearchPath "lib64" buildInputs);
+      (":" + stdenv.lib.makeSearchPathOutputs "lib64" ["lib"] buildInputs);
 
   phases = "unpackPhase installPhase fixupPhase";
 
@@ -96,6 +96,8 @@ stdenv.mkDerivation rec {
 
   preFixup = ''
     echo "=== PatchElfing away ==="
+    # This code should be a bit forgiving of errors, unfortunately
+    set +e
     find $out/libexec/Mathematica/SystemFiles -type f -perm -0100 | while read f; do
       type=$(readelf -h "$f" 2>/dev/null | grep 'Type:' | sed -e 's/ *Type: *\([A-Z]*\) (.*/\1/')
       if [ -z "$type" ]; then

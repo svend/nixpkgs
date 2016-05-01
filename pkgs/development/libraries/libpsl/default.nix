@@ -1,32 +1,36 @@
 { stdenv, fetchFromGitHub, autoreconfHook, docbook_xsl, gtk_doc, icu
-, libxslt, pkgconfig }:
+, libxslt, pkgconfig, python }:
 
 let
 
-  version = "${libVersion}-list-${listVersion}";
-
-  listVersion = "2015-11-12";
+  listVersion = "2016-04-16";
   listSources = fetchFromGitHub {
-    sha256 = "1cwzazhvgzcp6xapk3d11ssfkq9cxmwljfd7bys7w15jfsn6r8d1";
-    rev = "2adac6ff0f612543c4e8bf9a7219d52b0386870e";
+    sha256 = "0lwf8cvqfr3nsx92i2fphij0whb2lcswk6z6grhisqmwrs873hyv";
+    rev = "dfac82546fde5180e2d5a1b61b6ae2f668009870";
     repo = "list";
     owner = "publicsuffix";
   };
 
-  libVersion = "0.11.0";
+  libVersion = "0.13.0";
 
-in stdenv.mkDerivation {
+in stdenv.mkDerivation rec {
   name = "libpsl-${version}";
+  version = "${libVersion}-list-${listVersion}";
 
   src = fetchFromGitHub {
-    sha256 = "08k7prrr83lg6jmm5r5k4alpm2in4qlnx49ypb4bxv16lq8dcnmm";
+    sha256 = "12inl984r2qks51wyrzgll83y7k79q2lbhyc545dpk19qnfvp7gz";
     rev = "libpsl-${libVersion}";
     repo = "libpsl";
     owner = "rockdaboot";
   };
 
   buildInputs = [ icu libxslt ];
-  nativeBuildInputs = [ autoreconfHook docbook_xsl gtk_doc pkgconfig ];
+  nativeBuildInputs = [ autoreconfHook docbook_xsl gtk_doc pkgconfig python ];
+
+  postPatch = ''
+    substituteInPlace src/psl.c --replace bits/stat.h sys/stat.h
+    patchShebangs src/make_dafsa.py
+  '';
 
   preAutoreconf = ''
     mkdir m4
@@ -37,14 +41,18 @@ in stdenv.mkDerivation {
     # The libpsl check phase requires the list's test scripts (tests/) as well
     cp -Rv "${listSources}"/* list
   '';
-  configureFlags = "--disable-static --enable-gtk-doc --enable-man";
+  configureFlags = [
+    "--disable-builtin"
+    "--disable-static"
+    "--enable-gtk-doc"
+    "--enable-man"
+  ];
 
   enableParallelBuilding = true;
 
   doCheck = true;
 
   meta = with stdenv.lib; {
-    inherit version;
     description = "C library for the Publix Suffix List";
     longDescription = ''
       libpsl is a C library for the Publix Suffix List (PSL). A "public suffix"

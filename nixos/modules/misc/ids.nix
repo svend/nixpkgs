@@ -47,6 +47,7 @@
       #floppy = 18; # unused
       #uucp = 19; # unused
       #lp = 20; # unused
+      #proc = 21; # unused
       pulseaudio = 22; # must match `pulseaudio' GID
       gpsd = 23;
       #cdrom = 24; # unused
@@ -136,7 +137,7 @@
       kippo = 108;
       jenkins = 109;
       systemd-journal-gateway = 110;
-      notbit = 111;
+      #notbit = 111; # unused
       ngircd = 112;
       btsync = 113;
       minecraft = 114;
@@ -176,7 +177,6 @@
       seeks = 148;
       prosody = 149;
       i2pd = 150;
-      dnscrypt-proxy = 151;
       systemd-network = 152;
       systemd-resolve = 153;
       systemd-timesync = 154;
@@ -235,6 +235,36 @@
       kibana = 211;
       xtreemfs = 212;
       calibre-server = 213;
+      heapster = 214;
+      bepasty = 215;
+      pumpio = 216;
+      nm-openvpn = 217;
+      mathics = 218;
+      ejabberd = 219;
+      postsrsd = 220;
+      opendkim = 221;
+      dspam = 222;
+      gale = 223;
+      matrix-synapse = 224;
+      rspamd = 225;
+      rmilter = 226;
+      cfdyndns = 227;
+      gammu-smsd = 228;
+      pdnsd = 229;
+      octoprint = 230;
+      avahi-autoipd = 231;
+      nntp-proxy = 232;
+      mjpg-streamer = 233;
+      radicale = 234;
+      hydra-queue-runner = 235;
+      hydra-www = 236;
+      syncthing = 237;
+      mfi = 238;
+      caddy = 239;
+      taskd = 240;
+      factorio = 241;
+      emby = 242;
+      graylog = 243;
 
       # When adding a uid, make sure it doesn't match an existing gid. And don't use uids above 399!
 
@@ -264,6 +294,7 @@
       floppy = 18;
       uucp = 19;
       lp = 20;
+      proc = 21;
       pulseaudio = 22; # must match `pulseaudio' UID
       gpsd = 23;
       cdrom = 24;
@@ -303,7 +334,7 @@
       nslcd = 58;
       scanner = 59;
       nginx = 60;
-      #chrony = 61; # unused
+      chrony = 61;
       systemd-journal = 62;
       smtpd = 63;
       smtpq = 64;
@@ -351,7 +382,7 @@
       kippo = 108;
       jenkins = 109;
       systemd-journal-gateway = 110;
-      notbit = 111;
+      #notbit = 111; # unused
       #ngircd = 112; # unused
       btsync = 113;
       #minecraft = 114; # unused
@@ -391,7 +422,6 @@
       seeks = 148;
       prosody = 149;
       i2pd = 150;
-      dnscrypt-proxy = 151;
       systemd-network = 152;
       systemd-resolve = 153;
       systemd-timesync = 154;
@@ -448,6 +478,28 @@
       #kibana = 211;
       xtreemfs = 212;
       calibre-server = 213;
+      bepasty = 215;
+      pumpio = 216;
+      nm-openvpn = 217;
+      mathics = 218;
+      ejabberd = 219;
+      postsrsd = 220;
+      opendkim = 221;
+      dspam = 222;
+      gale = 223;
+      matrix-synapse = 224;
+      rspamd = 225;
+      rmilter = 226;
+      cfdyndns = 227;
+      pdnsd = 229;
+      octoprint = 230;
+      radicale = 234;
+      syncthing = 237;
+      #mfi = 238; # unused
+      caddy = 239;
+      taskd = 240;
+      factorio = 241;
+      emby = 242;
 
       # When adding a gid, make sure it doesn't match an existing
       # uid. Users and groups with the same name should have equal

@@ -1,40 +1,25 @@
-{ stdenv, fetchurl, ffmpeg, makeDesktopItem, qt4 }:
+{ stdenv, fetchurl, makeDesktopItem, ffmpeg, qt4, qmake4Hook }:
 
-let version = "3.5.2"; in
 stdenv.mkDerivation rec {
   name = "clipgrab-${version}";
+  version = "3.5.6";
 
   src = fetchurl {
-    sha256 = "0prag5liwx2l1b2a5f7cp3jh50qw5iwkf2c07iws9m1j1np3lxgp";
+    sha256 = "0wm6hqaq6ydbvvd0fqkfydxd5h7gf4di7lvq63xgxl4z40jqc25n";
     # The .tar.bz2 "Download" link is a binary blob, the source is the .tar.gz!
     url = "http://download.clipgrab.de/${name}.tar.gz";
   };
 
-  meta = with stdenv.lib; {
-    inherit version;
-    description = "Video downloader for YouTube and other sites";
-    longDescription = ''
-      ClipGrab is a free downloader and converter for YouTube, Vimeo, Metacafe,
-      Dailymotion and many other online video sites. It converts downloaded
-      videos to MPEG4, MP3 or other formats in just one easy step.
-    '';
-    homepage = http://clipgrab.org/;
-    license = licenses.gpl3Plus;
-    platforms = platforms.linux;
-    maintainers = with maintainers; [ nckx ];
-  };
-
   buildInputs = [ ffmpeg qt4 ];
+  nativeBuildInputs = [ qmake4Hook ];
 
   postPatch = stdenv.lib.optionalString (ffmpeg != null) ''
   substituteInPlace converter_ffmpeg.cpp \
-    --replace '"ffmpeg"' '"${ffmpeg}/bin/ffmpeg"' \
-    --replace '"ffmpeg ' '"${ffmpeg}/bin/ffmpeg '
+    --replace '"ffmpeg"' '"${ffmpeg.bin}/bin/ffmpeg"' \
+    --replace '"ffmpeg ' '"${ffmpeg.bin}/bin/ffmpeg '
   '';
 
-  configurePhase = ''
-    qmake clipgrab.pro
-  '';
+  qmakeFlags = [ "clipgrab.pro" ];
 
   enableParallelBuilding = true;
 
@@ -53,4 +38,17 @@ stdenv.mkDerivation rec {
     install -Dm644 icon.png $out/share/pixmaps/clipgrab.png
     cp -r ${desktopItem}/share/applications $out/share
   '';
+
+  meta = with stdenv.lib; {
+    description = "Video downloader for YouTube and other sites";
+    longDescription = ''
+      ClipGrab is a free downloader and converter for YouTube, Vimeo, Metacafe,
+      Dailymotion and many other online video sites. It converts downloaded
+      videos to MPEG4, MP3 or other formats in just one easy step.
+    '';
+    homepage = http://clipgrab.org/;
+    license = licenses.gpl3Plus;
+    platforms = platforms.linux;
+    maintainers = with maintainers; [ nckx ];
+  };
 }

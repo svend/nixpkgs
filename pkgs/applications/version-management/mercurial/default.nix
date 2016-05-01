@@ -1,9 +1,10 @@
 { stdenv, fetchurl, python, makeWrapper, docutils, unzip, hg-git, dulwich
-, guiSupport ? false, tk ? null, hg-crecord ? null, curses
+, guiSupport ? false, tk ? null, curses
 , ApplicationServices, cf-private }:
 
 let
-  version = "3.5.1";
+  # if you bump version, update pkgs.tortoisehg too or ping maintainer
+  version = "3.7.3";
   name = "mercurial-${version}";
 in
 
@@ -12,7 +13,7 @@ stdenv.mkDerivation {
 
   src = fetchurl {
     url = "http://mercurial.selenic.com/release/${name}.tar.gz";
-    sha256 = "1795ia6ghbqwfp4d6bz0qwlvzymh76zdgk2viikrkqq3ldfs8zcr";
+    sha256 = "0c2vkad9piqkggyk8y310rf619qgdfcwswnk3nv21mg2fhnw96f0";
   };
 
   inherit python; # pass it so that the same version can be used in hg2git
@@ -37,13 +38,6 @@ stdenv.mkDerivation {
       WRAP_TK=" --set TK_LIBRARY \"${tk}/lib/${tk.libPrefix}\"
                 --set HG \"$out/bin/hg\"
                 --prefix PATH : \"${tk}/bin\" "
-    '') + (stdenv.lib.optionalString (hg-crecord != null)
-    ''
-      mkdir -p $out/etc/mercurial
-      cat >> $out/etc/mercurial/hgrc << EOF
-      [extensions]
-      crecord=${hg-crecord}/${python.sitePackages}/crecord
-      EOF
     '') +
     ''
       for i in $(cd $out/bin && ls); do

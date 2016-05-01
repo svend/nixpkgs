@@ -1,17 +1,34 @@
-{ stdenv, fetchurl, buildPythonPackage, pythonPackages, slowaes }:
+{ stdenv, fetchurl, pythonPackages }:
 
-buildPythonPackage rec {
+let
+  jsonrpclib = pythonPackages.buildPythonPackage rec {
+    version = "0.1.7";
+    name = "jsonrpclib-${version}";
+    src = fetchurl {
+      url = "mirror://pypi/j/jsonrpclib/${name}.tar.gz";
+      sha256 = "02vgirw2bcgvpcxhv5hf3yvvb4h5wzd1lpjx8na5psdmaffj6l3z";
+    };
+    propagatedBuildInputs = [ pythonPackages.cjson ];
+    meta = {
+      homepage = https://pypi.python.org/pypi/jsonrpclib;
+      license = stdenv.lib.licenses.asl20;
+    };
+  };
+in
+
+pythonPackages.buildPythonApplication rec {
   name = "electrum-${version}";
-  version = "2.5.1";
+  version = "2.6.4";
 
   src = fetchurl {
-    url = "https://download.electrum.org/Electrum-${version}.tar.gz";
-    sha256 = "0wjqf2ifw1ww6iyj0h0i63zjmy0yhmzl91sgc5hc4j2x5bd2c3am";
+    url = "https://download.electrum.org/${version}/Electrum-${version}.tar.gz";
+    sha256 = "0rpqpspmrmgm0bhsnlnhlwhag6zg8hnv5bcw5vkqmv86891kpd9a";
   };
 
   propagatedBuildInputs = with pythonPackages; [
     dns
     ecdsa
+    jsonrpclib
     pbkdf2
     protobuf
     pyasn1
@@ -22,12 +39,25 @@ buildPythonPackage rec {
     requests
     slowaes
     tlslite
+
+    # plugins
+    trezor
+    keepkey
+    # TODO plugins
+    # matplotlib
+    # btchip
+    # amodem
   ];
 
   preInstall = ''
     mkdir -p $out/share
     sed -i 's@usr_share = .*@usr_share = os.getenv("out")+"/share"@' setup.py
     pyrcc4 icons.qrc -o gui/qt/icons_rc.py
+  '';
+
+  doCheck = true;
+  checkPhase = ''
+    $out/bin/electrum help >/dev/null
   '';
 
   meta = with stdenv.lib; {
@@ -39,7 +69,7 @@ buildPythonPackage rec {
       of the blockchain.
     '';
     homepage = https://electrum.org;
-    license = licenses.gpl3;
-    maintainers = with maintainers; [ emery joachifm ];
+    license = licenses.mit;
+    maintainers = with maintainers; [ ehmry joachifm np ];
   };
 }

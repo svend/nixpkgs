@@ -1,11 +1,11 @@
 { stdenv, fetchurl, pythonPackages }:
 
-pythonPackages.buildPythonPackage rec {
+pythonPackages.buildPythonApplication rec {
   name = "httpie-0.9.2";
   namePrefix = "";
 
   src = fetchurl {
-    url = "http://pypi.python.org/packages/source/h/httpie/${name}.tar.gz";
+    url = "mirror://pypi/h/httpie/${name}.tar.gz";
     sha256 = "0s0dsj1iimn17h0xyziwk4kz4ga9s0vy9rhzixh8dna32za84fdg";
   };
 

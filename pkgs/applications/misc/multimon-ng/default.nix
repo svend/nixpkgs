@@ -1,4 +1,4 @@
-{ stdenv, fetchFromGitHub, qt4, libpulseaudio }:
+{ stdenv, fetchFromGitHub, qt4, qmake4Hook, libpulseaudio }:
 let
   version = "1.0.0";
 in
@@ -14,7 +14,7 @@ stdenv.mkDerivation {
 
   buildInputs = [ qt4 libpulseaudio ];
 
-  preBuild = "qmake multimon-ng.pro";
+  nativeBuildInputs = [ qmake4Hook ];
 
   installPhase = ''
     mkdir -p $out/bin
@@ -22,7 +22,7 @@ stdenv.mkDerivation {
   '';
 
   meta = with stdenv.lib; {
-    description = "Multimon is a digital baseband audio protocol decoder.";
+    description = "Multimon is a digital baseband audio protocol decoder";
     longDescription = ''
       multimon-ng a fork of multimon, a digital baseband audio
       protocol decoder for common signaling modes in commercial and

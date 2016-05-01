@@ -46,6 +46,51 @@ let
     '';
   });
 
+  # Collect all interfaces that are defined for a device
+  # as device:interface key:value pairs.
+  wlanDeviceInterfaces =
+    let
+      allDevices = unique (mapAttrsToList (_: v: v.device) cfg.wlanInterfaces);
+      interfacesOfDevice = d: filterAttrs (_: v: v.device == d) cfg.wlanInterfaces;
+    in
+      genAttrs allDevices (d: interfacesOfDevice d);
+
+  # Convert device:interface key:value pairs into a list, and if it exists,
+  # place the interface which is named after the device at the beginning.
+  wlanListDeviceFirst = device: interfaces:
+    if hasAttr device interfaces
+    then mapAttrsToList (n: v: v//{_iName=n;}) (filterAttrs (n: _: n==device) interfaces) ++ mapAttrsToList (n: v: v//{_iName=n;}) (filterAttrs (n: _: n!=device) interfaces)
+    else mapAttrsToList (n: v: v // {_iName = n;}) interfaces;
+
+  # udev script that configures a physical wlan device and adds virtual interfaces
+  wlanDeviceUdevScript = device: interfaceList: pkgs.writeScript "wlan-${device}-udev-script" ''
+    #!${pkgs.stdenv.shell}
+
+    # Change the wireless phy device to a predictable name.
+    if [ -e "/sys/class/net/${device}/phy80211/name" ]; then
+      ${pkgs.iw}/bin/iw phy `${pkgs.coreutils}/bin/cat /sys/class/net/${device}/phy80211/name` set name ${device} || true
+    fi
+
+    # Crate new, virtual interfaces and configure them at the same time
+    ${flip concatMapStrings (drop 1 interfaceList) (i: ''
+    ${pkgs.iw}/bin/iw dev ${device} interface add ${i._iName} type ${i.type} \
+      ${optionalString (i.type == "mesh" && i.meshID != null) "mesh_id ${i.meshID}"} \
+      ${optionalString (i.type == "monitor" && i.flags != null) "flags ${i.flags}"} \
+      ${optionalString (i.type == "managed" && i.fourAddr != null) "4addr ${if i.fourAddr then "on" else "off"}"} \
+      ${optionalString (i.mac != null) "addr ${i.mac}"}
+    '')}
+
+    # Reconfigure and rename the default interface that already exists
+    ${flip concatMapStrings (take 1 interfaceList) (i: ''
+      ${pkgs.iw}/bin/iw dev ${device} set type ${i.type}
+      ${optionalString (i.type == "mesh" && i.meshID != null) "${pkgs.iw}/bin/iw dev ${device} set meshid ${i.meshID}"}
+      ${optionalString (i.type == "monitor" && i.flags != null) "${pkgs.iw}/bin/iw dev ${device} set monitor ${i.flags}"}
+      ${optionalString (i.type == "managed" && i.fourAddr != null) "${pkgs.iw}/bin/iw dev ${device} set 4addr ${if i.fourAddr then "on" else "off"}"}
+      ${optionalString (i.mac != null) "${pkgs.iproute}/bin/ip link set dev ${device} address ${i.mac}"}
+      ${optionalString (device != i._iName) "${pkgs.iproute}/bin/ip link set dev ${device} name ${i._iName}"}
+    '')}
+  '';
+
   # We must escape interfaces due to the systemd interpretation
   subsystemDevice = interface:
     "sys-subsystem-net-devices-${escapeSystemdPath interface}.device";
@@ -310,6 +355,7 @@ in
     };
 
     networking.nameservers = mkOption {
+      type = types.listOf types.str;
       default = [];
       example = ["130.161.158.4" "130.161.33.17"];
       description = ''
@@ -345,6 +391,7 @@ in
     };
 
     networking.localCommands = mkOption {
+      type = types.str;
       default = "";
       example = "text=anything; echo You can put $text here.";
       description = ''
@@ -476,7 +523,7 @@ in
 
     networking.bonds = mkOption {
       default = { };
-      example = {
+      example = literalExample {
         bond0 = {
           interfaces = [ "eth0" "wlan0" ];
           miimon = 100;
@@ -551,7 +598,7 @@ in
     networking.macvlans = mkOption {
       type = types.attrsOf types.optionSet;
       default = { };
-      example = {
+      example = literalExample {
         wan = {
           interface = "enp2s0";
           mode = "vepa";
@@ -582,7 +629,7 @@ in
     networking.sits = mkOption {
       type = types.attrsOf types.optionSet;
       default = { };
-      example = {
+      example = literalExample {
         hurricane = {
           remote = "10.0.0.1";
           local = "10.0.0.22";
@@ -641,7 +688,7 @@ in
 
     networking.vlans = mkOption {
       default = { };
-      example = {
+      example = literalExample {
         vlan0 = {
           id = 3;
           interface = "enp3s0";
@@ -680,7 +727,7 @@ in
 
     networking.wlanInterfaces = mkOption {
       default = { };
-      example = {
+      example = literalExample {
         "wlan-station0" = {
             device = "wlp6s0";
         };
@@ -835,10 +882,8 @@ in
       optionalString hasBonds "options bonding max_bonds=0";
 
     boot.kernel.sysctl = {
-      "net.net.ipv4.conf.all.promote_secondaries" = true;
       "net.ipv6.conf.all.disable_ipv6" = mkDefault (!cfg.enableIPv6);
       "net.ipv6.conf.default.disable_ipv6" = mkDefault (!cfg.enableIPv6);
-      "net.ipv4.conf.all_forwarding" = mkDefault (any (i: i.proxyARP) interfaces);
       "net.ipv6.conf.all.forwarding" = mkDefault (any (i: i.proxyARP) interfaces);
     } // listToAttrs (concatLists (flip map (filter (i: i.proxyARP) interfaces)
         (i: flip map [ "4" "6" ] (v: nameValuePair "net.ipv${v}.conf.${i.name}.proxy_arp" true))
@@ -880,7 +925,7 @@ in
         pkgs.nettools
         pkgs.openresolv
       ]
-      ++ optionals (!config.boot.isContainer) [
+      ++ optionals config.networking.wireless.enable [
         pkgs.wirelesstools # FIXME: obsolete?
         pkgs.iw
         pkgs.rfkill

@@ -10,10 +10,13 @@ stdenv.mkDerivation rec {
 
   patches = [ ./upstream.patch ];
 
+  outputs = [ "dev" "out" "doc" ];
+
   # mpfr.h requires gmp.h
   propagatedBuildInputs = [ gmp ];
 
   configureFlags =
+    stdenv.lib.optional stdenv.isSunOS "--disable-thread-safe" ++
     stdenv.lib.optional stdenv.is64bit "--with-pic";
 
   doCheck = true;

@@ -1,6 +1,5 @@
-{ stdenv, fetchurl, fetchpatch, pkgconfig, intltool, flex, bison, autoreconfHook, substituteAll
-, python, libxml2Python, file, expat, makedepend, pythonPackages
-, libdrm, xorg, wayland, udev, llvmPackages, libffi, libomxil-bellagio
+{ stdenv, fetchurl, fetchpatch, pkgconfig, intltool, autoreconfHook, substituteAll
+, file, expat, libdrm, xorg, wayland, libudev, llvmPackages, libffi, libomxil-bellagio
 , libvdpau, libelf, libva
 , grsecEnabled
 , enableTextureFloats ? false # Texture floats are patented, see docs/patents.txt
@@ -21,22 +20,25 @@ else
   - libOSMesa is in $osmesa (~4 MB)
 */
 
+with { inherit (stdenv.lib) optional optionalString; };
+
 let
-  version = "10.6.8";
+  version = "11.1.3";
   # this is the default search path for DRI drivers
-  driverLink = "/run/opengl-driver" + stdenv.lib.optionalString stdenv.isi686 "-32";
+  driverLink = "/run/opengl-driver" + optionalString stdenv.isi686 "-32";
 in
-with { inherit (stdenv.lib) optional optionals optionalString; };
 
 stdenv.mkDerivation {
   name = "mesa-noglu-${version}";
 
   src =  fetchurl {
     urls = [
-      "https://launchpad.net/mesa/trunk/${version}/+download/mesa-${version}.tar.xz"
       "ftp://ftp.freedesktop.org/pub/mesa/${version}/mesa-${version}.tar.xz"
+      (with stdenv.lib; ''ftp://ftp.freedesktop.org/pub/mesa/older-versions/''
+        + head (splitString "." version) + ''.x/${version}/mesa-${version}.tar.xz'')
+      "https://launchpad.net/mesa/trunk/${version}/+download/mesa-${version}.tar.xz"
     ];
-    sha256 = "e36ee5ceeadb3966fb5ce5b4cf18322dbb76a4f075558ae49c3bba94f57d58fd";
+    sha256 = "51f6658a214d75e4d9f05207586d7ed56ebba75c6b10841176fb6675efa310ac";
   };
 
   prePatch = "patchShebangs .";
@@ -48,7 +50,7 @@ stdenv.mkDerivation {
   ] ++ optional stdenv.isLinux
       (substituteAll {
         src = ./dlopen-absolute-paths.diff;
-        inherit udev;
+        libudev = libudev.out;
       });
 
   postPatch = ''
@@ -56,7 +58,7 @@ stdenv.mkDerivation {
       --replace _EGL_DRIVER_SEARCH_DIR '"${driverLink}"'
   '';
 
-  outputs = ["out" "drivers" "osmesa"];
+  outputs = [ "dev" "out" "drivers" "osmesa" ];
 
   configureFlags = [
     "--sysconfdir=/etc"
@@ -84,12 +86,16 @@ stdenv.mkDerivation {
     # TODO: Figure out how to enable opencl without having a runtime dependency on clang
     "--disable-opencl"
 
-    "--with-gallium-drivers=svga,i915,ilo,r300,r600,radeonsi,nouveau,freedreno,swrast"
+    (if "armv7l-linux" == stdenv.system
+      then null
+      else "--with-gallium-drivers=svga,i915,ilo,r300,r600,radeonsi,nouveau,freedreno,swrast")
     "--enable-shared-glapi"
     "--enable-sysfs"
     "--enable-driglx-direct" # seems enabled anyway
     "--enable-glx-tls"
-    "--with-dri-drivers=i915,i965,nouveau,radeon,r200,swrast"
+    (if "armv7l-linux" == stdenv.system
+      then "--with-dri-drivers="
+      else "--with-dri-drivers=i915,i965,nouveau,radeon,r200,swrast")
     "--with-egl-platforms=x11,wayland,drm"
 
     "--enable-gallium-llvm"
@@ -97,17 +103,17 @@ stdenv.mkDerivation {
   ] ++ optional enableTextureFloats "--enable-texture-float"
     ++ optional grsecEnabled "--enable-glx-rts"; # slight performance degradation, enable only for grsec
 
-  nativeBuildInputs = [ pkgconfig python makedepend file flex bison pythonPackages.Mako ];
+  nativeBuildInputs = [ pkgconfig file ];
 
   propagatedBuildInputs = with xorg; [ libXdamage libXxf86vm ]
-    ++ optionals stdenv.isLinux [ libdrm ];
+    ++ optional stdenv.isLinux libdrm;
 
   buildInputs = with xorg; [
-    autoreconfHook intltool expat libxml2Python llvmPackages.llvm
+    autoreconfHook intltool expat llvmPackages.llvm
     glproto dri2proto dri3proto presentproto
     libX11 libXext libxcb libXt libXfixes libxshmfence
     libffi wayland libvdpau libelf libXvMC /* libomxil-bellagio libva */
-  ] ++ optional stdenv.isLinux udev;
+  ] ++ optional stdenv.isLinux libudev;
 
   enableParallelBuilding = true;
   doCheck = false;
@@ -127,43 +133,42 @@ stdenv.mkDerivation {
       $out/lib/vdpau \
       $out/lib/libxatracker*
 
-    mkdir -p {$osmesa,$drivers}/lib/pkgconfig
+    mkdir -p {$osmesa,$drivers}/lib/
     mv -t $osmesa/lib/ \
       $out/lib/libOSMesa*
-
-    mv -t $drivers/lib/pkgconfig/ \
-      $out/lib/pkgconfig/xatracker.pc
-
-    mv -t $osmesa/lib/pkgconfig/ \
-      $out/lib/pkgconfig/osmesa.pc
 
   '' + /* now fix references in .la files */ ''
     sed "/^libdir=/s,$out,$osmesa," -i \
       $osmesa/lib/libOSMesa*.la
 
-  '' + /* work around bug #529, but maybe $drivers should also be patchelf-ed */ ''
-    find $drivers/ $osmesa/ -type f -executable -print0 | xargs -0 strip -S || true
+  '' + /* set the default search path for DRI drivers; used e.g. by X server */ ''
+    substituteInPlace "$dev/lib/pkgconfig/dri.pc" --replace '$(drivers)' "${driverLink}"
+  '' + /* move vdpau drivers to $drivers/lib, so they are found */ ''
+    mv "$drivers"/lib/vdpau/* "$drivers"/lib/ && rmdir "$drivers"/lib/vdpau
+  '';
+  #ToDo: @vcunat isn't sure if drirc will be found when in $out/etc/, but it doesn't seem important ATM */
 
-  '' + /* add RPATH so the drivers can find the moved libgallium and libdricore9 */ ''
+  postFixup =
+    # add RPATH so the drivers can find the moved libgallium and libdricore9
+    # moved here to avoid problems with stripping patchelfed files
+  ''
     for lib in $drivers/lib/*.so* $drivers/lib/*/*.so*; do
       if [[ ! -L "$lib" ]]; then
         patchelf --set-rpath "$(patchelf --print-rpath $lib):$drivers/lib" "$lib"
       fi
     done
-  '' + /* set the default search path for DRI drivers; used e.g. by X server */ ''
-    substituteInPlace "$out/lib/pkgconfig/dri.pc" --replace '$(drivers)' "${driverLink}"
-  '' + /* move vdpau drivers to $drivers/lib, so they are found */ ''
-    mv "$drivers"/lib/vdpau/* "$drivers"/lib/ && rmdir "$drivers"/lib/vdpau
   '';
-  #ToDo: @vcunat isn't sure if drirc will be found when in $out/etc/, but it doesn't seem important ATM
+  # ToDo + /* check $out doesn't depend on llvm */ ''
+  # builder failures are ignored for some reason
+  #   grep -qv '${llvmPackages.llvm}' -R "$out"
 
   passthru = { inherit libdrm version driverLink; };
 
-  meta = {
+  meta = with stdenv.lib; {
     description = "An open source implementation of OpenGL";
     homepage = http://www.mesa3d.org/;
-    license = "bsd";
-    platforms = stdenv.lib.platforms.mesaPlatforms;
-    maintainers = with stdenv.lib.maintainers; [ eduarrrd simons vcunat ];
+    license = licenses.mit; # X11 variant, in most files
+    platforms = platforms.mesaPlatforms;
+    maintainers = with maintainers; [ eduarrrd simons vcunat ];
   };
 }

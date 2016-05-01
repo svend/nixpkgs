@@ -1,23 +1,30 @@
 {stdenv, fetchurl, flvstreamer, ffmpeg, makeWrapper, perl, buildPerlPackage, perlPackages, vlc, rtmpdump}:
 buildPerlPackage {
-  name = "get_iplayer-2.86";
+  name = "get_iplayer-2.94";
 
   buildInputs = [makeWrapper perl];
-  propagatedBuildInputs = with perlPackages; [HTMLParser HTTPCookies LWP];
+  propagatedBuildInputs = with perlPackages; [HTMLParser HTTPCookies LWP XMLSimple];
 
   preConfigure = "touch Makefile.PL";
   doCheck = false;
+  outputs = [ "out" "man" ];
+
+  patchPhase = ''
+    sed -e 's|^update_script|#update_script|' \
+        -e '/WARNING.*updater/d' \
+        -i get_iplayer
+  '';
 
   installPhase = '' 
-    mkdir -p $out/bin
+    mkdir -p $out/bin $out/share/man/man1
     cp get_iplayer $out/bin
-    sed -i 's|^update_script|#update_script|' $out/bin/get_iplayer
-    wrapProgram $out/bin/get_iplayer --suffix PATH : ${ffmpeg}/bin:${flvstreamer}/bin:${vlc}/bin:${rtmpdump}/bin --prefix PERL5LIB : $PERL5LIB
-  '';  
+    wrapProgram $out/bin/get_iplayer --suffix PATH : ${ffmpeg.bin}/bin:${flvstreamer}/bin:${vlc}/bin:${rtmpdump}/bin --prefix PERL5LIB : $PERL5LIB
+    cp get_iplayer.1 $out/share/man/man1
+  '';
   
   src = fetchurl {
-    url = ftp://ftp.infradead.org/pub/get_iplayer/get_iplayer-2.86.tar.gz;
-    sha256 = "0zhcw0ikxrrz1jayx7jjgxmdf7gzk4pmzfvpraxmv64xwzgc1sc1";
+    url = ftp://ftp.infradead.org/pub/get_iplayer/get_iplayer-2.94.tar.gz;
+    sha256 = "16p0bw879fl8cs6rp37g1hgrcai771z6rcqk2nvm49kk39dx1zi4";
   };
   
 }

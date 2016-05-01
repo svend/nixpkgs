@@ -1,29 +1,43 @@
 { stdenv, fetchurl, python, pyqt5, sip_4_16, poppler_utils, pkgconfig, libpng
-, imagemagick, libjpeg, fontconfig, podofo, qt5, icu, sqlite
-, pil, makeWrapper, unrar, chmlib, pythonPackages, xz, libusb1, libmtp
+, imagemagick, libjpeg, fontconfig, podofo, qtbase, qmakeHook, icu, sqlite
+, makeWrapper, unrarSupport ? false, chmlib, pythonPackages, xz, libusb1, libmtp
 , xdg_utils
 }:
 
 stdenv.mkDerivation rec {
-  name = "calibre-${meta.version}";
+  version = "2.55.0";
+  name = "calibre-${version}";
 
   src = fetchurl {
-    url = "https://github.com/kovidgoyal/calibre/releases/download/v${meta.version}/${name}.tar.xz";
-    sha256 = "0d1sn2wc6h3c5girllsmnqg3jhmkal693ww3j6cj1mz2rraw45xr";
+    url = "http://download.calibre-ebook.com/${version}/${name}.tar.xz";
+    sha256 = "12412d5vjp141xp5qvif50fskd1vsmr15h956z3bh6j99n8z5953";
   };
 
   inherit python;
 
-  patchPhase = ''
+  patches = [
+    # Patch from Debian that switches the version update change from
+    # enabled by default to disabled by default.
+    ./no_updates_dialog.patch
+  ] ++ stdenv.lib.optional (!unrarSupport) ./dont_build_unrar_plugin.patch;
+
+  prePatch = ''
     sed -i "/pyqt_sip_dir/ s:=.*:= '${pyqt5}/share/sip':"  \
       setup/build_environment.py
   '';
 
-  nativeBuildInputs = [ makeWrapper pkgconfig ];
+  dontUseQmakeConfigure = true;
+  # hack around a build problem
+  preBuild = ''
+    mkdir -p ../tmp.*/lib
+    ln -s '${qtbase.out}/lib/libQt5PlatformSupport.a' ../tmp.*/lib/
+  '';
+
+  nativeBuildInputs = [ makeWrapper pkgconfig qmakeHook ];
 
   buildInputs =
     [ python pyqt5 sip_4_16 poppler_utils libpng imagemagick libjpeg
-      fontconfig podofo qt5.base pil chmlib icu sqlite libusb1 libmtp xdg_utils
+      fontconfig podofo qtbase chmlib icu sqlite libusb1 libmtp xdg_utils
       pythonPackages.mechanize pythonPackages.lxml pythonPackages.dateutil
       pythonPackages.cssutils pythonPackages.beautifulsoup pythonPackages.pillow
       pythonPackages.sqlite3 pythonPackages.netifaces pythonPackages.apsw
@@ -33,11 +47,11 @@ stdenv.mkDerivation rec {
   installPhase = ''
     export HOME=$TMPDIR/fakehome
     export POPPLER_INC_DIR=${poppler_utils}/include/poppler
-    export POPPLER_LIB_DIR=${poppler_utils}/lib
+    export POPPLER_LIB_DIR=${poppler_utils.out}/lib
     export MAGICK_INC=${imagemagick}/include/ImageMagick
     export MAGICK_LIB=${imagemagick}/lib
-    export FC_INC_DIR=${fontconfig}/include/fontconfig
-    export FC_LIB_DIR=${fontconfig}/lib
+    export FC_INC_DIR=${fontconfig.dev}/include/fontconfig
+    export FC_LIB_DIR=${fontconfig.lib}/lib
     export PODOFO_INC_DIR=${podofo}/include/podofo
     export PODOFO_LIB_DIR=${podofo}/lib
     export SIP_BIN=${sip_4_16}/bin/sip
@@ -52,17 +66,16 @@ stdenv.mkDerivation rec {
 
     for a in $out/bin/*; do
       wrapProgram $a --prefix PYTHONPATH : $PYTHONPATH \
-                     --prefix LD_LIBRARY_PATH : ${unrar}/lib \
-                     --prefix PATH : ${poppler_utils}/bin
+                     --prefix PATH : ${poppler_utils.out}/bin
     done
   '';
 
   meta = with stdenv.lib; {
-    version = "2.44.0";
     description = "Comprehensive e-book software";
     homepage = http://calibre-ebook.com;
-    license = licenses.gpl3;
+    license = with licenses; if unrarSupport then unfreeRedistributable else gpl3;
     maintainers = with maintainers; [ viric iElectric pSub AndersonTorres ];
     platforms = platforms.linux;
+    inherit version;
   };
 }

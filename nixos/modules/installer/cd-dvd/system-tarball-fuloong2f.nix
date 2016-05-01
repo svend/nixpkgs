@@ -52,8 +52,7 @@ in
   # Include some utilities that are useful for installing or repairing
   # the system.
   environment.systemPackages =
-    [ pkgs.subversion # for nixos-checkout
-      pkgs.w3m # needed for the manual anyway
+    [ pkgs.w3m # needed for the manual anyway
       pkgs.testdisk # useful for repairing boot problems
       pkgs.mssys # for writing Microsoft boot sectors / MBRs
       pkgs.parted
@@ -74,7 +73,7 @@ in
 
       # Tools to create / manipulate filesystems.
       pkgs.ntfsprogs # for resizing NTFS partitions
-      pkgs.btrfsProgs
+      pkgs.btrfs-progs
       pkgs.jfsutils
 
       # Some compression/archiver tools.
@@ -149,8 +148,7 @@ in
   # not be started by default on the installation CD because the
   # default root password is empty.
   services.openssh.enable = true;
-
-  jobs.openssh.startOn = lib.mkOverride 50 "";
+  systemd.services.openssh.wantedBy = lib.mkOverride 50 [];
 
   boot.loader.grub.enable = false;
   boot.loader.generationsDir.enable = false;

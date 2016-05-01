@@ -1,6 +1,6 @@
 { stdenv, fetchurl, python, xrandr, pythonPackages }:
 
-pythonPackages.buildPythonPackage rec {
+pythonPackages.buildPythonApplication rec {
   name = "arandr-0.1.8";
 
   src = fetchurl {
@@ -8,15 +8,14 @@ pythonPackages.buildPythonPackage rec {
     sha256 = "0d574mbmhaqmh7kivaryj2hpghz6xkvic9ah43s1hf385y7c33kd";
   };
 
-  buildPhase = ''
+  patchPhase = ''
     rm -rf data/po/*
-    python setup.py build
   '';
 
   # no tests
   doCheck = false;
 
-  buildInputs = [pythonPackages.docutils];
+  buildInputs = [ pythonPackages.docutils ];
   propagatedBuildInputs = [ xrandr pythonPackages.pygtk ];
 
   meta = {

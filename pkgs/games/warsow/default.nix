@@ -37,7 +37,7 @@ stdenv.mkDerivation rec {
     cp -rv basewsw libs $dest
     # Since 1.03 some modules are _always_ downloaded from server, thus
     makeWrapper $dest/warsow $out/bin/warsow \
-      --suffix-each LD_LIBRARY_PATH ':' "${freetype}/lib"
+      --suffix-each LD_LIBRARY_PATH ':' "${freetype.out}/lib"
     makeWrapper $dest/wsw_server $out/bin/wsw_server
     makeWrapper $dest/wswtv_server $out/bin/wswtv_server
   '';
@@ -58,6 +58,6 @@ stdenv.mkDerivation rec {
     # Engine is under GPLv2, everything else is under
     license = licenses.unfreeRedistributable;
     maintainers = with maintainers; [ astsmtl ];
-    platforms = with platforms; linux;
+    platforms = platforms.linux;
   };
 }

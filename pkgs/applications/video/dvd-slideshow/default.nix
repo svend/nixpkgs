@@ -1,10 +1,12 @@
-{ stdenv, fetchurl, writeScript, cdrtools, dvdauthor, ffmpeg, imagemagick, lame, mjpegtools, sox, transcode, vorbisTools }:
+{ stdenv, lib, fetchurl, writeScript, cdrtools, dvdauthor, ffmpeg, imagemagick, lame, mjpegtools, sox, transcode, vorbis-tools }:
 
 let
+  binPath = lib.makeBinPath [ cdrtools dvdauthor ffmpeg imagemagick lame mjpegtools sox transcode vorbis-tools ];
+
   wrapper = writeScript "dvd-slideshow.sh" ''
       #!/bin/bash
       # wrapper script for dvd-slideshow programs
-      export PATH=${cdrtools}/bin:${dvdauthor}/bin:${ffmpeg}/bin:${imagemagick}/bin:${lame}/bin:${mjpegtools}/bin:${sox}/bin:${transcode}/bin:${vorbisTools}/bin:$PATH
+      export PATH=${binPath}:$PATH
 
       dir=`dirname "$0"`
       exe=`basename "$0"`

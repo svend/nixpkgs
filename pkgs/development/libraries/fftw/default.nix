@@ -14,13 +14,17 @@ stdenv.mkDerivation rec {
     sha256 = "10h9mzjxnwlsjziah4lri85scc05rlajz39nqf3mbh4vja8dw34g";
   };
 
+  outputs = [ "dev" "out" "doc" ]; # it's dev-doc only
+  outputBin = "dev"; # fftw-wisdom
+
   configureFlags =
     [ "--enable-shared" "--disable-static"
       "--enable-threads"
     ]
     ++ optional (precision != "double") "--enable-${precision}"
     # all x86_64 have sse2
-    ++ optional stdenv.isx86_64 "--enable-sse2"
+    # however, not all float sizes fit
+    ++ optional (stdenv.isx86_64 && (precision == "single" || precision == "double") )  "--enable-sse2"
     ++ optional stdenv.cc.isGNU "--enable-openmp";
 
   enableParallelBuilding = true;

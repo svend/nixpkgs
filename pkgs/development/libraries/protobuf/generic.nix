@@ -17,6 +17,8 @@ stdenv.mkDerivation rec {
       --replace 'tmpnam(b)' '"'$TMPDIR'/foo"'
   '';
 
+  outputs = [ "out" "lib" ];
+
   buildInputs = [ autoreconfHook zlib ];
 
   doCheck = true;
@@ -32,7 +34,7 @@ stdenv.mkDerivation rec {
 
     license = "mBSD";
 
-    homepage = http://code.google.com/p/protobuf/;
+    homepage = https://developers.google.com/protocol-buffers/;
   };
 
   passthru.version = version;

@@ -11,7 +11,7 @@ let
 
 in
 
-pythonPackages.buildPythonPackage rec {
+pythonPackages.buildPythonApplication rec {
   name = "pytrainer-${version}";
   version = "1.10.0";
 
@@ -27,12 +27,12 @@ pythonPackages.buildPythonPackage rec {
   # string, which allows setting an explicit MIME type.
   patches = [ ./pytrainer-webkit.patch ];
 
-  pythonPath = with pythonPackages; [
+  propagatedBuildInputs = with pythonPackages; [
     dateutil lxml matplotlibGtk pyGtkGlade pywebkitgtk
-    sqlalchemy sqlalchemy_migrate
+    sqlalchemy_migrate
   ];
 
-  buildInputs = [gpsbabel sqlite] ++ pythonPath;
+  buildInputs = [ gpsbabel sqlite ];
 
   # This package contains no binaries to patch or strip.
   dontPatchELF = true;

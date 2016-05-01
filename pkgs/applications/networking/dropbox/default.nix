@@ -20,11 +20,11 @@
 
 let
   # NOTE: When updating, please also update in current stable, as older versions stop working
-  version = "3.10.9";
+  version = "3.18.1";
   sha256 =
     {
-      "x86_64-linux" = "1kg6x1z8if63s15464xiz59qwncb5xhv108icicb5s2yhjzzyi29";
-      "i686-linux" = "172x9f7x425w5ljr6xa0srvv19qysmvr3gs3jkbmnxfwrfxyxf79";
+      "x86_64-linux" = "1qdahr8xzk3zrrv89335l3aa2gfgjn1ymfixj9zgipv34grkjghm";
+      "i686-linux" = "015bjkr2dwyac410i398qm1v60rqln539wcj5f25q776haycbcji";
     }."${stdenv.system}" or (throw "system ${stdenv.system} not supported");
 
   arch =
@@ -36,7 +36,7 @@ let
   # relative location where the dropbox libraries are stored
   appdir = "opt/dropbox";
 
-  ldpath = stdenv.lib.makeSearchPath "lib"
+  ldpath = stdenv.lib.makeLibraryPath
     [
       dbus_libs gcc.cc glib libdrm libffi libICE libSM libX11 libXmu
       ncurses popt qtbase qtdeclarative qtwebkit zlib
@@ -45,10 +45,11 @@ let
   desktopItem = makeDesktopItem {
     name = "dropbox";
     exec = "dropbox";
-    comment = "Online directories";
+    comment = "Sync your files across computers and to the web";
     desktopName = "Dropbox";
-    genericName = "Online storage";
-    categories = "Application;Internet;";
+    genericName = "File Synchronizer";
+    categories = "Network;FileTransfer;";
+    startupNotify = "false";
   };
 
 in stdenv.mkDerivation {

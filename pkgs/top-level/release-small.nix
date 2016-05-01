@@ -1,7 +1,7 @@
 /* A small release file, with few packages to be built.  The aim is to reduce
    the load on Hydra when testing the `stdenv-updates' branch. */
 
-{ nixpkgs ? { outPath = (import ./all-packages.nix {}).lib.cleanSource ../..; revCount = 1234; shortRev = "abcdef"; }
+{ nixpkgs ? { outPath = (import ./../.. {}).lib.cleanSource ../..; revCount = 1234; shortRev = "abcdef"; }
 , supportedSystems ? [ "x86_64-linux" "i686-linux" "x86_64-darwin" ]
 }:
 
@@ -71,7 +71,6 @@ with import ./release-lib.nix { inherit supportedSystems; };
   iana_etc = linux;
   icewm = linux;
   idutils = all;
-  ifplugd = linux;
   inetutils = linux;
   iputils = linux;
   jnettop = linux;
@@ -96,7 +95,7 @@ with import ./release-lib.nix { inherit supportedSystems; };
   lynx = linux;
   lzma = linux;
   man = linux;
-  manpages = linux;
+  man-pages = linux;
   mc = all;
   mcabber = linux;
   mcron = linux;
@@ -106,13 +105,11 @@ with import ./release-lib.nix { inherit supportedSystems; };
   mingetty = linux;
   mk = linux;
   mktemp = all;
-  module_init_tools = linux;
   mono = linux;
   monotone = linux;
   mpg321 = linux;
   mutt = linux;
   mysql = linux;
-  ncat = linux;
   netcat = all;
   nfs-utils = linux;
   nix = all;
@@ -130,7 +127,6 @@ with import ./release-lib.nix { inherit supportedSystems; };
   perl = all;
   pkgconfig = all;
   pmccabe = linux;
-  policykit = linux;
   portmap = linux;
   procps = linux;
   python = allBut cygwin;
@@ -170,7 +166,7 @@ with import ./release-lib.nix { inherit supportedSystems; };
   upstart = linux;
   usbutils = linux;
   utillinux = linux;
-  utillinuxCurses = linux;
+  utillinuxMinimal = linux;
   w3m = all;
   webkit = linux;
   wget = all;

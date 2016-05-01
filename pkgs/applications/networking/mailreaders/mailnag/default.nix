@@ -1,9 +1,9 @@
-{ stdenv, buildPythonPackage, fetchurl, gettext, gtk3, pythonPackages
+{ stdenv, buildPythonApplication, fetchurl, gettext, gtk3, pythonPackages
 , gdk_pixbuf, libnotify, gst_all_1
 , libgnome_keyring3 ? null, networkmanager ? null
 }:
 
-buildPythonPackage rec {
+buildPythonApplication rec {
   name = "mailnag-${version}";
   version = "1.1.0";
 
@@ -11,12 +11,6 @@ buildPythonPackage rec {
     url = "https://github.com/pulb/mailnag/archive/v${version}.tar.gz";
     sha256 = "0li4kvxjmbz3nqg6bysgn2wdazqrd7gm9fym3rd7148aiqqwa91r";
   };
-
-  # Sometimes the generated output isn't identical. It seems like there's a
-  # race condtion while patching the Mailnag/commons/dist_cfg.py file. This is
-  # a small workaround to produce deterministic builds.
-  # For more information see https://github.com/NixOS/nixpkgs/pull/8279
-  setupPyBuildFlags = [ "--build-base=$PWD" ];
 
   buildInputs = [
     gettext gtk3 pythonPackages.pygobject3 pythonPackages.dbus

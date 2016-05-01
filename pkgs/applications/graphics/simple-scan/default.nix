@@ -1,30 +1,31 @@
-{ stdenv, fetchurl, cairo, colord, glib, gtk3, gusb, intltool, itstool, libusb
-, libxml2, makeWrapper, pkgconfig, saneBackends, systemd, vala }:
+{ stdenv, fetchurl, cairo, colord, glib, gtk3, gusb, intltool, itstool
+, libusb1, libxml2, pkgconfig, sane-backends, vala, wrapGAppsHook }:
 
-let version = "3.19.1"; in
 stdenv.mkDerivation rec {
   name = "simple-scan-${version}";
+  version = "3.21.1";
 
   src = fetchurl {
-    sha256 = "1d2a8cncq36ly60jpz0fzdw1lgxynl6lyrlw0q66yijlxqn81ynr";
-    url = "https://launchpad.net/simple-scan/3.19/${version}/+download/${name}.tar.xz";
+    sha256 = "00w206isni8m8qd9m8x0644s1gqg11pvgnw6zav33b0bs2h2kk79";
+    url = "https://launchpad.net/simple-scan/3.21/${version}/+download/${name}.tar.xz";
   };
 
-  buildInputs = [ cairo colord glib gusb gtk3 libusb libxml2 saneBackends
-    systemd vala ];
-  nativeBuildInputs = [ intltool itstool makeWrapper pkgconfig ];
+  buildInputs = [ cairo colord glib gusb gtk3 libusb1 libxml2 sane-backends
+    vala ];
+  nativeBuildInputs = [ intltool itstool pkgconfig wrapGAppsHook ];
+
+  configureFlags = [ "--disable-packagekit" ];
+
+  preBuild = ''
+    # Clean up stale .c files referencing packagekit headers as of 3.20.0:
+    make clean
+  '';
 
   enableParallelBuilding = true;
 
   doCheck = true;
 
-  preFixup = ''
-    wrapProgram "$out/bin/simple-scan" \
-      --prefix XDG_DATA_DIRS : "$GSETTINGS_SCHEMAS_PATH"
-  '';
-
   meta = with stdenv.lib; {
-    inherit version;
     description = "Simple scanning utility";
     longDescription = ''
       A really easy way to scan both documents and photos. You can crop out the

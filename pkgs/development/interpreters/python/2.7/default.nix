@@ -22,11 +22,11 @@ with stdenv.lib;
 
 let
   majorVersion = "2.7";
-  version = "${majorVersion}.10";
+  version = "${majorVersion}.11";
 
   src = fetchurl {
     url = "http://www.python.org/ftp/python/${version}/Python-${version}.tar.xz";
-    sha256 = "1h7zbrf9pkj29hlm18b10548ch9757f75m64l47sy75rh43p7lqw";
+    sha256 = "0iiz844riiznsyhhyy962710pz228gmhv8qi3yk4w4jhmx2lqawn";
   };
 
   patches =
@@ -97,7 +97,14 @@ let
         ] ++ optionals x11Support [ tcl tk xlibsWrapper libX11 ]
     )
     ++ optional zlibSupport zlib
-    ++ optionals stdenv.isDarwin [ CF configd ];
+    ++ optional stdenv.isDarwin CF;
+
+  propagatedBuildInputs = optional stdenv.isDarwin configd;
+
+  mkPaths = paths: {
+    C_INCLUDE_PATH = concatStringsSep ":" (map (p: "${p.dev or p}/include") paths);
+    LIBRARY_PATH = concatStringsSep ":" (map (p: "${p.lib or (p.out or p)}/lib") paths);
+  };
 
   # Build the basic Python interpreter without modules that have
   # external dependencies.
@@ -105,12 +112,11 @@ let
     name = "python-${version}";
     pythonVersion = majorVersion;
 
-    inherit majorVersion version src patches buildInputs preConfigure
-            configureFlags;
+    inherit majorVersion version src patches buildInputs propagatedBuildInputs
+            preConfigure configureFlags;
 
     LDFLAGS = stdenv.lib.optionalString (!stdenv.isDarwin) "-lgcc_s";
-    C_INCLUDE_PATH = concatStringsSep ":" (map (p: "${p}/include") buildInputs);
-    LIBRARY_PATH = concatStringsSep ":" (map (p: "${p}/lib") buildInputs);
+    inherit (mkPaths buildInputs) C_INCLUDE_PATH LIBRARY_PATH;
 
     NIX_CFLAGS_COMPILE = optionalString stdenv.isDarwin "-msse2";
     DETERMINISTIC_BUILD = 1;
@@ -135,7 +141,9 @@ let
 
         paxmark E $out/bin/python${majorVersion}
 
-        ${ optionalString includeModules "$out/bin/python ./setup.py build_ext"}
+        ${optionalString includeModules "$out/bin/python ./setup.py build_ext"}
+
+        rm "$out"/lib/python*/plat-*/regen # refers to glibc.dev
       '';
 
     passthru = rec {
@@ -184,8 +192,7 @@ let
 
       buildInputs = [ python ] ++ deps;
 
-      C_INCLUDE_PATH = concatStringsSep ":" (map (p: "${p}/include") buildInputs);
-      LIBRARY_PATH = concatStringsSep ":" (map (p: "${p}/lib") buildInputs);
+      inherit (mkPaths buildInputs) C_INCLUDE_PATH LIBRARY_PATH;
 
       # non-python gdbm has a libintl dependency on i686-cygwin, not on x86_64-cygwin
       buildPhase = (if (stdenv.system == "i686-cygwin" && moduleName == "gdbm") then ''

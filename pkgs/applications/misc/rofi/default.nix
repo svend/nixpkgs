@@ -1,24 +1,30 @@
-{ stdenv, fetchurl, autoconf, automake, pkgconfig
-, libX11, libXinerama, libXft, pango, cairo
+{ stdenv, fetchurl, autoreconfHook, pkgconfig
+, libX11, libxkbcommon, pango, cairo, glib
+, libxcb, xcbutil, xcbutilwm, which, git
 , libstartup_notification, i3Support ? false, i3
 }:
 
 stdenv.mkDerivation rec {
   name = "rofi-${version}";
-  version = "0.15.10";
+  version = "1.0.0";
 
   src = fetchurl {
-    url = "https://github.com/DaveDavenport/rofi/archive/${version}.tar.gz";
-    sha256 = "0wwdc9dj8qfmqv4pcllq78h38hqmz9s3hqf71fsk71byiid69ln9";
+    url = "https://github.com/DaveDavenport/rofi/releases/download/${version}/${name}.tar.xz";
+    sha256 = "0ard95pjgykafm5ga8lfy7x206f07lrc6kara5s9irlhdgblq2m5";
   };
 
-  buildInputs = [ autoconf automake pkgconfig libX11 libXinerama libXft pango
-                  cairo libstartup_notification
+  preConfigure = ''
+    patchShebangs "script"
+    # root not present in build /etc/passwd
+    sed -i 's/~root/~nobody/g' test/helper-expand.c
+  '';
+
+  buildInputs = [ autoreconfHook pkgconfig libX11 libxkbcommon pango
+                  cairo libstartup_notification libxcb xcbutil xcbutilwm
+                  which git
                 ] ++ stdenv.lib.optional i3Support i3;
 
-  preConfigure = ''
-    autoreconf -vif
-  '';
+  doCheck = true;
 
   meta = {
       description = "Window switcher, run dialog and dmenu replacement";

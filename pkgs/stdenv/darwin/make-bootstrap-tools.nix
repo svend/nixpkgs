@@ -1,6 +1,6 @@
-{system ? builtins.currentSystem}:
+{ system ? builtins.currentSystem }:
 
-with import ../../top-level/all-packages.nix {inherit system;};
+with import ../../.. { inherit system; };
 
 rec {
   # We want coreutils without ACL support.
@@ -9,7 +9,7 @@ rec {
   });
 
   build = stdenv.mkDerivation {
-    name = "build";
+    name = "stdenv-bootstrap-tools";
 
     buildInputs = [nukeReferences cpio];
 
@@ -30,9 +30,9 @@ rec {
 
       cp -rL ${darwin.Libsystem}/include $out
       chmod -R u+w $out/include
-      cp -rL ${icu}/include*             $out/include
+      cp -rL ${icu.dev}/include*             $out/include
       cp -rL ${libiconv}/include/*       $out/include
-      cp -rL ${gnugrep.pcre}/include/*   $out/include
+      cp -rL ${gnugrep.pcre.dev}/include/*   $out/include
       mv $out/include $out/include-Libsystem
 
       # Copy coreutils, bash, etc.
@@ -49,27 +49,30 @@ rec {
       cp -d ${gawk}/bin/awk $out/bin
       cp ${gnutar}/bin/tar $out/bin
       cp ${gzip}/bin/gzip $out/bin
-      cp ${bzip2}/bin/bzip2 $out/bin
+      cp ${bzip2.bin}/bin/bzip2 $out/bin
       cp -d ${gnumake}/bin/* $out/bin
       cp -d ${patch}/bin/* $out/bin
-      cp -d ${xz}/bin/xz $out/bin
+      cp -d ${xz.bin}/bin/xz $out/bin
 
       # This used to be in-nixpkgs, but now is in the bundle
       # because I can't be bothered to make it partially static
-      cp ${curl}/bin/curl $out/bin
-      cp -d ${curl}/lib/libcurl*.dylib $out/lib
-      cp -d ${libssh2}/lib/libssh*.dylib $out/lib
-      cp -d ${openssl}/lib/*.dylib $out/lib
+      cp ${curl.bin}/bin/curl $out/bin
+      cp -d ${curl.out}/lib/libcurl*.dylib $out/lib
+      cp -d ${libssh2.out}/lib/libssh*.dylib $out/lib
+      cp -d ${openssl.out}/lib/*.dylib $out/lib
 
-      cp -d ${gnugrep.pcre}/lib/libpcre*.dylib $out/lib
-      cp -d ${libiconv}/lib/libiconv*.dylib $out/lib
+      cp -d ${gnugrep.pcre.out}/lib/libpcre*.dylib $out/lib
+      cp -d ${libiconv.lib or libiconv}/lib/lib*.dylib $out/lib
+      cp -d ${gettext}/lib/libintl*.dylib $out/lib
+      chmod +x $out/lib/libintl*.dylib
+      cp -d ${ncurses.out}/lib/libncurses*.dylib $out/lib
 
       # Copy what we need of clang
-      cp -d ${llvmPackages.clang}/bin/clang $out/bin
-      cp -d ${llvmPackages.clang}/bin/clang++ $out/bin
-      cp -d ${llvmPackages.clang}/bin/clang-3.5 $out/bin
+      cp -d ${llvmPackages.clang-unwrapped}/bin/clang $out/bin
+      cp -d ${llvmPackages.clang-unwrapped}/bin/clang++ $out/bin
+      cp -d ${llvmPackages.clang-unwrapped}/bin/clang-[0-9].[0-9] $out/bin
 
-      cp -rL ${llvmPackages.clang}/lib/clang $out/lib
+      cp -rL ${llvmPackages.clang-unwrapped}/lib/clang $out/lib
 
       cp -d ${libcxx}/lib/libc++*.dylib $out/lib
       cp -d ${libcxxabi}/lib/libc++abi*.dylib $out/lib
@@ -77,10 +80,10 @@ rec {
       mkdir $out/include
       cp -rd ${libcxx}/include/c++     $out/include
 
-      cp -d ${icu}/lib/libicu*.dylib $out/lib
-      cp -d ${zlib}/lib/libz.*       $out/lib
-      cp -d ${gmpxx}/lib/libgmp*.*   $out/lib
-      cp -d ${xz}/lib/liblzma*.*     $out/lib
+      cp -d ${icu.out}/lib/libicu*.dylib $out/lib
+      cp -d ${zlib.out}/lib/libz.*       $out/lib
+      cp -d ${gmpxx.out}/lib/libgmp*.*   $out/lib
+      cp -d ${xz.out}/lib/liblzma*.*     $out/lib
 
       # Copy binutils.
       for i in as ld ar ranlib nm strip otool install_name_tool dsymutil; do
@@ -115,7 +118,7 @@ rec {
         fi
       done
 
-      for i in $out/bin/* $out/lib/*.dylib $out/lib/clang/3.5.0/lib/darwin/*.dylib $out/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation; do
+      for i in $out/bin/* $out/lib/*.dylib $out/lib/clang/*/lib/darwin/*.dylib $out/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation; do
         if test -x $i -a ! -L $i; then
           echo "Adding rpath to $i"
           rpathify $i
@@ -123,51 +126,60 @@ rec {
       done
 
       nuke-refs $out/lib/*
-      nuke-refs $out/lib/clang/3.5.0/lib/darwin/*
+      nuke-refs $out/lib/clang/*/lib/darwin/*
       nuke-refs $out/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation
 
+      set -x
       mkdir $out/.pack
       mv $out/* $out/.pack
       mv $out/.pack $out/pack
 
       mkdir $out/on-server
-      (cd $out/pack && (find | cpio -o -H newc)) | bzip2 > $out/on-server/bootstrap-tools.cpio.bz2
+      cp ${stdenv.shell} $out/on-server/sh
+      cp ${cpio}/bin/cpio $out/on-server
+      cp ${coreutils_}/bin/mkdir $out/on-server
+      cp ${bzip2.bin}/bin/bzip2 $out/on-server
 
-      mkdir $out/in-nixpkgs
-      cp ${stdenv.shell} $out/in-nixpkgs/sh
-      cp ${cpio}/bin/cpio $out/in-nixpkgs
-      cp ${coreutils_}/bin/mkdir $out/in-nixpkgs
-      cp ${bzip2}/bin/bzip2 $out/in-nixpkgs
+      chmod u+w $out/on-server/*
+      strip $out/on-server/*
+      nuke-refs $out/on-server/*
 
-      chmod u+w $out/in-nixpkgs/*
-      strip $out/in-nixpkgs/*
-      nuke-refs $out/in-nixpkgs/*
-
-      for i in $out/in-nixpkgs/*; do
+      for i in $out/on-server/*; do
         fix_dyld $i
       done
+
+      (cd $out/pack && (find | cpio -o -H newc)) | bzip2 > $out/on-server/bootstrap-tools.cpio.bz2
     '';
 
     allowedReferences = [];
+
+    meta = {
+      maintainers = [ stdenv.lib.maintainers.copumpkin ];
+    };
   };
 
-  host = stdenv.mkDerivation {
-    name = "host";
+  dist = stdenv.mkDerivation {
+    name = "stdenv-bootstrap-tools";
 
     buildCommand = ''
       mkdir -p $out/nix-support
-
-      for i in "${build}/on-server/"*; do
-        echo "file binary-dist $i" >> $out/nix-support/hydra-build-products
-      done
-
-      echo "darwin-bootstrap-tools-$(date +%Y.%m.%d)" >> $out/nix-support/hydra-release-name
+      echo "file tarball ${build}/on-server/bootstrap-tools.cpio.bz2" >> $out/nix-support/hydra-build-products
+      echo "file sh ${build}/on-server/sh" >> $out/nix-support/hydra-build-products
+      echo "file cpio ${build}/on-server/cpio" >> $out/nix-support/hydra-build-products
+      echo "file mkdir ${build}/on-server/mkdir" >> $out/nix-support/hydra-build-products
+      echo "file bzip2 ${build}/on-server/bzip2" >> $out/nix-support/hydra-build-products
     '';
-
-    allowedReferences = [ build ];
   };
 
-  unpack = stdenv.mkDerivation {
+  bootstrapFiles = {
+    sh      = "${build}/on-server/sh";
+    bzip2   = "${build}/on-server/bzip2";
+    mkdir   = "${build}/on-server/mkdir";
+    cpio    = "${build}/on-server/cpio";
+    tarball = "${build}/on-server/bootstrap-tools.cpio.bz2";
+  };
+
+  unpack = stdenv.mkDerivation (bootstrapFiles // {
     name = "unpack";
 
     # This is by necessity a near-duplicate of unpack-bootstrap-tools.sh. If we refer to it directly,
@@ -214,14 +226,8 @@ rec {
       EOF
     '';
 
-    tarball = "${build}/on-server/bootstrap-tools.cpio.bz2";
-
-    mkdir = "${build}/in-nixpkgs/mkdir";
-    bzip2 = "${build}/in-nixpkgs/bzip2";
-    cpio  = "${build}/in-nixpkgs/cpio";
-
     allowedReferences = [ "out" ];
-  };
+  });
 
   test = stdenv.mkDerivation {
     name = "test";
@@ -247,7 +253,7 @@ rec {
       # an SSL-capable curl
       curl --version | grep SSL
 
-      ${build}/in-nixpkgs/sh -c 'echo Hello World'
+      ${build}/on-server/sh -c 'echo Hello World'
 
       export flags="-idirafter ${unpack}/include-Libsystem --sysroot=${unpack} -L${unpack}/lib"
 
@@ -280,5 +286,13 @@ rec {
 
       $out/bin/hello
     '';
+  };
+
+  # The ultimate test: bootstrap a whole stdenv from the tools specified above and get a package set out of it
+  test-pkgs = let
+    stdenv = import ./. { inherit system bootstrapFiles; };
+  in import ../../.. {
+    inherit system;
+    bootStdenv = stdenv.stdenvDarwin;
   };
 }

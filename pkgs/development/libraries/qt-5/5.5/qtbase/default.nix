@@ -1,9 +1,10 @@
-{ stdenv, fetchurl, substituteAll, makeWrapper
+{ stdenv, lib, fetchurl, copyPathsToStore, fixQtModuleCMakeConfig
 , srcs
 
 , xlibs, libX11, libxcb, libXcursor, libXext, libXrender, libXi
 , xcbutil, xcbutilimage, xcbutilkeysyms, xcbutilwm, libxkbcommon
-, fontconfig, freetype, openssl, dbus, glib, udev, libxml2, libxslt, pcre
+, fontconfig, freetype, harfbuzz
+, openssl, dbus, glib, udev, libxml2, libxslt, pcre16
 , zlib, libjpeg, libpng, libtiff, sqlite, icu
 
 , coreutils, bison, flex, gdb, gperf, lndir, ruby
@@ -14,8 +15,7 @@
 , mysql ? null, postgresql ? null
 
 # options
-, mesaSupported, mesa, mesa_glu
-, buildDocs ? false
+, mesaSupported, mesa
 , buildExamples ? false
 , buildTests ? false
 , developerBuild ? false
@@ -23,11 +23,15 @@
 , decryptSslTraffic ? false
 }:
 
-with stdenv.lib;
-
 let
   inherit (srcs.qt5) version;
-  system-x86_64 = elem stdenv.system platforms.x86_64;
+  system-x86_64 = lib.elem stdenv.system lib.platforms.x86_64;
+
+  dontInvalidateBacking = fetchurl {
+    url = "https://codereview.qt-project.org/gitweb?p=qt/qtbase.git;a=patch;h=0f68f8920573cdce1729a285a92ac8582df32841;hp=24c50f8dcf7fa61ac3c3d4d6295c259a104a2b8c";
+    name = "qtbug-48321-dont-invalidate-backing-store.patch";
+    sha256 = "07vnndmvri73psz0nrs2hg0zw2i4b1k1igy2al6kwjbp7d5xpglr";
+  };
 in
 
 stdenv.mkDerivation {
@@ -39,74 +43,92 @@ stdenv.mkDerivation {
 
   sourceRoot = "qt-everywhere-opensource-src-${version}";
 
+  outputs = [ "dev" "out" ];
+
   postUnpack = ''
     mv qtbase-opensource-src-${version} ./qt-everywhere-opensource-src-${version}/qtbase
   '';
 
-  prePatch = ''
-    substituteInPlace configure --replace /bin/pwd pwd
-    substituteInPlace qtbase/configure --replace /bin/pwd pwd
-    substituteInPlace qtbase/src/corelib/global/global.pri --replace /bin/ls ${coreutils}/bin/ls
-    substituteInPlace qtbase/src/plugins/platforminputcontexts/compose/generator/qtablegenerator.cpp \
-        --replace /usr/share/X11/locale ${libX11}/share/X11/locale \
-        --replace /usr/lib/X11/locale ${libX11}/share/X11/locale
-    sed -e 's@/\(usr\|opt\)/@/var/empty/@g' -i config.tests/*/*.test -i qtbase/mkspecs/*/*.conf
-  '';
-
   patches =
-    let dlopen-gtkstyle = substituteAll {
-          src = ./0001-dlopen-gtkstyle.patch;
-          # substituteAll ignores env vars starting with capital letter
-          gconf = GConf;
-          inherit gnome_vfs libgnomeui gtk;
-        };
-        dlopen-resolv = substituteAll {
-          src = ./0002-dlopen-resolv.patch;
-          glibc = stdenv.cc.libc;
-        };
-        dlopen-gl = substituteAll {
-          src = ./0003-dlopen-gl.patch;
-          openglDriver = if mesaSupported then mesa.driverLink else "/no-such-path";
-        };
-        tzdir = ./0004-tzdir.patch;
-        dlopen-libXcursor = substituteAll {
-          src = ./0005-dlopen-libXcursor.patch;
-          inherit libXcursor;
-        };
-        dlopen-openssl = substituteAll {
-          src = ./0006-dlopen-openssl.patch;
-          inherit openssl;
-        };
-        dlopen-dbus = substituteAll {
-          src = ./0007-dlopen-dbus.patch;
-          dbus_libs = dbus;
-        };
-        xdg-config-dirs = ./0008-xdg-config-dirs.patch;
-        decrypt-ssl-traffic = ./0009-decrypt-ssl-traffic.patch;
-        mkspecs-libgl = substituteAll {
-          src = ./0010-mkspecs-libgl.patch;
-          inherit mesa;
-        };
-        nix-profiles-library-paths = ./0011-nix-profiles-library-paths.patch;
-    in [
-      dlopen-resolv dlopen-gl tzdir dlopen-libXcursor dlopen-openssl
-      dlopen-dbus xdg-config-dirs nix-profiles-library-paths
-    ]
-    ++ optional gtkStyle dlopen-gtkstyle
-    ++ optional decryptSslTraffic decrypt-ssl-traffic
-    ++ optional mesaSupported mkspecs-libgl;
+    copyPathsToStore (lib.readPathsFromFile ./. ./series)
+    ++ lib.optional gtkStyle ./dlopen-gtkstyle.patch
+    ++ lib.optional decryptSslTraffic ./decrypt-ssl-traffic.patch
+    ++ lib.optional mesaSupported [ ./dlopen-gl.patch ./mkspecs-libgl.patch ];
 
+  postPatch =
+    ''
+      cd qtbase
+      patch -p1 <${dontInvalidateBacking}
+      cd ..
+
+      substituteInPlace configure --replace /bin/pwd pwd
+      substituteInPlace qtbase/configure --replace /bin/pwd pwd
+      substituteInPlace qtbase/src/corelib/global/global.pri --replace /bin/ls ${coreutils}/bin/ls
+      sed -e 's@/\(usr\|opt\)/@/var/empty/@g' -i config.tests/*/*.test -i qtbase/mkspecs/*/*.conf
+
+      sed -i 's/PATHS.*NO_DEFAULT_PATH//' "qtbase/src/corelib/Qt5Config.cmake.in"
+      sed -i 's/PATHS.*NO_DEFAULT_PATH//' "qtbase/src/corelib/Qt5CoreMacros.cmake"
+      sed -i 's/NO_DEFAULT_PATH//' "qtbase/src/gui/Qt5GuiConfigExtras.cmake.in"
+      sed -i 's/PATHS.*NO_DEFAULT_PATH//' "qtbase/mkspecs/features/data/cmake/Qt5BasicConfig.cmake.in"
+
+      substituteInPlace qtbase/src/network/kernel/qdnslookup_unix.cpp \
+        --replace "@glibc@" "${stdenv.cc.libc.out}"
+      substituteInPlace qtbase/src/network/kernel/qhostinfo_unix.cpp \
+        --replace "@glibc@" "${stdenv.cc.libc.out}"
+
+      substituteInPlace qtbase/src/plugins/platforms/xcb/qxcbcursor.cpp \
+        --replace "@libXcursor@" "${libXcursor.out}"
+
+      substituteInPlace qtbase/src/network/ssl/qsslsocket_openssl_symbols.cpp \
+        --replace "@openssl@" "${openssl.out}"
+
+      substituteInPlace qtbase/src/dbus/qdbus_symbols.cpp \
+        --replace "@dbus_libs@" "${dbus.lib}"
+
+      substituteInPlace \
+        qtbase/src/plugins/platforminputcontexts/compose/generator/qtablegenerator.cpp \
+        --replace "@libX11@" "${libX11.out}"
+    ''
+    + lib.optionalString gtkStyle ''
+      substituteInPlace qtbase/src/widgets/styles/qgtk2painter.cpp --replace "@gtk@" "${gtk.out}"
+      substituteInPlace qtbase/src/widgets/styles/qgtkstyle_p.cpp \
+        --replace "@gtk@" "${gtk.out}" \
+        --replace "@gnome_vfs@" "${gnome_vfs.out}" \
+        --replace "@libgnomeui@" "${libgnomeui.out}" \
+        --replace "@gconf@" "${GConf.out}"
+    ''
+    + lib.optionalString mesaSupported ''
+      substituteInPlace \
+        qtbase/src/plugins/platforms/xcb/gl_integrations/xcb_glx/qglxintegration.cpp \
+        --replace "@mesa_lib@" "${mesa.out}"
+      substituteInPlace qtbase/mkspecs/common/linux.conf \
+        --replace "@mesa_lib@" "${mesa.out}" \
+        --replace "@mesa_inc@" "${mesa.dev}"
+    '';
+
+  setOutputFlags = false;
   preConfigure = ''
-    export LD_LIBRARY_PATH="$PWD/qtbase/lib:$PWD/qtbase/plugins/platforms:$PWD/qttools/lib:$LD_LIBRARY_PATH"
+    export LD_LIBRARY_PATH="$PWD/qtbase/lib:$PWD/qtbase/plugins/platforms:$LD_LIBRARY_PATH"
     export MAKEFLAGS=-j$NIX_BUILD_CORES
 
-    sed -i 's/PATHS.*NO_DEFAULT_PATH//' "qtbase/src/corelib/Qt5Config.cmake.in"
-    sed -i 's/PATHS.*NO_DEFAULT_PATH//' "qtbase/src/corelib/Qt5CoreMacros.cmake"
-    sed -i 's/NO_DEFAULT_PATH//' "qtbase/src/gui/Qt5GuiConfigExtras.cmake.in"
-    sed -i 's/PATHS.*NO_DEFAULT_PATH//' "qtbase/mkspecs/features/data/cmake/Qt5BasicConfig.cmake.in"
+    _multioutQtDevs() {
+        # We cannot simply set these paths in configureFlags because libQtCore retains
+        # references to the paths it was built with.
+        moveToOutput "bin" "$dev"
+        moveToOutput "include" "$dev"
+        moveToOutput "mkspecs" "$dev"
 
-    export configureFlags+="-plugindir $out/lib/qt5/plugins -importdir $out/lib/qt5/imports -qmldir $out/lib/qt5/qml"
-    export configureFlags+=" -docdir $out/share/doc/qt5"
+        # The destination directory must exist or moveToOutput will do nothing
+        mkdir -p "$dev/share"
+        moveToOutput "share/doc" "$dev"
+    }
+    preFixupHooks+=(_multioutQtDevs)
+
+    configureFlags+="\
+        -plugindir $out/lib/qt5/plugins \
+        -importdir $out/lib/qt5/imports \
+        -qmldir $out/lib/qt5/qml \
+        -docdir $out/share/doc/qt5"
   '';
 
   prefixKey = "-prefix ";
@@ -121,7 +143,7 @@ stdenv.mkDerivation {
     -release
     -shared
     -c++11
-    ${optionalString developerBuild "-developer-build"}
+    ${lib.optionalString developerBuild "-developer-build"}
     -largefile
     -accessibility
     -rpath
@@ -142,15 +164,15 @@ stdenv.mkDerivation {
     -glib
     -xcb
     -qpa xcb
-    -${optionalString (cups == null) "no-"}cups
-    -${optionalString (!gtkStyle) "no-"}gtkstyle
+    -${lib.optionalString (cups == null) "no-"}cups
+    -${lib.optionalString (!gtkStyle) "no-"}gtkstyle
 
     -no-eglfs
     -no-directfb
     -no-linuxfb
     -no-kms
 
-    ${optionalString (!system-x86_64) "-no-sse2"}
+    ${lib.optionalString (!system-x86_64) "-no-sse2"}
     -no-sse3
     -no-ssse3
     -no-sse4.1
@@ -163,8 +185,10 @@ stdenv.mkDerivation {
     -system-zlib
     -system-libpng
     -system-libjpeg
+    -system-harfbuzz
     -system-xcb
     -system-xkbcommon
+    -system-pcre
     -openssl-linked
     -dbus-linked
 
@@ -174,59 +198,70 @@ stdenv.mkDerivation {
 
     -make libs
     -make tools
-    -${optionalString (buildExamples == false) "no"}make examples
-    -${optionalString (buildTests == false) "no"}make tests
+    -${lib.optionalString (buildExamples == false) "no"}make examples
+    -${lib.optionalString (buildTests == false) "no"}make tests
   '';
 
   # PostgreSQL autodetection fails sporadically because Qt omits the "-lpq" flag
   # if dependency paths contain the string "pq", which can occur in the hash.
   # To prevent these failures, we need to override PostgreSQL detection.
-  PSQL_LIBS = optionalString (postgresql != null) "-L${postgresql}/lib -lpq";
+  PSQL_LIBS = lib.optionalString (postgresql != null) "-L${postgresql.lib}/lib -lpq";
 
   propagatedBuildInputs = [
+    dbus glib libxml2 libxslt openssl pcre16 sqlite udev zlib
+
+    # Image formats
+    libjpeg libpng libtiff
+
+    # Text rendering
+    fontconfig freetype harfbuzz icu
+
+    # X11 libs
     xlibs.libXcomposite libX11 libxcb libXext libXrender libXi
-    fontconfig freetype openssl dbus.libs glib udev libxml2 libxslt pcre
-    zlib libjpeg libpng libtiff sqlite icu
     xcbutil xcbutilimage xcbutilkeysyms xcbutilwm libxkbcommon
   ]
-  # Qt doesn't directly need GLU (just GL), but many apps use, it's small and
-  # doesn't remain a runtime-dep if not used
-  ++ optionals mesaSupported [ mesa mesa_glu ]
-  ++ optional (cups != null) cups
-  ++ optional (mysql != null) mysql.lib
-  ++ optional (postgresql != null) postgresql
-  ++ optionals gtkStyle [gnome_vfs libgnomeui gtk GConf];
+  ++ lib.optional mesaSupported mesa;
 
   buildInputs =
     [ bison flex gperf ruby ]
-    ++ optional developerBuild gdb;
+    ++ lib.optional developerBuild gdb
+    ++ lib.optional (cups != null) cups
+    ++ lib.optional (mysql != null) mysql.lib
+    ++ lib.optional (postgresql != null) postgresql
+    ++ lib.optionals gtkStyle [gnome_vfs.out libgnomeui.out gtk GConf];
 
-  nativeBuildInputs = [ python perl pkgconfig ];
-
-  propagatedNativeBuildInputs = [ makeWrapper ];
+  nativeBuildInputs = [ fixQtModuleCMakeConfig lndir python perl pkgconfig ];
 
   # freetype-2.5.4 changed signedness of some struct fields
   NIX_CFLAGS_COMPILE = "-Wno-error=sign-compare";
 
-  postInstall =
+  postFixup =
     ''
-      ${optionalString buildDocs ''
-        make docs && make install_docs
-      ''}
-
       # Don't retain build-time dependencies like gdb and ruby.
-      sed '/QMAKE_DEFAULT_.*DIRS/ d' -i $out/mkspecs/qconfig.pri
+      sed '/QMAKE_DEFAULT_.*DIRS/ d' -i $dev/mkspecs/qconfig.pri
+
+      fixQtModuleCMakeConfig "Concurrent"
+      fixQtModuleCMakeConfig "Core"
+      fixQtModuleCMakeConfig "DBus"
+      fixQtModuleCMakeConfig "Gui"
+      fixQtModuleCMakeConfig "Network"
+      fixQtModuleCMakeConfig "OpenGL"
+      fixQtModuleCMakeConfig "OpenGLExtensions"
+      fixQtModuleCMakeConfig "PrintSupport"
+      fixQtModuleCMakeConfig "Sql"
+      fixQtModuleCMakeConfig "Test"
+      fixQtModuleCMakeConfig "Widgets"
+      fixQtModuleCMakeConfig "Xml"
     '';
 
-  inherit lndir;
   setupHook = ./setup-hook.sh;
 
   enableParallelBuilding = true;
 
-  meta = {
-    homepage = http://qt-project.org;
+  meta = with lib; {
+    homepage = http://www.qt.io;
     description = "A cross-platform application framework for C++";
-    license = "GPL/LGPL";
+    license = with licenses; [ fdl13 gpl2 lgpl21 lgpl3 ];
     maintainers = with maintainers; [ bbenoist qknight ttuegel ];
     platforms = platforms.linux;
   };

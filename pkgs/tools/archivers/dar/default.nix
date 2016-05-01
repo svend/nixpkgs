@@ -1,17 +1,19 @@
-{ stdenv, fetchurl, zlib, bzip2, openssl, attr, lzo, libgcrypt, e2fsprogs }:
+{ stdenv, fetchurl, zlib, bzip2, openssl, attr, lzo, libgcrypt, e2fsprogs, gpgme, xz }:
 
 stdenv.mkDerivation rec {
-  name = "dar-2.4.17";
-  
+  name = "dar-2.5.3";
+
   src = fetchurl {
     url = "mirror://sourceforge/dar/${name}.tar.gz";
-    sha256 = "0g43g6a633j6ipgwdvgwngnrnzhfwkhl2iwih1314xwbd4wir1jx";
+    sha256 = "0myakyfgv2mhazwvbbwwncn9j7c9b4g3szs0aqlclmp01naaqmj5";
   };
 
-  buildInputs = [ zlib bzip2 openssl lzo libgcrypt ]
+  buildInputs = [ zlib bzip2 openssl lzo libgcrypt gpgme xz ]
     ++ stdenv.lib.optional stdenv.isLinux [ attr e2fsprogs ];
 
-  configureFlags = "--disable-dar-static";
+  configureFlags = [ "--disable-dar-static" ];
+
+  enableParallelBuilding = true;
 
   meta = {
     homepage = http://dar.linux.free.fr/;

@@ -1,8 +1,8 @@
 # Maintainer's Notes:
 #
 # Minor updates:
-#  1. Edit ./manifest.sh to point to the updated URL.
-#  2. Run ./manifest.sh.
+#  1. Edit ./fetchsrcs.sh to point to the updated URL.
+#  2. Run ./fetchsrcs.sh.
 #  3. Build and enjoy.
 #
 # Major updates:
@@ -11,350 +11,106 @@
 #  if it exists. Then follow the minor update instructions. Be sure to check if
 #  any new components have been added and package them as necessary.
 
-{ autonix, fetchurl, newScope, stdenv
-
-, bison2
-, mesa_noglu
-, cups
-, gnome
+{ pkgs
 
 # options
 , developerBuild ? false
 , decryptSslTraffic ? false
 }:
 
-with autonix;
+let inherit (pkgs) makeSetupHook makeWrapper stdenv; in
+
 with stdenv.lib;
 
 let
-  srcs =
+
+  mirror = "http://download.qt.io";
+  srcs = import ./srcs.nix { inherit mirror; inherit (pkgs) fetchurl; };
+
+  qtSubmodule = args:
     let
-      manifest = builtins.fromJSON (builtins.readFile ./manifest.json);
-      mirror = "http://download.qt.io";
-      fetch = src: fetchurl (src // { url = "${mirror}/${src.url}"; });
-      mkPair = pkg: nameValuePair (builtins.parseDrvName pkg.name).name (fetch pkg.src);
-      pairs = map mkPair manifest;
-    in listToAttrs pairs;
+      inherit (args) name;
+      inherit (srcs."${args.name}") version src;
+      inherit (pkgs.stdenv) mkDerivation;
+    in mkDerivation (args // {
+      name = "${name}-${version}";
+      inherit src;
 
-  version = "5.4.2";
+      propagatedBuildInputs = args.qtInputs ++ (args.propagatedBuildInputs or []);
+      nativeBuildInputs = (args.nativeBuildInputs or []) ++ [ self.fixQtModuleCMakeConfig self.qmakeHook ];
 
-  callPackage = newScope (self // { inherit qtSubmodule; });
+      NIX_QT_SUBMODULE = args.NIX_QT_SUBMODULE or true;
+      dontFixLibtool = args.dontFixLibtool or true;
 
-  qtSubmodule = callPackage ./qt-submodule.nix {
-    inherit srcs version;
-    inherit (stdenv) mkDerivation;
-  };
+      outputs = args.outputs or [ "dev" "out" ];
+      setOutputFlags = false;
 
-  self =
-    {
+      enableParallelBuilding = args.enableParallelBuilding or true;
 
-      activeqt = callPackage
-        (
-          { qtSubmodule, base }:
+      meta = self.qtbase.meta // (args.meta or {});
+    });
 
-          qtSubmodule {
-            name = "qtactiveqt";
-            qtInputs = [ base ];
-          }
-        )
-        {};
+  addPackages = self: with self;
+    let
+      callPackage = self.newScope { inherit qtSubmodule srcs; };
+    in {
 
-      /* androidextras = not packaged */
-
-      base = callPackage ./qtbase.nix {
-        mesa = mesa_noglu;
-        cups = if stdenv.isLinux then cups else null;
+      qtbase = callPackage ./qtbase {
+        mesa = pkgs.mesa_noglu;
+        cups = if stdenv.isLinux then pkgs.cups else null;
         # GNOME dependencies are not used unless gtkStyle == true
-        inherit (gnome) libgnomeui GConf gnome_vfs;
-        bison = bison2; # error: too few arguments to function 'int yylex(...
-        inherit developerBuild srcs version decryptSslTraffic;
+        inherit (pkgs.gnome) libgnomeui GConf gnome_vfs;
+        bison = pkgs.bison2; # error: too few arguments to function 'int yylex(...
+        inherit developerBuild decryptSslTraffic;
       };
 
-      connectivity = callPackage
-        (
-          { qtSubmodule, base, declarative }:
+      /* qt3d = not packaged */
+      /* qtactiveqt = not packaged */
+      /* qtandroidextras = not packaged */
+      /* qtcanvas3d = not packaged */
+      qtconnectivity = callPackage ./qtconnectivity.nix {};
+      qtdeclarative = callPackage ./qtdeclarative {};
+      qtdoc = callPackage ./qtdoc.nix {};
+      qtenginio = callPackage ./qtenginio.nix {};
+      qtgraphicaleffects = callPackage ./qtgraphicaleffects.nix {};
+      qtimageformats = callPackage ./qtimageformats.nix {};
+      qtlocation = callPackage ./qtlocation.nix {};
+      /* qtmacextras = not packaged */
+      qtmultimedia = callPackage ./qtmultimedia.nix {
+        inherit (pkgs.gst_all_1) gstreamer gst-plugins-base;
+      };
+      qtquick1 = callPackage ./qtquick1 {};
+      qtquickcontrols = callPackage ./qtquickcontrols.nix {};
+      qtscript = callPackage ./qtscript {};
+      qtsensors = callPackage ./qtsensors.nix {};
+      qtserialport = callPackage ./qtserialport {};
+      qtsvg = callPackage ./qtsvg.nix {};
+      qttools = callPackage ./qttools.nix {};
+      qttranslations = callPackage ./qttranslations.nix {};
+      /* qtwayland = not packaged */
+      /* qtwebchannel = not packaged */
+      /* qtwebengine = not packaged */
+      qtwebkit = callPackage ./qtwebkit {};
+      qtwebkit-examples = callPackage ./qtwebkit-examples.nix {};
+      qtwebsockets = callPackage ./qtwebsockets.nix {};
+      /* qtwinextras = not packaged */
+      qtx11extras = callPackage ./qtx11extras.nix {};
+      qtxmlpatterns = callPackage ./qtxmlpatterns.nix {};
 
-          qtSubmodule {
-            name = "qtconnectivity";
-            qtInputs = [ base declarative ];
-          }
-        )
-        {};
+      env = callPackage ../qt-env.nix {};
+      full = env "qt-${qtbase.version}" [
+        qtconnectivity qtdeclarative qtdoc qtenginio qtgraphicaleffects qtimageformats
+        qtlocation qtmultimedia qtquick1 qtquickcontrols qtscript qtsensors qtserialport
+        qtsvg qttools qttranslations qtwebkit qtwebkit-examples qtwebsockets qtx11extras
+        qtxmlpatterns
+      ];
 
-      declarative = callPackage
-        (
-          { qtSubmodule, python, base, svg, xmlpatterns }:
-
-          qtSubmodule {
-            name = "qtdeclarative";
-            qtInputs = [ base svg xmlpatterns ];
-            nativeBuildInputs = [ python ];
-          }
-        )
-        {};
-
-      doc = callPackage
-        (
-          { qtSubmodule, declarative }:
-
-          qtSubmodule {
-            name = "qtdoc";
-            qtInputs = [ declarative ];
-          }
-        )
-        {};
-
-      enginio = callPackage
-        (
-          { qtSubmodule, declarative }:
-
-          qtSubmodule {
-            name = "qtenginio";
-            qtInputs = [ declarative ];
-          }
-        )
-        {};
-
-      graphicaleffects = callPackage
-        (
-          { qtSubmodule, declarative }:
-
-          qtSubmodule {
-            name = "qtgraphicaleffects";
-            qtInputs = [ declarative ];
-          }
-        )
-        {};
-
-      imageformats = callPackage
-        (
-          { qtSubmodule, base }:
-
-          qtSubmodule {
-            name = "qtimageformats";
-            qtInputs = [ base ];
-          }
-        )
-        {};
-
-      location = callPackage
-        (
-          { qtSubmodule, base, multimedia }:
-
-          qtSubmodule {
-            name = "qtlocation";
-            qtInputs = [ base multimedia ];
-          }
-        )
-        {};
-
-      /* macextras = not packaged */
-
-      multimedia = callPackage
-        (
-          { qtSubmodule, base, declarative, pkgconfig
-          , alsaLib, gstreamer, gst_plugins_base, libpulseaudio
-          }:
-
-          qtSubmodule {
-            name = "qtmultimedia";
-            qtInputs = [ base declarative ];
-            buildInputs = [
-              pkgconfig alsaLib gstreamer gst_plugins_base libpulseaudio
-            ];
-          }
-        )
-        {};
-
-      quick1 = callPackage
-        (
-          { qtSubmodule, script, svg, webkit, xmlpatterns }:
-
-          qtSubmodule {
-            name = "qtquick1";
-            qtInputs = [ script svg webkit xmlpatterns ];
-          }
-        )
-        {};
-
-      quickcontrols = callPackage
-        (
-          { qtSubmodule, declarative }:
-
-          qtSubmodule {
-            name = "qtquickcontrols";
-            qtInputs = [ declarative ];
-          }
-        )
-        {};
-
-      script = callPackage
-        (
-          { qtSubmodule, base, tools }:
-
-          qtSubmodule {
-            name = "qtscript";
-            qtInputs = [ base tools ];
-            patchFlags = "-p2"; # patches originally for monolithic build
-            patches = [ ./0003-glib-2.32.patch ];
-          }
-        )
-        {};
-
-      sensors = callPackage
-        (
-          { qtSubmodule, base, declarative }:
-
-          qtSubmodule {
-            name = "qtsensors";
-            qtInputs = [ base declarative ];
-          }
-        )
-        {};
-
-      serialport = callPackage
-        (
-          { qtSubmodule, base }:
-
-          qtSubmodule {
-            name = "qtserialport";
-            qtInputs = [ base ];
-            patchFlags = "-p2"; # patches originally for monolithic build
-            patches = [ ./0009-dlopen-serialport-udev.patch ];
-          }
-        )
-        {};
-
-      svg = callPackage
-        (
-          { qtSubmodule, base }:
-
-          qtSubmodule {
-            name = "qtsvg";
-            qtInputs = [ base ];
-          }
-        )
-        {};
-
-      tools = callPackage
-        (
-          { qtSubmodule, activeqt, base, declarative, webkit }:
-
-          qtSubmodule {
-            name = "qttools";
-            qtInputs = [ activeqt base declarative webkit ];
-          }
-        )
-        {};
-
-      translations = callPackage
-        (
-          { qtSubmodule, tools }:
-
-          qtSubmodule {
-            name = "qttranslations";
-            qtInputs = [ tools ];
-          }
-        )
-        {};
-
-      /* wayland = not packaged */
-
-      /* webchannel = not packaged */
-
-      /* webengine = not packaged */
-
-      webkit = callPackage
-        (
-          { qtSubmodule, declarative, location, multimedia, sensors
-          , fontconfig, gdk_pixbuf, gtk, libwebp, libxml2, libxslt
-          , sqlite, udev
-          , bison2, flex, gdb, gperf, perl, pkgconfig, python, ruby
-          , substituteAll
-          , flashplayerFix ? false
-          }:
-
-          qtSubmodule {
-            name = "qtwebkit";
-            qtInputs = [ declarative location multimedia sensors ];
-            buildInputs = [ fontconfig libwebp libxml2 libxslt sqlite ];
-            nativeBuildInputs = [
-              bison2 flex gdb gperf perl pkgconfig python ruby
-            ];
-            patchFlags = "-p2"; # patches originally for monolithic build
-            patches =
-              optional flashplayerFix
-                (substituteAll
-                  {
-                    src = ./0002-dlopen-webkit-nsplugin.patch;
-                    inherit gtk gdk_pixbuf;
-                  }
-                )
-              ++ optional flashplayerFix
-                (substituteAll
-                  {
-                    src = ./0007-dlopen-webkit-gtk.patch;
-                    inherit gtk;
-                  }
-                )
-              ++ [
-                (substituteAll
-                  {
-                    src = ./0008-dlopen-webkit-udev.patch;
-                    inherit udev;
-                  }
-                )
-              ];
-          }
-        )
-        {};
-
-      webkit-examples = callPackage
-        (
-          { qtSubmodule, tools, webkit }:
-
-          qtSubmodule {
-            name = "qtwebkit-examples";
-            qtInputs = [ tools webkit ];
-          }
-        )
-        {};
-
-      websockets = callPackage
-        (
-          { qtSubmodule, base, declarative }:
-
-          qtSubmodule {
-            name = "qtwebsockets";
-            qtInputs = [ base declarative ];
-          }
-        )
-        {};
-
-      /* winextras = not packaged */
-
-      x11extras = callPackage
-        (
-          { qtSubmodule, base }:
-
-          qtSubmodule {
-            name = "qtx11extras";
-            qtInputs = [ base ];
-          }
-        )
-        {};
-
-      xmlpatterns = callPackage
-        (
-          { qtSubmodule, base }:
-
-          qtSubmodule {
-            name = "qtxmlpatterns";
-            qtInputs = [ base ];
-          }
-        )
-        {};
+      makeQtWrapper = makeSetupHook { deps = [ makeWrapper ]; } ./make-qt-wrapper.sh;
+      fixQtModuleCMakeConfig = makeSetupHook { } ./fix-qt-module-cmake-config.sh;
+      qmakeHook = makeSetupHook { substitutions = { qt_dev = qtbase.dev; lndir = pkgs.xorg.lndir; }; } ./qmake-hook.sh;
 
     };
+
+    self = makeScope pkgs.newScope addPackages;
 
 in self

@@ -2,13 +2,13 @@
 
 stdenv.mkDerivation rec {
   name = "theme-vertex-${version}";
-  version = "20150923";
+  version = "20160329";
 
   src = fetchFromGitHub {
     owner = "horst3180";
     repo = "Vertex-theme";
     rev = version;
-    sha256 = "0jsdnrw7sgrb7s4byv80y9c782gd6vbq0xsrrhwkflfnxcldvz4r";
+    sha256 = "1zafnbxn9hgi4lmi254iw9jyhifcqijxa7cymwjpyy0jfa6sm1qj";
   };
 
   buildInputs = [ autoreconfHook gtk3 pkgconfig ];
@@ -27,7 +27,7 @@ stdenv.mkDerivation rec {
     inherit (src.meta) homepage;
     description = "Theme for GTK 3, GTK 2, Gnome-Shell, and Cinnamon";
     license = licenses.gpl3;
-    maintainer = [ maintainers.rycee ];
+    maintainers = [ maintainers.rycee ];
     platforms = platforms.unix;
   };
 }

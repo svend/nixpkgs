@@ -1,4 +1,4 @@
-{ stdenv, cacert, git, rustc, cargo, rustRegistry }:
+{ stdenv, cacert, git, cargo, rustRegistry }:
 { name, depsSha256
 , src ? null
 , srcs ? null
@@ -9,7 +9,7 @@
 
 let
   fetchDeps = import ./fetchcargo.nix {
-    inherit stdenv cacert git rustc cargo rustRegistry;
+    inherit stdenv cacert git cargo rustRegistry;
   };
 
   cargoDeps = fetchDeps {
@@ -22,7 +22,7 @@ in stdenv.mkDerivation (args // {
 
   patchRegistryDeps = ./patch-registry-deps;
 
-  buildInputs = [ git cargo rustc ] ++ buildInputs;
+  buildInputs = [ git cargo cargo.rustc ] ++ buildInputs;
 
   configurePhase = args.configurePhase or "true";
 
@@ -75,7 +75,7 @@ in stdenv.mkDerivation (args // {
     (
         set -euo pipefail
 
-        cd ../deps/registry/src/*
+        cd $NIX_BUILD_TOP/deps/registry/src/*
 
         for script in $patchRegistryDeps/*; do
           # Run in a subshell so that directory changes and shell options don't

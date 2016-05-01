@@ -50,13 +50,13 @@ in
       after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
 
-      path = [ config.nix.package pkgs.bzip2 ];
+      path = [ config.nix.package.out pkgs.bzip2.bin ];
       environment.NIX_REMOTE = "daemon";
       environment.NIX_SECRET_KEY_FILE = cfg.secretKeyFile;
 
       serviceConfig = {
         ExecStart = "${pkgs.nix-serve}/bin/nix-serve " +
-          "--port ${cfg.bindAddress}:${toString cfg.port} ${cfg.extraParams}";
+          "--listen ${cfg.bindAddress}:${toString cfg.port} ${cfg.extraParams}";
         User = "nix-serve";
         Group = "nogroup";
       };

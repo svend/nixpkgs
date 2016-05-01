@@ -1,16 +1,18 @@
 { stdenv, fetchurl, python3Packages }:
 
-python3Packages.buildPythonPackage rec {
-  name = "urlwatch-1.18";
+python3Packages.buildPythonApplication rec {
+  name = "urlwatch-2.1";
 
   src = fetchurl {
     url = "http://thp.io/2008/urlwatch/${name}.tar.gz";
-    sha256 = "090qfgx249ks7103sap6w47f8302ix2k46wxhfssxwsqcqdl25vb";
+    sha256 = "0xn435cml9wjwk39117p1diqmvw3jbmv9ccr7230iaf7z59vf9v6";
   };
 
-  patchPhase = ''
-    ./convert-to-python3.sh
-  '';
+  propagatedBuildInputs = with python3Packages; [
+    minidb
+    pyyaml
+    requests2
+  ];
 
   postFixup = ''
     wrapProgram "$out/bin/urlwatch" --prefix "PYTHONPATH" : "$PYTHONPATH"

@@ -6,26 +6,31 @@
 , mpeg2dec, udev, gnutls, avahi, libcddb, libjack2, SDL, SDL_image
 , libmtp, unzip, taglib, libkate, libtiger, libv4l, samba, liboggz
 , libass, libva, libdvbpsi, libdc1394, libraw1394, libopus
-, libvdpau, libsamplerate, live555
+, libvdpau, libsamplerate, live555, fluidsynth
 , onlyLibVLC ? false
 , qt4 ? null
-, withQt5 ? false, qtbase ? null
+, withQt5 ? false, qtbase ? null, qtx11extras ? null
 , jackSupport ? false
 }:
 
 with stdenv.lib;
 
-assert (withQt5 -> qtbase != null);
+assert (withQt5 -> qtbase != null && qtx11extras != null);
 assert (!withQt5 -> qt4 != null);
 
 stdenv.mkDerivation rec {
   name = "vlc-${version}";
-  version = "2.2.1";
+  version = "2.2.2";
 
   src = fetchurl {
-    url = "http://download.videolan.org/vlc/${version}/${name}.tar.xz";
-    sha256 = "1jqzrzrpw6932lbkf863xk8cfmn4z2ngbxz7w8ggmh4f6xz9sgal";
+    url = "http://get.videolan.org/vlc/${version}/${name}.tar.xz";
+    sha256 = "1dazxbmzx2g5570pkg519a7fsj07rdr155kjsw7b9y8npql33lls";
   };
+
+  # Comment-out the Qt 5.5 version check, as we do apply the relevant patch.
+  # https://trac.videolan.org/vlc/ticket/16497
+  postPatch = if (!withQt5) then null else
+    "sed '/I78ef29975181ee22429c9bd4b11d96d9e68b7a9c/s/^/: #/' -i configure";
 
   buildInputs =
     [ xz bzip2 perl zlib a52dec libmad faad2 ffmpeg alsaLib libdvdnav libdvdnav.libdvdread
@@ -35,8 +40,10 @@ stdenv.mkDerivation rec {
       libkate libtiger libv4l samba liboggz libass libdvbpsi libva
       xorg.xlibsWrapper xorg.libXv xorg.libXvMC xorg.libXpm xorg.xcbutilkeysyms
       libdc1394 libraw1394 libopus libebml libmatroska libvdpau libsamplerate live555
+      fluidsynth
     ]
     ++ [(if withQt5 then qtbase else qt4)]
+    ++ optional withQt5 qtx11extras
     ++ optional jackSupport libjack2;
 
   nativeBuildInputs = [ pkgconfig ];

@@ -1,13 +1,11 @@
 { stdenv, fetchurl, attr, keyutils }:
 
-let
-  version = "0.04.21";
+stdenv.mkDerivation rec {
   name = "stress-ng-${version}";
-in stdenv.mkDerivation {
-  inherit name;
+  version = "0.05.25";
 
   src = fetchurl {
-    sha256 = "01308c31dx7ln7w3r74f18c473hz9236f118b27z1js94dsya0hw";
+    sha256 = "13c94g06aswlhbv0cpsdrzym9jmbabkdm949j3h935gfdl1625v5";
     url = "http://kernel.ubuntu.com/~cking/tarballs/stress-ng/${name}.tar.gz";
   };
 
@@ -19,10 +17,9 @@ in stdenv.mkDerivation {
 
   enableParallelBuilding = true;
 
-  installFlags = "DESTDIR=$(out)";
+  installFlags = [ "DESTDIR=$(out)" ];
 
   meta = with stdenv.lib; {
-    inherit version;
     description = "Stress test a computer system";
     longDescription = ''
       Stress test a system in various selectable ways, exercising both various

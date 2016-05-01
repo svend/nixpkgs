@@ -40,16 +40,17 @@ let
       if [ -z "$TMPDIR" -o -z "$USE_TMPDIR" ]; then
           TMPDIR=$(mktemp -d nix-vm.XXXXXXXXXX --tmpdir)
       fi
+
       # Create a directory for exchanging data with the VM.
       mkdir -p $TMPDIR/xchg
 
       ${if cfg.useBootLoader then ''
-        # Create a writable copy/snapshot of the boot disk
-        # A writable boot disk can be booted from automatically
+        # Create a writable copy/snapshot of the boot disk.
+        # A writable boot disk can be booted from automatically.
         ${pkgs.qemu_kvm}/bin/qemu-img create -f qcow2 -b ${bootDisk}/disk.img $TMPDIR/disk.img || exit 1
 
         ${if cfg.useEFIBoot then ''
-          # VM needs a writable flash BIOS
+          # VM needs a writable flash BIOS.
           cp ${bootDisk}/bios.bin $TMPDIR || exit 1
           chmod 0644 $TMPDIR/bios.bin || exit 1
         '' else ''
@@ -109,6 +110,7 @@ let
 
   # Generate a hard disk image containing a /boot partition and GRUB
   # in the MBR.  Used when the `useBootLoader' option is set.
+  # FIXME: use nixos/lib/make-disk-image.nix.
   bootDisk =
     pkgs.vmTools.runInLinuxVM (
       pkgs.runCommand "nixos-boot-disk"
@@ -147,11 +149,11 @@ let
           ${pkgs.mtools}/bin/mlabel -i /dev/vda2 ::boot
 
           # Mount /boot; load necessary modules first.
-          ${pkgs.module_init_tools}/sbin/insmod ${pkgs.linux}/lib/modules/*/kernel/fs/nls/nls_cp437.ko || true
-          ${pkgs.module_init_tools}/sbin/insmod ${pkgs.linux}/lib/modules/*/kernel/fs/nls/nls_iso8859-1.ko || true
-          ${pkgs.module_init_tools}/sbin/insmod ${pkgs.linux}/lib/modules/*/kernel/fs/fat/fat.ko || true
-          ${pkgs.module_init_tools}/sbin/insmod ${pkgs.linux}/lib/modules/*/kernel/fs/fat/vfat.ko || true
-          ${pkgs.module_init_tools}/sbin/insmod ${pkgs.linux}/lib/modules/*/kernel/fs/efivarfs/efivarfs.ko || true
+          ${pkgs.kmod}/sbin/insmod ${pkgs.linux}/lib/modules/*/kernel/fs/nls/nls_cp437.ko.xz || true
+          ${pkgs.kmod}/sbin/insmod ${pkgs.linux}/lib/modules/*/kernel/fs/nls/nls_iso8859-1.ko.xz || true
+          ${pkgs.kmod}/sbin/insmod ${pkgs.linux}/lib/modules/*/kernel/fs/fat/fat.ko.xz || true
+          ${pkgs.kmod}/sbin/insmod ${pkgs.linux}/lib/modules/*/kernel/fs/fat/vfat.ko.xz || true
+          ${pkgs.kmod}/sbin/insmod ${pkgs.linux}/lib/modules/*/kernel/fs/efivarfs/efivarfs.ko.xz || true
           mkdir /boot
           mount /dev/vda2 /boot
 
@@ -297,6 +299,7 @@ in
     virtualisation.qemu = {
       options =
         mkOption {
+          type = types.listOf types.unspecified;
           default = [];
           example = [ "-vga std" ];
           description = "Options passed to QEMU.";
@@ -400,7 +403,7 @@ in
     boot.postBootCommands =
       ''
         if [[ "$(cat /proc/cmdline)" =~ regInfo=([^ ]*) ]]; then
-          ${config.nix.package}/bin/nix-store --load-db < ''${BASH_REMATCH[1]}
+          ${config.nix.package.out}/bin/nix-store --load-db < ''${BASH_REMATCH[1]}
         fi
       '';
 
@@ -425,38 +428,38 @@ in
         ${if cfg.writableStore then "/nix/.ro-store" else "/nix/store"} =
           { device = "store";
             fsType = "9p";
-            options = "trans=virtio,version=9p2000.L,msize=1048576,cache=loose";
+            options = [ "trans=virtio" "version=9p2000.L" "cache=loose" ];
             neededForBoot = true;
           };
         "/tmp/xchg" =
           { device = "xchg";
             fsType = "9p";
-            options = "trans=virtio,version=9p2000.L,msize=1048576,cache=loose";
+            options = [ "trans=virtio" "version=9p2000.L" "cache=loose" ];
             neededForBoot = true;
           };
         "/tmp/shared" =
           { device = "shared";
             fsType = "9p";
-            options = "trans=virtio,version=9p2000.L,msize=1048576";
+            options = [ "trans=virtio" "version=9p2000.L" ];
             neededForBoot = true;
           };
       } // optionalAttrs cfg.writableStore
       { "/nix/store" =
           { fsType = "unionfs-fuse";
             device = "unionfs";
-            options = "allow_other,cow,nonempty,chroot=/mnt-root,max_files=32768,hide_meta_files,dirs=/nix/.rw-store=rw:/nix/.ro-store=ro";
+            options = [ "allow_other" "cow" "nonempty" "chroot=/mnt-root" "max_files=32768" "hide_meta_files" "dirs=/nix/.rw-store=rw:/nix/.ro-store=ro" ];
           };
       } // optionalAttrs (cfg.writableStore && cfg.writableStoreUseTmpfs)
       { "/nix/.rw-store" =
           { fsType = "tmpfs";
-            options = "mode=0755";
+            options = [ "mode=0755" ];
             neededForBoot = true;
           };
       } // optionalAttrs cfg.useBootLoader
       { "/boot" =
           { device = "/dev/vdb2";
             fsType = "vfat";
-            options = "ro";
+            options = [ "ro" ];
             noCheck = true; # fsck fails on a r/o filesystem
           };
       });

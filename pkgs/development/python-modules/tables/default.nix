@@ -6,7 +6,7 @@ buildPythonPackage rec {
   name = "tables-${version}";
 
   src = fetchurl {
-    url = "https://pypi.python.org/packages/source/t/tables/${name}.tar.gz";
+    url = "mirror://pypi/t/tables/${name}.tar.gz";
     sha256 = "3564b351a71ec1737b503b001eb7ceae1f65d5d6e3ffe1ea75aafba10f37fa84";
   };
 
@@ -20,7 +20,6 @@ buildPythonPackage rec {
       "--lzo=${lzo}"
       "--bzip2=${bzip2}"
     ];
-  setupPyInstallFlags = setupPyBuildFlags;
 
   # Run the test suite.
   # It requires the build path to be in the python search path.

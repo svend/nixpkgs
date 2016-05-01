@@ -1,16 +1,16 @@
 { stdenv, fetchurl, pythonPackages, mopidy }:
 
-pythonPackages.buildPythonPackage rec {
+pythonPackages.buildPythonApplication rec {
   name = "mopidy-mopify-${version}";
 
-  version = "1.5.1";
+  version = "1.5.17";
 
   src = fetchurl {
     url = "https://github.com/dirkgroenen/mopidy-mopify/archive/${version}.tar.gz";
-    sha256 = "0hhdss4i5436dj37pndxk81a4g3g8f6zqjyv04lhpqcww01290as";
+    sha256 = "1qi7f5i87ygn486gxc84njl22y84xrwabpz58y5a1hw7z1lp7l8s";
   };
 
-  propagatedBuildInputs = [ mopidy ];
+  propagatedBuildInputs = with pythonPackages; [ mopidy configobj ];
 
   doCheck = false;
 

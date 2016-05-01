@@ -1,6 +1,6 @@
-{stdenv, fetchurl, cmake, zlib, python, libssh2, openssl, http-parser}:
+{ stdenv, fetchurl, pkgconfig, cmake, zlib, python, libssh2, openssl, http-parser, libiconv }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (rec {
   version = "0.23.2";
   name = "libgit2-${version}";
 
@@ -12,7 +12,7 @@ stdenv.mkDerivation rec {
 
   cmakeFlags = "-DTHREADSAFE=ON";
 
-  nativeBuildInputs = [ cmake python ];
+  nativeBuildInputs = [ cmake python pkgconfig ];
   buildInputs = [ zlib libssh2 openssl http-parser ];
 
   meta = {
@@ -21,4 +21,7 @@ stdenv.mkDerivation rec {
     license = stdenv.lib.licenses.gpl2;
     platforms = with stdenv.lib.platforms; all;
   };
-}
+} // stdenv.lib.optionalAttrs (!stdenv.isLinux) {
+  NIX_LDFLAGS = "-liconv";
+  propagatedBuildInputs = [ libiconv ];
+})

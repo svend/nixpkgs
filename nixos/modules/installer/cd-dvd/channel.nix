@@ -17,7 +17,9 @@ let
       mkdir -p $out
       cp -prd ${pkgs.path} $out/nixos
       chmod -R u+w $out/nixos
-      ln -s . $out/nixos/nixpkgs
+      if [ ! -e $out/nixos/nixpkgs ]; then
+        ln -s . $out/nixos/nixpkgs
+      fi
       rm -rf $out/nixos/.git
       echo -n ${config.system.nixosVersionSuffix} > $out/nixos/.version-suffix
     '';
@@ -32,7 +34,7 @@ in
       if ! [ -e /var/lib/nixos/did-channel-init ]; then
         echo "unpacking the NixOS/Nixpkgs sources..."
         mkdir -p /nix/var/nix/profiles/per-user/root
-        ${config.nix.package}/bin/nix-env -p /nix/var/nix/profiles/per-user/root/channels \
+        ${config.nix.package.out}/bin/nix-env -p /nix/var/nix/profiles/per-user/root/channels \
           -i ${channelSources} --quiet --option build-use-substitutes false
         mkdir -m 0700 -p /root/.nix-defexpr
         ln -s /nix/var/nix/profiles/per-user/root/channels /root/.nix-defexpr/channels

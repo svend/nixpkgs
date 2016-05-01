@@ -2,15 +2,16 @@
 , gd, geoip
 , withStream ? false
 , modules ? []
+, hardening ? true
 }:
 
 with stdenv.lib;
 
 let
-  version = "1.9.4";
+  version = "1.9.14";
   mainSrc = fetchurl {
     url = "http://nginx.org/download/nginx-${version}.tar.gz";
-    sha256 = "1a1bixw2a4s5c3qzw3583s4a4y6i0sdzhihhlbab5rkyfh1hr6s7";
+    sha256 = "1ljpyigqb6sbm4f8mi4fyvwfcvfapzg4z35s9cwb9ri8dl3r6j1b";
   };
 
 in
@@ -25,7 +26,7 @@ stdenv.mkDerivation rec {
 
   configureFlags = [
     "--with-http_ssl_module"
-    "--with-http_spdy_module"
+    "--with-http_v2_module"
     "--with-http_realip_module"
     "--with-http_addition_module"
     "--with-http_xslt_module"
@@ -49,9 +50,16 @@ stdenv.mkDerivation rec {
     ++ optional (elem stdenv.system (with platforms; linux ++ freebsd)) "--with-file-aio"
     ++ map (mod: "--add-module=${mod.src}") modules;
 
-  NIX_CFLAGS_COMPILE = [ "-I${libxml2}/include/libxml2" ] ++ optional stdenv.isDarwin "-Wno-error=deprecated-declarations";
+  NIX_CFLAGS_COMPILE = [ "-I${libxml2.dev}/include/libxml2" ] ++ optional stdenv.isDarwin "-Wno-error=deprecated-declarations";
 
-  preConfigure = concatMapStringsSep "\n" (mod: mod.preConfigure or "") modules;
+  preConfigure = (concatMapStringsSep "\n" (mod: mod.preConfigure or "") modules)
+    + optionalString (hardening && (stdenv.cc.cc.isGNU or false)) ''
+      configureFlagsArray=(
+        --with-cc-opt="-fPIE -fstack-protector-all --param ssp-buffer-size=4 -O2 -D_FORTIFY_SOURCE=2"
+        --with-ld-opt="-pie -Wl,-z,relro,-z,now"
+      )
+    ''
+    ;
 
   postInstall = ''
     mv $out/sbin $out/bin

@@ -170,6 +170,15 @@ in rec {
       '';
     };
 
+    onFailure = mkOption {
+      default = [];
+      type = types.listOf types.str;
+      description = ''
+        A list of one or more units that are activated when
+        this unit enters the "failed" state.
+      '';
+    };
+
   };
 
 
@@ -184,7 +193,7 @@ in rec {
 
     path = mkOption {
       default = [];
-      apply = ps: "${makeSearchPath "bin" ps}:${makeSearchPath "sbin" ps}";
+      apply = ps: "${makeBinPath ps}:${makeSearchPathOutputs "sbin" ["bin"] ps}";
       description = ''
         Packages added to the service's <envar>PATH</envar>
         environment variable.  Both the <filename>bin</filename>

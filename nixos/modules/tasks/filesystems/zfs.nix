@@ -73,6 +73,18 @@ in
         '';
       };
 
+      devNodes = mkOption {
+        type = types.path;
+        default = "/dev/disk/by-id";
+        example = "/dev/disk/by-id";
+        description = ''
+          Name of directory from which to import ZFS devices.
+
+          This should be a path under /dev containing stable names for all devices needed, as
+          import may fail if device nodes are renamed concurrently with a device failing.
+        '';
+      };
+
       forceImportRoot = mkOption {
         type = types.bool;
         default = true;
@@ -214,7 +226,7 @@ in
             done
             ''] ++ (map (pool: ''
             echo "importing root ZFS pool \"${pool}\"..."
-            zpool import -N $ZFS_FORCE "${pool}"
+            zpool import -d ${cfgZfs.devNodes} -N $ZFS_FORCE "${pool}"
         '') rootPools));
       };
 
@@ -255,7 +267,7 @@ in
             };
             script = ''
               zpool_cmd="${zfsUserPkg}/sbin/zpool"
-              ("$zpool_cmd" list "${pool}" >/dev/null) || "$zpool_cmd" import -N ${optionalString cfgZfs.forceImportAll "-f"} "${pool}"
+              ("$zpool_cmd" list "${pool}" >/dev/null) || "$zpool_cmd" import -d ${cfgZfs.devNodes} -N ${optionalString cfgZfs.forceImportAll "-f"} "${pool}"
             '';
           };
       in listToAttrs (map createImportService dataPools) // {

@@ -1,23 +1,29 @@
-{ stdenv, fetchgit, rustPlatform, file, curl, python, pkgconfig, openssl
-, cmake, zlib }:
-
-with ((import ./common.nix) { inherit stdenv; version = "0.6.0"; });
+{ stdenv, lib, cacert, fetchgit, rustPlatform, file, curl, python, pkgconfig, openssl
+, cmake, zlib, makeWrapper
+# Darwin dependencies
+, libiconv }:
 
 with rustPlatform;
 
+with ((import ./common.nix) {
+  inherit stdenv rustc;
+  version = "0.9.0";
+});
+
 buildRustPackage rec {
-  inherit name version meta;
+  inherit name version meta passthru;
 
   # Needs to use fetchgit instead of fetchFromGitHub to fetch submodules
   src = fetchgit {
     url = "git://github.com/rust-lang/cargo";
     rev = "refs/tags/${version}";
-    sha256 = "1kxri32sz9ygnf4wlbj7hc7q9p6hmm5xrb9zzkx23wzkzbcpyjyz";
+    sha256 = "0d3n2jdhaz06yhilvmw3m2avxv501da1hdhljc9mwkz3l5bkv2jv";
   };
 
-  depsSha256 = "1m045yywv67sx75idbsny59d3dzbqnhr07k41jial5n5zwp87mb9";
+  depsSha256 = "1x2m7ww2z8nl5ic2nds85p7ma8x0zp654jg7ay905ia95daiabzg";
 
-  buildInputs = [ file curl pkgconfig python openssl cmake zlib ];
+  buildInputs = [ file curl pkgconfig python openssl cmake zlib makeWrapper ]
+    ++ lib.optional stdenv.isDarwin libiconv;
 
   configurePhase = ''
     ./configure --enable-optimize --prefix=$out --local-cargo=${cargo}/bin/cargo
@@ -25,8 +31,15 @@ buildRustPackage rec {
 
   buildPhase = "make";
 
-  # Disable check phase as there are lots of failures (some probably due to
-  # trying to access the network).
+  checkPhase = ''
+    # Export SSL_CERT_FILE as without it one test fails with SSL verification error
+    export SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt
+    # Disable cross compilation tests
+    export CFG_DISABLE_CROSS_TESTS=1
+    cargo test
+  '';
+
+  # Disable check phase as there are failures (author_prefers_cargo test fails)
   doCheck = false;
 
   installPhase = ''

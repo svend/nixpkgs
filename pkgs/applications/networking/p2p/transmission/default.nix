@@ -1,10 +1,10 @@
 { stdenv, fetchurl, pkgconfig, intltool, file, makeWrapper
-, openssl, curl, libevent, inotify-tools, systemd
+, openssl, curl, libevent, inotify-tools, systemd, zlib
 , enableGTK3 ? false, gtk3
 }:
 
 let
-  version = "2.84";
+  version = "2.92";
 in
 
 with { inherit (stdenv.lib) optional optionals optionalString; };
@@ -14,10 +14,10 @@ stdenv.mkDerivation rec {
 
   src = fetchurl {
     url = "https://transmission.cachefly.net/transmission-${version}.tar.xz";
-    sha256 = "1sxr1magqb5s26yvr5yhs1f7bmir8gl09niafg64lhgfnhv1kz59";
+    sha256 = "0pykmhi7pdmzq47glbj8i2im6iarp4wnj4l1pyvsrnba61f0939s";
   };
 
-  buildInputs = [ pkgconfig intltool file openssl curl libevent inotify-tools ]
+  buildInputs = [ pkgconfig intltool file openssl curl libevent inotify-tools zlib ]
     ++ optionals enableGTK3 [ gtk3 makeWrapper ]
     ++ optional stdenv.isLinux systemd;
 
@@ -26,6 +26,7 @@ stdenv.mkDerivation rec {
   '';
 
   configureFlags = [ "--with-systemd-daemon" ]
+    ++ [ "--enable-cli" ]
     ++ optional enableGTK3 "--with-gtk";
 
   preFixup = optionalString enableGTK3 /* gsettings schemas for file dialogues */ ''

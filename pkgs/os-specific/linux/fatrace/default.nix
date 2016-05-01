@@ -1,12 +1,12 @@
-{ stdenv, fetchurl, python3, which }:
+{ stdenv, fetchurl, fetchpatch, python3, which }:
 
-let version = "0.11"; in
 stdenv.mkDerivation rec {
   name = "fatrace-${version}";
+  version = "0.12";
 
   src = fetchurl {
     url = "http://launchpad.net/fatrace/trunk/${version}/+download/${name}.tar.bz2";
-    sha256 = "1f77v222nlfbf8fv7d28cnpm7x8xz0mhxavgz19c2jc51pjlv84s";
+    sha256 = "0szn86rbbvmjcw192vjhhgc3v99s5lm2kg93gk1yzm6ay831grsh";
   };
 
   buildInputs = [ python3 which ];
@@ -16,10 +16,9 @@ stdenv.mkDerivation rec {
       --replace "'which'" "'${which}/bin/which'"
   '';
 
-  makeFlagsArray = "PREFIX=$(out)";
+  makeFlags = [ "PREFIX=$(out)" ];
 
   meta = with stdenv.lib; {
-    inherit version;
     description = "Report system-wide file access events";
     homepage = https://launchpad.net/fatrace/;
     license = licenses.gpl3Plus;

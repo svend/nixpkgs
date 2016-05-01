@@ -1,5 +1,6 @@
-{ stdenv, fetchurl, fetchFromGitHub, pkgconfig, perl, python, which, makeWrapper
-, libX11, libxcb, qt5, mesa
+{ stdenv, fetchurl, fetchFromGitHub, pkgconfig, perl, python, which, makeQtWrapper
+, libX11, libxcb, mesa
+, qtbase, qtdeclarative, qtquickcontrols, qttools, qtx11extras, qmakeHook
 , ffmpeg
 , libchardet
 , mpg123
@@ -26,9 +27,6 @@ assert pulseSupport -> libpulseaudio != null;
 assert cddaSupport -> libcdda != null;
 assert youtubeSupport -> youtube-dl != null;
 
-let qtPath = makeSearchPath "lib/qt5/qml" [ qt5.declarative qt5.quickcontrols ];
-in
-
 stdenv.mkDerivation rec {
   name = "bomi-${version}";
   version = "0.9.11";
@@ -42,7 +40,7 @@ stdenv.mkDerivation rec {
 
   buildInputs = with stdenv.lib;
                 [ libX11 libxcb mesa
-                  qt5.base qt5.x11extras
+                  qtbase qtx11extras
                   ffmpeg
                   libchardet
                   mpg123
@@ -55,6 +53,8 @@ stdenv.mkDerivation rec {
                   libvdpau
                   libva
                   libbluray
+                  qtdeclarative
+                  qtquickcontrols
                 ]
                 ++ optional jackSupport jack
                 ++ optional portaudioSupport portaudio
@@ -72,10 +72,11 @@ stdenv.mkDerivation rec {
   '';
 
   postInstall = ''
-    wrapProgram $out/bin/bomi \
-      --set QML2_IMPORT_PATH ${qtPath} \
+    wrapQtProgram $out/bin/bomi \
       ${optionalString youtubeSupport "--prefix PATH ':' '${youtube-dl}/bin'"}
   '';
+
+  dontUseQmakeConfigure = true;
 
   configureFlags = with stdenv.lib;
                    [ "--qmake=qmake" ]
@@ -85,7 +86,7 @@ stdenv.mkDerivation rec {
                    ++ optional cddaSupport "--enable-cdda"
                    ;
 
-  nativeBuildInputs = [ pkgconfig perl python which qt5.tools makeWrapper ];
+  nativeBuildInputs = [ pkgconfig perl python which qttools makeQtWrapper qmakeHook ];
 
   enableParallelBuilding = true;
 

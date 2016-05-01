@@ -5,11 +5,11 @@ assert withBuildColors -> ncurses != null;
 with stdenv.lib;
 stdenv.mkDerivation rec {
   name = "girara-${version}";
-  version = "0.2.4";
+  version = "0.2.6";
 
   src = fetchurl {
     url = "http://pwmt.org/projects/girara/download/${name}.tar.gz";
-    sha256 = "0pnfdsg435b5vc4x8l9pgm77aj7ram1q0bzrp9g4a3bh1r64xq1f";
+    sha256 = "03wsxj27hvcbs3x96nah7j3paclifwlfag8kdph4kldl48srp9pb";
   };
 
   preConfigure = ''
@@ -19,7 +19,7 @@ stdenv.mkDerivation rec {
   buildInputs = [ pkgconfig gtk gettext ];
 
   makeFlags = [ "PREFIX=$(out)" ]
-    ++ optional withBuildColors "TPUT=${ncurses}/bin/tput"
+    ++ optional withBuildColors "TPUT=${ncurses.out}/bin/tput"
     ++ optional (!withBuildColors) "TPUT_AVAILABLE=0"
     ;
 

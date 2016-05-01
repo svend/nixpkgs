@@ -75,7 +75,7 @@ let
       };
 
       oathAuth = mkOption {
-        default = config.security.pam.enableOATH;
+        default = config.security.pam.oath.enable;
         type = types.bool;
         description = ''
           If set, the OATH Toolkit will be used.
@@ -218,7 +218,7 @@ let
       # Samba stuff to the Samba module.  This requires that the PAM
       # module provides the right hooks.
       text = mkDefault
-        ''
+        (''
           # Account management.
           account sufficient pam_unix.so
           ${optionalString config.users.ldap.enable
@@ -241,16 +241,26 @@ let
               "auth sufficient ${pkgs.pam_u2f}/lib/security/pam_u2f.so"}
           ${optionalString cfg.usbAuth
               "auth sufficient ${pkgs.pam_usb}/lib/security/pam_usb.so"}
+        '' +
+          # Modules in this block require having the password set in PAM_AUTHTOK.
+          # pam_unix is marked as 'sufficient' on NixOS which means nothing will run
+          # after it succeeds. Certain modules need to run after pam_unix
+          # prompts the user for password so we run it once with 'required' at an
+          # earlier point and it will run again with 'sufficient' further down.
+          # We use try_first_pass the second time to avoid prompting password twice
+          (optionalString (cfg.unixAuth && (config.security.pam.enableEcryptfs || cfg.pamMount)) ''
+              auth required pam_unix.so ${optionalString cfg.allowNullPassword "nullok"} likeauth
+              ${optionalString config.security.pam.enableEcryptfs
+                "auth optional ${pkgs.ecryptfs}/lib/security/pam_ecryptfs.so unwrap"}
+              ${optionalString cfg.pamMount
+                "auth optional ${pkgs.pam_mount}/lib/security/pam_mount.so"}
+            '') + ''
           ${optionalString cfg.unixAuth
-              "auth ${if (config.security.pam.enableEcryptfs || cfg.pamMount) then "required" else "sufficient"} pam_unix.so ${optionalString cfg.allowNullPassword "nullok"} likeauth"}
-          ${optionalString cfg.pamMount
-              "auth optional ${pkgs.pam_mount}/lib/security/pam_mount.so"}
-          ${optionalString config.security.pam.enableEcryptfs
-              "auth required ${pkgs.ecryptfs}/lib/security/pam_ecryptfs.so unwrap"}
+              "auth sufficient pam_unix.so ${optionalString cfg.allowNullPassword "nullok"} likeauth try_first_pass"}
           ${optionalString cfg.otpwAuth
               "auth sufficient ${pkgs.otpw}/lib/security/pam_otpw.so"}
-          ${optionalString cfg.oathAuth
-              "auth sufficient ${pkgs.oathToolkit}/lib/security/pam_oath.so window=5 usersfile=/etc/users.oath"}
+          ${let oath = config.security.pam.oath; in optionalString cfg.oathAuth
+              "auth sufficient ${pkgs.oathToolkit}/lib/security/pam_oath.so window=${toString oath.window} usersfile=${toString oath.usersFile} digits=${toString oath.digits}"}
           ${optionalString config.users.ldap.enable
               "auth sufficient ${pam_ldap}/lib/security/pam_ldap.so use_first_pass"}
           ${optionalString config.krb5.enable ''
@@ -258,7 +268,7 @@ let
             auth [default=die success=done] ${pam_ccreds}/lib/security/pam_ccreds.so action=validate use_first_pass
             auth sufficient ${pam_ccreds}/lib/security/pam_ccreds.so action=store use_first_pass
           ''}
-          ${optionalString (!(config.security.pam.enableEcryptfs || cfg.pamMount)) "auth required pam_deny.so"}
+          auth required pam_deny.so
 
           # Password management.
           password requisite pam_unix.so nullok sha512
@@ -292,8 +302,6 @@ let
               "session optional ${pam_krb5}/lib/security/pam_krb5.so"}
           ${optionalString cfg.otpwAuth
               "session optional ${pkgs.otpw}/lib/security/pam_otpw.so"}
-          ${optionalString cfg.oathAuth
-              "session optional ${pkgs.oathToolkit}/lib/security/pam_oath.so window=5 usersfile=/etc/users.oath"}
           ${optionalString cfg.startSession
               "session optional ${pkgs.systemd}/lib/security/pam_systemd.so"}
           ${optionalString cfg.forwardXAuth
@@ -306,7 +314,7 @@ let
               "session optional ${pkgs.pam_mount}/lib/security/pam_mount.so"}
           ${optionalString (cfg.enableAppArmor && config.security.apparmor.enable)
               "session optional ${pkgs.apparmor-pam}/lib/security/pam_apparmor.so order=user,group,default debug"}
-        '';
+        '');
     };
 
   };
@@ -395,13 +403,6 @@ in
       '';
     };
 
-    security.pam.enableOATH = mkOption {
-      default = false;
-      description = ''
-        Enable the OATH (one-time password) PAM module.
-      '';
-    };
-
     security.pam.enableU2F = mkOption {
       default = false;
       description = ''
@@ -436,7 +437,7 @@ in
       ++ optional config.users.ldap.enable pam_ldap
       ++ optionals config.krb5.enable [pam_krb5 pam_ccreds]
       ++ optionals config.security.pam.enableOTPW [ pkgs.otpw ]
-      ++ optionals config.security.pam.enableOATH [ pkgs.oathToolkit ]
+      ++ optionals config.security.pam.oath.enable [ pkgs.oathToolkit ]
       ++ optionals config.security.pam.enableU2F [ pkgs.pam_u2f ]
       ++ optionals config.security.pam.enableEcryptfs [ pkgs.ecryptfs ];
 

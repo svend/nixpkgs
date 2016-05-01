@@ -14,8 +14,8 @@ stdenv.mkDerivation rec {
   propagatedBuildInputs = [ gmp ];
 
   configureFlags = [
-    "GMP_CFLAGS=-I${gmp}/include"
-    "GMP_LDFLAGS=-L${gmp}/lib"
+    "GMP_CFLAGS=-I${gmp.dev}/include"
+    "GMP_LDFLAGS=-L${gmp.out}/lib"
   ];
 
   postInstall = ''
@@ -27,6 +27,7 @@ stdenv.mkDerivation rec {
     homepage = https://common-lisp.net/project/mkcl/;
     license = stdenv.lib.licenses.lgpl2Plus;
     platforms = stdenv.lib.platforms.linux;
+    maintainers = [stdenv.lib.maintainers.tohl];
   };
 }
 

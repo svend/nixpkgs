@@ -1,11 +1,11 @@
-{ stdenv, buildPythonPackage, fetchurl, coreutils, twisted }:
+{ stdenv, buildPythonApplication, fetchurl, coreutils, twisted }:
 
-buildPythonPackage (rec {
+buildPythonApplication (rec {
   name = "buildbot-slave-0.8.10";
   namePrefix = "";
 
   src = fetchurl {
-    url = "https://pypi.python.org/packages/source/b/buildbot-slave/${name}.tar.gz";
+    url = "mirror://pypi/b/buildbot-slave/${name}.tar.gz";
     sha256 = "09pncw44c7vqrl7zyn1nvfismiqi9s51axk9cqxn9gq7jhj38mpg";
   };
 

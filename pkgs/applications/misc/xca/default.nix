@@ -2,16 +2,17 @@
 
 stdenv.mkDerivation rec {
   name = "xca-${version}";
-  version = "1.3.1";
+  version = "1.3.2";
 
   src = fetchurl {
     url = "mirror://sourceforge/xca/${name}.tar.gz";
-    sha256 = "10rxma0zm7vryzv69m0aqlvmbf82d261wa77kxni4h3lndwqvpf2";
+    sha256 = "1r2w9gpahjv221j963bd4vn0gj4cxmb9j42f3cd9qdn890hizw84";
   };
 
   postInstall = ''
     wrapProgram "$out/bin/xca" \
-      --prefix LD_LIBRARY_PATH : "${qt4}/lib:${gcc.cc}/lib:${gcc.cc}/lib64:${openssl}/lib:${libtool}/lib"
+      --prefix LD_LIBRARY_PATH : \
+        "${gcc.cc.lib}/lib64:${stdenv.lib.makeLibraryPath [ qt4 gcc.cc openssl libtool ]}"
   '';
 
   buildInputs = [ openssl qt4 libtool gcc makeWrapper ];

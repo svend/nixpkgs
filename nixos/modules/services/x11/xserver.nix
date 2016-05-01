@@ -13,10 +13,9 @@ let
 
   # Map video driver names to driver packages. FIXME: move into card-specific modules.
   knownVideoDrivers = {
-    unichrome    = { modules = [ pkgs.xorgVideoUnichrome ]; };
-    virtualbox   = { modules = [ kernelPackages.virtualboxGuestAdditions ]; driverName = "vboxvideo"; };
-    ati = { modules = [ pkgs.xorg.xf86videoati pkgs.xorg.glamoregl ]; };
-    intel-testing = { modules = with pkgs.xorg; [ xf86videointel-testing glamoregl ]; driverName = "intel"; };
+    virtualbox = { modules = [ kernelPackages.virtualboxGuestAdditions ]; driverName = "vboxvideo"; };
+    ati = { modules = with pkgs.xorg; [ xf86videoati glamoregl ]; };
+    intel = { modules = with pkgs.xorg; [ xf86videointel glamoregl ]; };
   };
 
   fontsForXServer =
@@ -157,13 +156,16 @@ in
       inputClassSections = mkOption {
         type = types.listOf types.lines;
         default = [];
-        example = [ ''
-           Identifier      "Trackpoint Wheel Emulation"
-           MatchProduct    "ThinkPad USB Keyboard with TrackPoint"
-           Option          "EmulateWheel"          "true
-           Option          "EmulateWheelButton"    "2"
-           Option          "Emulate3Buttons"       "false"
-          '' ];
+        example = literalExample ''
+          [ '''
+              Identifier      "Trackpoint Wheel Emulation"
+              MatchProduct    "ThinkPad USB Keyboard with TrackPoint"
+              Option          "EmulateWheel"          "true"
+              Option          "EmulateWheelButton"    "2"
+              Option          "Emulate3Buttons"       "false"
+            '''
+          ]
+        '';
         description = "Content of additional InputClass sections of the X server configuration file.";
       };
 
@@ -217,24 +219,10 @@ in
         '';
       };
 
-      vaapiDrivers = mkOption {
-        type = types.listOf types.path;
-        default = [ ];
-        example = literalExample "[ pkgs.vaapiIntel pkgs.vaapiVdpau ]";
-        description = ''
-          Packages providing libva acceleration drivers.
-        '';
-      };
-
-      startGnuPGAgent = mkOption {
-        type = types.bool;
-        default = false;
-        description = ''
-          Whether to start the GnuPG agent when you log in.  The GnuPG agent
-          remembers private keys for you so that you don't have to type in
-          passphrases every time you make an SSH connection or sign/encrypt
-          data.  Use <command>ssh-add</command> to add a key to the agent.
-        '';
+      dpi = mkOption {
+        type = types.nullOr types.int;
+        default = null;
+        description = "DPI resolution to use for X server.";
       };
 
       startDbusSession = mkOption {
@@ -277,6 +265,13 @@ in
         example = "colemak";
         description = ''
           X keyboard variant.
+        '';
+      };
+
+      xkbDir = mkOption {
+        type = types.path;
+        description = ''
+          Path used for -xkbdir xserver parameter.
         '';
       };
 
@@ -381,13 +376,13 @@ in
       };
 
       tty = mkOption {
-        type = types.int;
+        type = types.nullOr types.int;
         default = 7;
         description = "Virtual console for the X server.";
       };
 
       display = mkOption {
-        type = types.int;
+        type = types.nullOr types.int;
         default = 0;
         description = "Display number for the X server.";
       };
@@ -407,6 +402,16 @@ in
         description = ''
           Whether to use the Glamor module for 2D acceleration,
           if possible.
+        '';
+      };
+
+      enableCtrlAltBackspace = mkOption {
+        type = types.bool;
+        default = false;
+        description = ''
+          Whether to enable the DontZap option, which binds Ctrl+Alt+Backspace
+          to forcefully kill X. This can lead to data loss and is disabled
+          by default.
         '';
       };
     };
@@ -434,14 +439,7 @@ in
       in optional (driver != null) ({ inherit name; driverName = name; } // driver));
 
     assertions =
-      [ { assertion = !(config.programs.ssh.startAgent && cfg.startGnuPGAgent);
-          message =
-            ''
-              The OpenSSH agent and GnuPG agent cannot be started both. Please
-              choose between ‘programs.ssh.startAgent’ and ‘services.xserver.startGnuPGAgent’.
-            '';
-        }
-        { assertion = config.security.polkit.enable;
+      [ { assertion = config.security.polkit.enable;
           message = "X11 requires Polkit to be enabled (‘security.polkit.enable = true’).";
         }
       ];
@@ -452,13 +450,13 @@ in
             target = "X11/xorg.conf";
           }
           # -xkbdir command line option does not seems to be passed to xkbcomp.
-          { source = "${pkgs.xkeyboard_config}/etc/X11/xkb";
+          { source = "${cfg.xkbDir}";
             target = "X11/xkb";
           }
         ]);
 
     environment.systemPackages =
-      [ xorg.xorgserver
+      [ xorg.xorgserver.out
         xorg.xrandr
         xorg.xrdb
         xorg.setxkbmap
@@ -468,6 +466,7 @@ in
         xorg.xsetroot
         xorg.xinput
         xorg.xprop
+        xorg.xauth
         pkgs.xterm
         pkgs.xdg_utils
       ]
@@ -486,7 +485,7 @@ in
     systemd.services.display-manager =
       { description = "X11 Server";
 
-        after = [ "systemd-udev-settle.service" "local-fs.target" "acpid.service" ];
+        after = [ "systemd-udev-settle.service" "local-fs.target" "acpid.service" "systemd-logind.service" ];
 
         restartIfChanged = false;
 
@@ -495,7 +494,7 @@ in
             XKB_BINDIR = "${xorg.xkbcomp}/bin"; # Needed for the Xkb extension.
             XORG_DRI_DRIVER_PATH = "/run/opengl-driver/lib/dri"; # !!! Depends on the driver selected at runtime.
             LD_LIBRARY_PATH = concatStringsSep ":" (
-              [ "${xorg.libX11}/lib" "${xorg.libXext}/lib" ]
+              [ "${xorg.libX11.out}/lib" "${xorg.libXext.out}/lib" ]
               ++ concatLists (catAttrs "libPath" cfg.drivers));
           } // cfg.displayManager.job.environment;
 
@@ -515,24 +514,28 @@ in
       };
 
     services.xserver.displayManager.xserverArgs =
-      [ "-ac"
-        "-terminate"
-        "-logfile" "/var/log/X.${toString cfg.display}.log"
+      [ "-terminate"
         "-config ${configFile}"
-        ":${toString cfg.display}" "vt${toString cfg.tty}"
-        "-xkbdir" "${pkgs.xkeyboard_config}/etc/X11/xkb"
-      ] ++ optional (!cfg.enableTCP) "-nolisten tcp";
+        "-xkbdir" "${cfg.xkbDir}"
+      ] ++ optional (cfg.display != null) ":${toString cfg.display}"
+        ++ optional (cfg.tty     != null) "vt${toString cfg.tty}"
+        ++ optional (cfg.dpi     != null) "-dpi ${toString cfg.dpi}"
+        ++ optionals (cfg.display != null) [ "-logfile" "/var/log/X.${toString cfg.display}.log" ]
+        ++ optional (!cfg.enableTCP) "-nolisten tcp";
 
     services.xserver.modules =
       concatLists (catAttrs "modules" cfg.drivers) ++
-      [ xorg.xorgserver
+      [ xorg.xorgserver.out
         xorg.xf86inputevdev
       ];
+
+    services.xserver.xkbDir = mkDefault "${pkgs.xkeyboard_config}/etc/X11/xkb";
 
     services.xserver.config =
       ''
         Section "ServerFlags"
           Option "AllowMouseOpenFail" "on"
+          Option "DontZap" "${if cfg.enableCtrlAltBackspace then "off" else "on"}"
           ${cfg.serverFlagsSection}
         EndSection
 

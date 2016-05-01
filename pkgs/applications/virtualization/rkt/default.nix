@@ -1,13 +1,15 @@
-{ stdenv, lib, autoconf, automake, go, file, git, wget, gnupg1, squashfsTools, cpio
-, fetchurl, fetchFromGitHub }:
+{ stdenv, lib, autoreconfHook, acl, go, file, git, wget, gnupg1, trousers, squashfsTools,
+  cpio, fetchurl, fetchFromGitHub, iptables, systemd, makeWrapper, glibc }:
 
 let
-  coreosImageRelease = "794.1.0";
-  coreosImageSystemdVersion = "222";
-  stage1Flavour = "coreos";
+  coreosImageRelease = "991.0.0";
+  coreosImageSystemdVersion = "225";
+
+  # TODO: track https://github.com/coreos/rkt/issues/1758 to allow "host" flavor.
+  stage1Flavours = [ "coreos" "fly" "host" ];
 
 in stdenv.mkDerivation rec {
-  version = "0.10.0";
+  version = "1.4.0";
   name = "rkt-${version}";
   BUILDDIR="build-${name}";
 
@@ -15,23 +17,28 @@ in stdenv.mkDerivation rec {
       rev = "v${version}";
       owner = "coreos";
       repo = "rkt";
-      sha256 = "1d9n00wkzib4v5mfl46f2mqc8zfpv33kqixifmv8p4azqv78cbxn";
+      sha256 = "0lnvqhg88aa6zx4wnkz17v3f529i9hi0y2aihfsq09pvsn56hwjl";
   };
 
   stage1BaseImage = fetchurl {
     url = "http://alpha.release.core-os.net/amd64-usr/${coreosImageRelease}/coreos_production_pxe_image.cpio.gz";
-    sha256 = "05nzl3av6cawr8v203a8c95c443g6h1nfy2n4jmgvn0j4iyy44ym";
+    sha256 = "1vaimrbynhjh4f30rq92bv1h3c1lxnf8isx5c2qvnn3lghypss9k";
   };
 
-  buildInputs = [ autoconf automake go file git wget gnupg1 squashfsTools cpio ];
+  buildInputs = [
+    glibc.out glibc.static
+    autoreconfHook go file git wget gnupg1 trousers squashfsTools cpio acl systemd
+    makeWrapper
+  ];
 
   preConfigure = ''
     ./autogen.sh
     configureFlagsArray=(
-      --with-stage1=${stage1Flavour}
-      --with-stage1-image-path=$out/stage1-${stage1Flavour}.aci
+      --with-stage1-flavors=${builtins.concatStringsSep "," stage1Flavours}
+      ${if lib.findFirst (p: p == "coreos") null stage1Flavours != null then "
       --with-coreos-local-pxe-image-path=${stage1BaseImage}
       --with-coreos-local-pxe-image-systemd-version=v${coreosImageSystemdVersion}
+      " else "" }
     );
   '';
 
@@ -42,6 +49,9 @@ in stdenv.mkDerivation rec {
   installPhase = ''
     mkdir -p $out/bin
     cp -Rv $BUILDDIR/bin/* $out/bin
+    wrapProgram $out/bin/rkt \
+      --prefix LD_LIBRARY_PATH : ${systemd}/lib \
+      --prefix PATH : ${iptables}/bin
   '';
 
   meta = with lib; {

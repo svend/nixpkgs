@@ -1,8 +1,8 @@
 { stdenv, fetchurl, fetchpatch, python, pkgconfig, cairo, xlibsWrapper, isPyPy, isPy35 }:
 
-if (isPyPy || isPy35) then throw "pycairo not supported for interpreter ${python.executable}" else stdenv.mkDerivation rec {
+if (isPyPy) then throw "pycairo not supported for interpreter ${python.executable}" else stdenv.mkDerivation rec {
   version = "1.10.0";
-  name = "pycairo-${version}";
+  name = "${python.libPrefix}-pycairo-${version}";
   src = if python.is_py3k or false
     then fetchurl {
       url = "http://cairographics.org/releases/pycairo-${version}.tar.bz2";
@@ -23,6 +23,8 @@ if (isPyPy || isPy35) then throw "pycairo not supported for interpreter ${python
     sha256 = "0xfl1i9dips2nykyg91f5h5r3xpk2hp1js1gq5z0hwjr0in55id4";
   };
 
+  patch_waf-py3_5 = ./waf-py3_5.patch;
+
   buildInputs = [ python pkgconfig cairo xlibsWrapper ];
 
   configurePhase = ''
@@ -30,6 +32,7 @@ if (isPyPy || isPy35) then throw "pycairo not supported for interpreter ${python
       cd $(${python.executable} waf unpack)
       pwd
       patch -p1 < ${patch_waf}
+      ${stdenv.lib.optionalString isPy35 "patch -p1 < ${patch_waf-py3_5}"}
     )
 
     ${python.executable} waf configure --prefix=$out
@@ -37,5 +40,5 @@ if (isPyPy || isPy35) then throw "pycairo not supported for interpreter ${python
   buildPhase = "${python.executable} waf";
   installPhase = "${python.executable} waf install";
 
-  meta.platforms = stdenv.lib.platforms.linux;
+  meta.platforms = stdenv.lib.platforms.linux ++ stdenv.lib.platforms.darwin;
 }

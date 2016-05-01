@@ -1,9 +1,9 @@
-{ pkgs, stdenv, fetchurl, pythonPackages, buildPythonPackage, pygtk, ffmpeg, mplayer, vcdimager, cdrkit, dvdauthor }:
+{ pkgs, stdenv, fetchurl, pythonPackages, buildPythonApplication, pygtk, ffmpeg, mplayer, vcdimager, cdrkit, dvdauthor }:
 
 let
   inherit (pythonPackages) dbus;
 
-in buildPythonPackage rec {
+in buildPythonApplication rec {
   name = "devede-3.23.0";
   namePrefix = "";
 
@@ -14,11 +14,10 @@ in buildPythonPackage rec {
 
   buildInputs = [ ffmpeg ];
 
-  pythonPath = [ pygtk dbus ffmpeg mplayer dvdauthor vcdimager cdrkit ];
+  propagatedBuildInputs = [ pygtk dbus ffmpeg mplayer dvdauthor vcdimager cdrkit ];
 
   postPatch = ''
     substituteInPlace devede --replace "/usr/share/devede" "$out/share/devede"
-
   '';
 
   meta = with stdenv.lib; {
@@ -26,5 +25,6 @@ in buildPythonPackage rec {
     homepage = http://www.rastersoft.com/programas/devede.html;
     license = licenses.gpl3;
     maintainers = [ maintainers.bdimcheff ];
+    broken = true;  # tarball is gone
   };
 }

@@ -11,8 +11,8 @@
 
 let
 
-  version = "2.1.11";
-  sha256 = "1jiikznjhyyh23xw02amzccr15c8wmz94yxah9qxagbfg9wn7j2j";
+  version = "2.1.14";
+  sha256 = "168rg8gg1dhcjfjsr1jbfx4zj3zyqn0xi2z1j2c8jn6054486ybg";
 
 in
 
@@ -45,7 +45,7 @@ stdenv.mkDerivation rec {
   meta = with stdenv.lib; {
     homepage = http://cassandra.apache.org/;
     description = "A massively scalable open source NoSQL database";
-    platforms = with platforms; all;
+    platforms = platforms.all;
     license = licenses.asl20;
     maintainers = with maintainers; [ nckx rushmorem ];
   };

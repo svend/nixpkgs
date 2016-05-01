@@ -11,6 +11,8 @@
 , docs ? false
 , examples ? false
 , demos ? false
+# darwin support
+, cf-private, libobjc, ApplicationServices, OpenGL, Cocoa, AGL, libcxx
 }:
 
 with stdenv.lib;
@@ -50,21 +52,27 @@ stdenv.mkDerivation rec {
 
   patches =
     [ ./glib-2.32.patch
+      ./libressl.patch
       (substituteAll {
         src = ./dlopen-absolute-paths.diff;
-        inherit cups icu libXfixes;
-        glibc = stdenv.cc.libc;
+        cups = if cups != null then cups.out else null;
+        icu = icu.out;
+        libXfixes = libXfixes.out;
+        glibc = stdenv.cc.libc.out;
         openglDriver = if mesaSupported then mesa.driverLink else "/no-such-path";
       })
     ] ++ stdenv.lib.optional gtkStyle (substituteAll {
         src = ./dlopen-gtkstyle.diff;
         # substituteAll ignores env vars starting with capital letter
-        gconf = GConf;
-        inherit gnome_vfs libgnomeui gtk;
+        gconf = GConf.out;
+        gtk = gtk.out;
+        libgnomeui = libgnomeui.out;
+        gnome_vfs = gnome_vfs.out;
       })
     ++ stdenv.lib.optional flashplayerFix (substituteAll {
         src = ./dlopen-webkit-nsplugin.diff;
-        inherit gtk gdk_pixbuf;
+        gtk = gtk.out;
+        gdk_pixbuf = gdk_pixbuf.out;
       })
     ++ [(fetchpatch {
         name = "fix-medium-font.patch";
@@ -84,7 +92,7 @@ stdenv.mkDerivation rec {
       -datadir $out/share/${name}
       -translationdir $out/share/${name}/translations
     "
-  '' + optionalString stdenv.isDarwin ''
+  '' + optionalString stdenv.cc.isClang ''
     sed -i 's/QMAKE_CC = gcc/QMAKE_CC = clang/' mkspecs/common/g++-base.conf
     sed -i 's/QMAKE_CXX = g++/QMAKE_CXX = clang++/' mkspecs/common/g++-base.conf
   '';
@@ -94,7 +102,7 @@ stdenv.mkDerivation rec {
     ''
       -v -no-separate-debug-info -release -no-fast -confirm-license -opensource
 
-      -opengl -xrender -xrandr -xinerama -xcursor -xinput -xfixes -fontconfig
+      -${if stdenv.isFreeBSD then "no-" else ""}opengl -xrender -xrandr -xinerama -xcursor -xinput -xfixes -fontconfig
       -qdbus -${if cups == null then "no-" else ""}cups -glib -dbus-linked -openssl-linked
 
       ${if mysql != null then "-plugin" else "-no"}-sql-mysql -system-sqlite
@@ -108,11 +116,11 @@ stdenv.mkDerivation rec {
 
       -no-phonon ${if buildWebkit then "" else "-no"}-webkit ${if buildMultimedia then "" else "-no"}-multimedia -audio-backend
       ${if developerBuild then "-developer-build" else ""}
-    '';
+    '' + optionalString stdenv.isDarwin "-platform unsupported/macx-clang-libc++";
 
   propagatedBuildInputs =
     [ libXrender libXrandr libXinerama libXcursor libXext libXfixes libXv libXi
-      libSM zlib libpng openssl dbus.libs freetype fontconfig glib ]
+      libSM zlib libpng openssl dbus freetype fontconfig glib ]
         # Qt doesn't directly need GLU (just GL), but many apps use, it's small and doesn't remain a runtime-dep if not used
     ++ optional mesaSupported mesa_glu
     ++ optional ((buildWebkit || buildMultimedia) && stdenv.isLinux ) alsaLib
@@ -121,23 +129,28 @@ stdenv.mkDerivation rec {
   # The following libraries are only used in plugins
   buildInputs =
     [ cups # Qt dlopen's libcups instead of linking to it
-      mysql.lib postgresql sqlite libjpeg libmng libtiff icu ]
-    ++ optionals gtkStyle [ gtk gdk_pixbuf ];
+      postgresql sqlite libjpeg libmng libtiff icu ]
+    ++ optionals (mysql != null) [ mysql.lib ]
+    ++ optionals gtkStyle [ gtk gdk_pixbuf ]
+    ++ optionals stdenv.isDarwin [ cf-private ApplicationServices OpenGL Cocoa AGL libcxx libobjc ];
 
   nativeBuildInputs = [ perl pkgconfig which ];
 
   enableParallelBuilding = false;
 
-  NIX_CFLAGS_COMPILE = optionalString stdenv.isDarwin
-    "-I${glib}/include/glib-2.0 -I${glib}/lib/glib-2.0/include";
+  NIX_CFLAGS_COMPILE = optionalString (stdenv.isFreeBSD || stdenv.isDarwin)
+    "-I${glib.dev}/include/glib-2.0 -I${glib.out}/lib/glib-2.0/include"
+    + optionalString stdenv.isDarwin " -I${libcxx}/include/c++/v1";
 
-  NIX_LDFLAGS = optionalString stdenv.isDarwin
+  NIX_LDFLAGS = optionalString (stdenv.isFreeBSD || stdenv.isDarwin)
     "-lglib-2.0";
 
   preBuild = optionalString stdenv.isDarwin ''
     # resolve "extra qualification on member" error
     sed -i 's/struct ::TabletProximityRec;/struct TabletProximityRec;/' \
       src/gui/kernel/qt_cocoa_helpers_mac_p.h
+    find . -name "Makefile*" | xargs sed -i 's/^\(LINK[[:space:]]* = clang++\)/\1 ${NIX_LDFLAGS}/'
+    sed -i 's/^\(LIBS[[:space:]]*=.*$\)/\1 -lobjc/' ./src/corelib/Makefile.Release
   '';
 
   crossAttrs = let

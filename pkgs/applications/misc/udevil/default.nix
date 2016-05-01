@@ -14,13 +14,14 @@ stdenv.mkDerivation {
       --with-mount-prog=${utillinux}/bin/mount \
       --with-umount-prog=${utillinux}/bin/umount \
       --with-losetup-prog=${utillinux}/bin/losetup \
-      --with-setfacl-prog=${acl}/bin/setfacl \
+      --with-setfacl-prog=${acl.bin}/bin/setfacl \
       --sysconfdir=$prefix/etc
   '';
   preConfigure = ''
     cat src/Makefile.am
     exit 2
   '';
+  patches = [ ./device-info-sys-stat.patch ];
   meta = {
     description = "A command line Linux program which mounts and unmounts removable devices without a password, shows device info, and monitors device changes";
     homepage = https://ignorantguru.github.io/udevil/;

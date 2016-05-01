@@ -1,26 +1,23 @@
-{ stdenv, fetchFromGitHub, cmake, libX11, procps, python, qt5 }:
+{ stdenv, fetchFromGitHub, cmake, libX11, procps, python, libdwarf, qtbase, qtwebkit }:
 
-let version = "7.0"; in
-stdenv.mkDerivation {
+stdenv.mkDerivation rec {
   name = "apitrace-${version}";
+  version = "7.1";
 
   src = fetchFromGitHub {
-    sha256 = "0nn3z7i6cd4zkmms6jpp1v2q194gclbs06v0f5hyiwcsqaxzsg5b";
+    sha256 = "1n2gmsjnpyam7isg7n1ksggyh6y1l8drvx0a93bnvbcskr7jiz9a";
     rev = version;
     repo = "apitrace";
     owner = "apitrace";
   };
 
-  buildInputs = [ libX11 procps python qt5.base ];
+  # LD_PRELOAD wrappers need to be statically linked to work against all kinds
+  # of games -- so it's fine to use e.g. bundled snappy.
+  buildInputs = [ libX11 procps python libdwarf qtbase qtwebkit ];
+
   nativeBuildInputs = [ cmake ];
 
-  buildPhase = ''
-    cmake
-    make
-  '';
-
   meta = with stdenv.lib; {
-    inherit version;
     homepage = https://apitrace.github.io;
     description = "Tools to trace OpenGL, OpenGL ES, Direct3D, and DirectDraw APIs";
     license = licenses.mit;

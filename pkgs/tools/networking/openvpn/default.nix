@@ -3,21 +3,23 @@
 with stdenv.lib;
 
 stdenv.mkDerivation rec {
-  name = "openvpn-2.3.7";
+  name = "openvpn-2.3.10";
 
   src = fetchurl {
     url = "http://swupdate.openvpn.net/community/releases/${name}.tar.gz";
-    sha256 = "0vhl0ddpxqfibc0ah0ci7ix9bs0cn5shhmhijg550qpbdb6s80hz";
+    sha256 = "1xn8kv4v4h4v8mhd9k4s9rilb7k30jgb9rm7n4fwmfrm5swvbc7q";
   };
 
   patches = optional stdenv.isLinux ./systemd-notify.patch;
 
-  buildInputs = [ iproute lzo openssl pam pkgconfig ] ++ optional stdenv.isLinux systemd;
+  buildInputs = [ lzo openssl pkgconfig ]
+                  ++ optionals stdenv.isLinux [ pam systemd iproute ];
 
   configureFlags = ''
     --enable-password-save
-    --enable-iproute2
+  '' + optionalString stdenv.isLinux ''
     --enable-systemd
+    --enable-iproute2
     IPROUTE=${iproute}/sbin/ip
   '';
 

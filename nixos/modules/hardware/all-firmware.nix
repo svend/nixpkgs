@@ -22,7 +22,11 @@ with lib;
   ###### implementation
 
   config = mkIf config.hardware.enableAllFirmware {
-    hardware.firmware = [ pkgs.firmwareLinuxNonfree ];
+    hardware.firmware = with pkgs; [
+      firmwareLinuxNonfree
+      intel2200BGFirmware
+      rtl8723bs-firmware
+    ];
   };
 
 }

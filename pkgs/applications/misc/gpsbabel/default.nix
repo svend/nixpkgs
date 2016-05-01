@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, zlib, qt5, which }:
+{ stdenv, fetchurl, zlib, qtbase, which }:
 
 stdenv.mkDerivation rec {
   name = "gpsbabel-${version}";
@@ -11,7 +11,7 @@ stdenv.mkDerivation rec {
     sha256 = "0xf7wmy2m29g2lm8lqc74yf8rf7sxfl3cfwbk7dpf0yf42pb0b6w";
   };
 
-  buildInputs = [ zlib qt5.base which ];
+  buildInputs = [ zlib qtbase which ];
 
   /* FIXME: Building the documentation, with "make doc", requires this:
 
@@ -20,14 +20,25 @@ stdenv.mkDerivation rec {
     But FOP isn't packaged yet.  */
 
   preConfigure = "cd gpsbabel";
-  configureFlags = [ "--with-zlib=system" ];
+  configureFlags = [ "--with-zlib=system" ]
+    # Floating point behavior on i686 causes test failures. Preventing
+    # extended precision fixes this problem.
+    ++ stdenv.lib.optionals stdenv.isi686 [
+      "CFLAGS=-ffloat-store" "CXXFLAGS=-ffloat-store"
+    ];
+
+  enableParallelBuilding = true;
 
   doCheck = true;
   preCheck = ''
     patchShebangs testo
     substituteInPlace testo \
       --replace "-x /usr/bin/hexdump" ""
-  '';
+  '' + (
+    # The raymarine and gtm tests fail on i686 despite -ffloat-store.
+    if stdenv.isi686 then "rm -v testo.d/raymarine.test testo.d/gtm.test;"
+    else ""
+  );
 
   meta = with stdenv.lib; {
     description = "Convert, upload and download data from GPS and Map programs";

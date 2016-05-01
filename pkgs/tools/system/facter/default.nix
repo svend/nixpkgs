@@ -1,16 +1,16 @@
-{ stdenv, fetchurl, boost, cmake, curl, libyamlcpp, openssl, utillinux }:
+{ stdenv, fetchurl, boost, cmake, curl, leatherman, libyamlcpp, openssl, utillinux }:
 
 stdenv.mkDerivation rec {
   name = "facter-${version}";
-  version = "3.0.2";
+  version = "3.1.5";
   src = fetchurl {
     url = "https://downloads.puppetlabs.com/facter/${name}.tar.gz";
-    sha256 = "1myf1r827bh3n0snkzwj2jnc0sax9bq6z1vv9gr90rqr73lixvig";
+    sha256 = "0k2k92y42zb6vf542zwkhvg15kv32yb4zvw6nlcqlgmyg19c5qmv";
   };
 
   libyamlcpp_ = libyamlcpp.override { makePIC = true; };
 
-  buildInputs = [ boost cmake curl libyamlcpp_ openssl utillinux ];
+  buildInputs = [ boost cmake curl leatherman libyamlcpp_ openssl utillinux ];
 
   meta = with stdenv.lib; {
     homepage = https://github.com/puppetlabs/facter;

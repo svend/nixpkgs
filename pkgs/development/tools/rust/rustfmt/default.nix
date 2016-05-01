@@ -3,15 +3,17 @@
 with rustPlatform;
 
 buildRustPackage rec {
-  name = "rustfmt-git-2015-10-28";
+  name = "rustfmt-${version}";
+  version = "0.4";
+
   src = fetchFromGitHub {
-    owner = "nrc";
+    owner = "rust-lang-nursery";
     repo = "rustfmt";
-    rev = "bd0fdbb364ba69c69b867f96bc1ea9b59177fb76";
-    sha256 = "07yxz409yxgwrzm46fhq6kyn9igznb7481kxyk90ngmhdd0a5mfd";
+    rev = "19768da5c97c108a05e6f545b73ba4b76d1b1788";
+    sha256 = "0f2m0gvlqlybcjl2xqwxlp5hjkhd30kx25dq56k5x0r3808ijksg";
   };
 
-  depsSha256 = "0qs6ilpvcrvcmxg7a94rbg9rql1hxfljy6gxrvpn59dy8hb1qccb";
+  depsSha256 = "1lbcpvp7xhyl96w7jfd18w6py60nwllr93jna5j33zvnip61cpf5";
 
   meta = with stdenv.lib; {
     description = "A tool for formatting Rust code according to style guidelines";

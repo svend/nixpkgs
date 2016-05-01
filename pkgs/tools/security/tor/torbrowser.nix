@@ -1,28 +1,34 @@
-{ stdenv, fetchurl, buildEnv
-, xorg, alsaLib, dbus, dbus_glib, glib, gtk, atk, pango, freetype, fontconfig
-, gdk_pixbuf, cairo, zlib}:
+{ stdenv, fetchurl, makeDesktopItem
+, libXrender, libX11, libXext, libXt, alsaLib, dbus, dbus_glib, glib, gtk
+, atk, pango, freetype, fontconfig, gdk_pixbuf, cairo, zlib
+}:
+
 let
-  # isolated tor environment
-  torEnv = buildEnv {
-    name = "tor-env";
-    paths = [
-      stdenv.cc.cc zlib glib alsaLib dbus dbus_glib gtk atk pango freetype
-      fontconfig gdk_pixbuf cairo xorg.libXrender xorg.libX11 xorg.libXext
-      xorg.libXt
-    ];
-  };
+  libPath = stdenv.lib.makeLibraryPath [
+    stdenv.cc.cc zlib glib alsaLib dbus dbus_glib gtk atk pango freetype
+    fontconfig gdk_pixbuf cairo libXrender libX11 libXext libXt
+  ];
+in
 
-  ldLibraryPath = ''${torEnv}/lib${stdenv.lib.optionalString stdenv.is64bit ":${torEnv}/lib64"}'';
-
-in stdenv.mkDerivation rec {
+stdenv.mkDerivation rec {
   name = "tor-browser-${version}";
-  version = "5.0.4";
+  version = "5.5.5";
 
   src = fetchurl {
     url = "https://archive.torproject.org/tor-package-archive/torbrowser/${version}/tor-browser-linux${if stdenv.is64bit then "64" else "32"}-${version}_en-US.tar.xz";
     sha256 = if stdenv.is64bit then
-      "03vn1wkkpgr6wzd6iiyqs7zv7yxl9q99j755n8l2579bd10w1xcn" else
-      "1yc13cykr4fafz6r8hnjccl0s33sk297c779cknbdbhj3z3yn163";
+      "0k6v41j880fb4zdxk1v13kmizdaz5rwvi5lskdbdi68iml4p53gj" else
+      "04mqjmnxwa75yi8gmdwadkzrzikgxn08bkvr50zdm7id9fj4nkza";
+  };
+
+  desktopItem = makeDesktopItem {
+    name = "torbrowser";
+    exec = "tor-browser";
+    icon = "torbrowser";
+    desktopName = "Tor Browser";
+    genericName = "Tor Browser";
+    comment = meta.description;
+    categories = "Network;WebBrowser;Security;";
   };
 
   patchPhase = ''
@@ -32,12 +38,10 @@ in stdenv.mkDerivation rec {
 
   doCheck = true;
   checkPhase = ''
-    # Just do a simple test if all libraries get loaded by running help on
-    # firefox and tor
     echo "Checking firefox..."
-    LD_LIBRARY_PATH=${ldLibraryPath} Browser/firefox --help 1> /dev/null
+    LD_LIBRARY_PATH=${libPath} Browser/firefox --help 1> /dev/null
     echo "Checking tor..."
-    LD_LIBRARY_PATH=${torEnv}/lib:Browser/TorBrowser/Tor Browser/TorBrowser/Tor/tor --help 1> /dev/null
+    LD_LIBRARY_PATH=${libPath}:Browser/TorBrowser/Tor Browser/TorBrowser/Tor/tor --help 1> /dev/null
   '';
 
   installPhase = ''
@@ -46,25 +50,31 @@ in stdenv.mkDerivation rec {
     cp -R * $out/share/tor-browser
 
     cat > "$out/bin/tor-browser" << EOF
-      export HOME="\$HOME/.torbrowser4"
-      if [ ! -d \$HOME ]; then
-        mkdir -p \$HOME && cp -R $out/share/tor-browser/Browser/TorBrowser/Data \$HOME/ && chmod -R +w \$HOME
-        echo "pref(\"extensions.torlauncher.tordatadir_path\", \"\$HOME/Data/Tor/\");" >> \
-          ~/Data/Browser/profile.default/preferences/extension-overrides.js
-      fi
-      export LD_LIBRARY_PATH=${ldLibraryPath}:$out/share/tor-browser/Browser/TorBrowser/Tor
-      $out/share/tor-browser/Browser/firefox -no-remote -profile ~/Data/Browser/profile.default "$@"
+    #! ${stdenv.shell}
+    unset SESSION_MANAGER
+    export HOME="\$HOME/.torbrowser4"
+    if [ ! -d \$HOME ]; then
+      mkdir -p \$HOME && cp -R $out/share/tor-browser/Browser/TorBrowser/Data \$HOME/ && chmod -R +w \$HOME
+      echo "pref(\"extensions.torlauncher.tordatadir_path\", \"\$HOME/Data/Tor/\");" >> \
+        ~/Data/Browser/profile.default/preferences/extension-overrides.js
+    fi
+    export FONTCONFIG_PATH=\$HOME/Data/fontconfig
+    export LD_LIBRARY_PATH=${libPath}:$out/share/tor-browser/Browser/TorBrowser/Tor
+    exec $out/share/tor-browser/Browser/firefox --class "Tor Browser" -no-remote -profile ~/Data/Browser/profile.default "\$@"
     EOF
     chmod +x $out/bin/tor-browser
+
+    mkdir -p $out/share/applications
+    cp $desktopItem/share/applications"/"* $out/share/applications
+
+    mkdir -p $out/share/pixmaps
+    cp Browser/browser/icons/mozicon128.png $out/share/pixmaps/torbrowser.png
   '';
 
-  buildInputs = [ stdenv ];
-
-  meta = {
+  meta = with stdenv.lib; {
     description = "Tor Browser Bundle";
     homepage    = https://www.torproject.org/;
-    platforms   = stdenv.lib.platforms.linux;
-    maintainers = with stdenv.lib.maintainers;
-      [ offline matejc doublec thoughtpolice ];
+    platforms   = platforms.linux;
+    maintainers = with maintainers; [ offline matejc doublec thoughtpolice joachifm ];
   };
 }

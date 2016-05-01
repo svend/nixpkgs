@@ -11,6 +11,15 @@ rec {
 
   qemu = pkgs.qemu_kvm;
 
+  qemu-220 = lib.overrideDerivation pkgs.qemu_kvm (attrs: rec {
+    version = "2.2.0";
+    src = fetchurl {
+      url = "http://wiki.qemu.org/download/qemu-${version}.tar.bz2";
+      sha256 = "1703c3scl5n07gmpilg7g2xzyxnr7jczxgx6nn4m8kv9gin9p35n";
+    };
+    patches = [ ../../../nixos/modules/virtualisation/azure-qemu-220-no-etc-install.patch ];
+  });
+
   qemuProg = "${qemu}/bin/qemu-kvm";
 
 
@@ -31,9 +40,9 @@ rec {
       mkdir -p $out/lib
 
       # Copy what we need from Glibc.
-      cp -p ${pkgs.stdenv.glibc}/lib/ld-linux*.so.? $out/lib
-      cp -p ${pkgs.stdenv.glibc}/lib/libc.so.* $out/lib
-      cp -p ${pkgs.stdenv.glibc}/lib/libm.so.* $out/lib
+      cp -p ${pkgs.stdenv.glibc.out}/lib/ld-linux*.so.? $out/lib
+      cp -p ${pkgs.stdenv.glibc.out}/lib/libc.so.* $out/lib
+      cp -p ${pkgs.stdenv.glibc.out}/lib/libm.so.* $out/lib
 
       # Copy BusyBox.
       cp -pd ${pkgs.busybox}/bin/* $out/bin
@@ -57,6 +66,7 @@ rec {
       mknod -m 666 ${dev}/random  c 1 8
       mknod -m 666 ${dev}/urandom c 1 9
       mknod -m 666 ${dev}/tty     c 5 0
+      mknod -m 666 ${dev}/ttyS0   c 4 64
       mknod ${dev}/rtc     c 254 0
       . /sys/class/block/${hd}/uevent
       mknod ${dev}/${hd} b $MAJOR $MINOR
@@ -118,7 +128,7 @@ rec {
 
     echo "mounting Nix store..."
     mkdir -p /fs/nix/store
-    mount -t 9p store /fs/nix/store -o trans=virtio,version=9p2000.L,msize=262144,cache=loose
+    mount -t 9p store /fs/nix/store -o trans=virtio,version=9p2000.L,cache=loose
 
     mkdir -p /fs/tmp /fs/run /fs/var
     mount -t tmpfs -o "mode=1777" none /fs/tmp
@@ -127,7 +137,7 @@ rec {
 
     echo "mounting host's temporary directory..."
     mkdir -p /fs/tmp/xchg
-    mount -t 9p xchg /fs/tmp/xchg -o trans=virtio,version=9p2000.L,msize=262144,cache=loose
+    mount -t 9p xchg /fs/tmp/xchg -o trans=virtio,version=9p2000.L,cache=loose
 
     mkdir -p /fs/proc
     mount -t proc none /fs/proc
@@ -199,7 +209,7 @@ rec {
       export PATH=/bin:/usr/bin:${coreutils}/bin
       echo "Starting interactive shell..."
       echo "(To run the original builder: \$origBuilder \$origArgs)"
-      exec ${bash}/bin/sh
+      exec ${busybox}/bin/setsid ${bashInteractive}/bin/bash < /dev/ttyS0 &> /dev/ttyS0
     fi
   '';
 
@@ -210,7 +220,7 @@ rec {
       -nographic -no-reboot \
       -virtfs local,path=/nix/store,security_model=none,mount_tag=store \
       -virtfs local,path=$TMPDIR/xchg,security_model=none,mount_tag=xchg \
-      -drive file=$diskImage,if=virtio,cache=writeback,werror=report \
+      -drive file=$diskImage,if=virtio,cache=unsafe,werror=report \
       -kernel ${kernel}/${img} \
       -initrd ${initrd}/initrd \
       -append "console=ttyS0 panic=1 command=${stage2Init} out=$out mountDisk=$mountDisk loglevel=4" \
@@ -319,14 +329,14 @@ rec {
       buildInputs = [ utillinux ];
       buildCommand = ''
         ln -s ${linux}/lib /lib
-        ${module_init_tools}/bin/modprobe loop
-        ${module_init_tools}/bin/modprobe ext4
-        ${module_init_tools}/bin/modprobe hfs
-        ${module_init_tools}/bin/modprobe hfsplus
-        ${module_init_tools}/bin/modprobe squashfs
-        ${module_init_tools}/bin/modprobe iso9660
-        ${module_init_tools}/bin/modprobe ufs
-        ${module_init_tools}/bin/modprobe cramfs
+        ${kmod}/bin/modprobe loop
+        ${kmod}/bin/modprobe ext4
+        ${kmod}/bin/modprobe hfs
+        ${kmod}/bin/modprobe hfsplus
+        ${kmod}/bin/modprobe squashfs
+        ${kmod}/bin/modprobe iso9660
+        ${kmod}/bin/modprobe ufs
+        ${kmod}/bin/modprobe cramfs
         mknod /dev/loop0 b 7 0
 
         mkdir -p $out
@@ -345,12 +355,12 @@ rec {
       buildInputs = [ utillinux mtdutils ];
       buildCommand = ''
         ln -s ${linux}/lib /lib
-        ${module_init_tools}/bin/modprobe mtd
-        ${module_init_tools}/bin/modprobe mtdram total_size=131072
-        ${module_init_tools}/bin/modprobe mtdchar
-        ${module_init_tools}/bin/modprobe mtdblock
-        ${module_init_tools}/bin/modprobe jffs2
-        ${module_init_tools}/bin/modprobe zlib
+        ${kmod}/bin/modprobe mtd
+        ${kmod}/bin/modprobe mtdram total_size=131072
+        ${kmod}/bin/modprobe mtdchar
+        ${kmod}/bin/modprobe mtdblock
+        ${kmod}/bin/modprobe jffs2
+        ${kmod}/bin/modprobe zlib
         mknod /dev/mtd0 c 90 0
         mknod /dev/mtdblock0 b 31 0
 
@@ -404,12 +414,12 @@ rec {
   fillDiskWithRPMs =
     { size ? 4096, rpms, name, fullName, preInstall ? "", postInstall ? ""
     , runScripts ? true, createRootFS ? defaultCreateRootFS
+    , QEMU_OPTS ? "", memSize ? 512
     , unifiedSystemDir ? false
     }:
 
     runInLinuxVM (stdenv.mkDerivation {
-      inherit name preInstall postInstall rpms;
-      memSize = 512;
+      inherit name preInstall postInstall rpms QEMU_OPTS memSize;
       preVM = createEmptyImage {inherit size fullName;};
 
       buildCommand = ''
@@ -574,7 +584,7 @@ rec {
       buildCommand = ''
         ${createRootFS}
 
-        PATH=$PATH:${dpkg}/bin:${dpkg}/bin:${glibc}/bin:${lzma}/bin
+        PATH=$PATH:${dpkg}/bin:${dpkg}/bin:${glibc.bin}/bin:${lzma.bin}/bin
 
         # Unpack the .debs.  We do this to prevent pre-install scripts
         # (which have lots of circular dependencies) from barfing.
@@ -675,10 +685,11 @@ rec {
     , packages, extraPackages ? []
     , preInstall ? "", postInstall ? "", archs ? ["noarch" "i386"]
     , runScripts ? true, createRootFS ? defaultCreateRootFS
+    , QEMU_OPTS ? "", memSize ? 512
     , unifiedSystemDir ? false }:
 
     fillDiskWithRPMs {
-      inherit name fullName size preInstall postInstall runScripts createRootFS unifiedSystemDir;
+      inherit name fullName size preInstall postInstall runScripts createRootFS unifiedSystemDir QEMU_OPTS memSize;
       rpms = import (rpmClosureGenerator {
         inherit name packagesLists urlPrefixes archs;
         packages = packages ++ extraPackages;
@@ -1078,6 +1089,32 @@ rec {
         sha256 = "e2a28baab2ea4632fad93f9f28144cda3458190888fdf7f2acc9bc289f397e96";
       };
       urlPrefix = mirror://fedora/linux/releases/21/Everything/x86_64/os;
+      archs = ["noarch" "x86_64"];
+      packages = commonFedoraPackages ++ [ "cronie" "util-linux" ];
+      unifiedSystemDir = true;
+    };
+
+    fedora23i386 = {
+      name = "fedora-23-i386";
+      fullName = "Fedora 23 (i386)";
+      packagesList = fetchurl rec {
+        url = "mirror://fedora/linux/releases/23/Everything/i386/os/repodata/${sha256}-primary.xml.gz";
+        sha256 = "0d1012e6c1f1d694ab5354d95005791ce8de908016d07e5ed0b9dac9b9223492";
+      };
+      urlPrefix = mirror://fedora/linux/releases/23/Everything/i386/os;
+      archs = ["noarch" "i386" "i586" "i686"];
+      packages = commonFedoraPackages ++ [ "cronie" "util-linux" ];
+      unifiedSystemDir = true;
+    };
+
+    fedora23x86_64 = {
+      name = "fedora-23-x86_64";
+      fullName = "Fedora 23 (x86_64)";
+      packagesList = fetchurl rec {
+        url = "mirror://fedora/linux/releases/23/Everything/x86_64/os/repodata/${sha256}-primary.xml.gz";
+        sha256 = "0fa09bb5f82e4a04890b91255f4b34360e38ede964fe8328f7377e36f06bad27";
+      };
+      urlPrefix = mirror://fedora/linux/releases/23/Everything/x86_64/os;
       archs = ["noarch" "x86_64"];
       packages = commonFedoraPackages ++ [ "cronie" "util-linux" ];
       unifiedSystemDir = true;
@@ -1617,6 +1654,74 @@ rec {
       packages = commonDebPackages ++ [ "diffutils" "libc-bin" ];
     };
 
+    ubuntu1510i386 = {
+      name = "ubuntu-15.10-wily-i386";
+      fullName = "Ubuntu 15.10 Wily (i386)";
+      packagesLists =
+        [ (fetchurl {
+            url = mirror://ubuntu/dists/wily/main/binary-i386/Packages.bz2;
+            sha256 = "ac9821095c63436fd4286539592295dd5de99bc82300f628e7a74111bb5dc370";
+          })
+          (fetchurl {
+            url = mirror://ubuntu/dists/wily/universe/binary-i386/Packages.bz2;
+            sha256 = "8951294f36c0755e945e8c37fdd046319f50553a8987ead1b68b21ffa53c5f7f";
+          })
+        ];
+      urlPrefix = mirror://ubuntu;
+      packages = commonDebPackages ++ [ "diffutils" "libc-bin" ];
+    };
+
+    ubuntu1510x86_64 = {
+      name = "ubuntu-15.10-wily-amd64";
+      fullName = "Ubuntu 15.10 Wily (amd64)";
+      packagesList =
+        [ (fetchurl {
+            url = mirror://ubuntu/dists/wily/main/binary-amd64/Packages.bz2;
+            sha256 = "2877de7674c8c6a410c3ac479e46fec24164a4de250f22b3ff062073e3985013";
+          })
+          (fetchurl {
+            url = mirror://ubuntu/dists/wily/universe/binary-amd64/Packages.bz2;
+            sha256 = "714be7a2fd33b8bb577901c9223039dcc12c130c9244122648ee21a625e2a66d";
+          })
+        ];
+      urlPrefix = mirror://ubuntu;
+      packages = commonDebPackages ++ [ "diffutils" "libc-bin" ];
+    };
+
+    ubuntu1604i386 = {
+      name = "ubuntu-16.04-xenial-i386";
+      fullName = "Ubuntu 16.04 Xenial (i386)";
+      packagesLists =
+        [ (fetchurl {
+            url = mirror://ubuntu/dists/xenial/main/binary-i386/Packages.xz;
+            sha256 = "13r75sp4slqy8w32y5dnr7pp7p3cfvavyr1g7gwnlkyrq4zx4ahy";
+          })
+          (fetchurl {
+            url = mirror://ubuntu/dists/xenial/universe/binary-i386/Packages.xz;
+            sha256 = "14fid1rqm3sc0wlygcvn0yx5aljf51c2jpd4x0zxij4019316hsh";
+          })
+        ];
+      urlPrefix = mirror://ubuntu;
+      packages = commonDebPackages ++ [ "diffutils" "libc-bin" ];
+    };
+
+    ubuntu1604x86_64 = {
+      name = "ubuntu-16.04-xenial-amd64";
+      fullName = "Ubuntu 16.04 Xenial (amd64)";
+      packagesList =
+        [ (fetchurl {
+            url = mirror://ubuntu/dists/xenial/main/binary-amd64/Packages.xz;
+            sha256 = "110qnkhjkkwm316fbig3aivm2595ydz6zskc4ld5cr8ngcrqm1bn";
+          })
+          (fetchurl {
+            url = mirror://ubuntu/dists/xenial/universe/binary-amd64/Packages.xz;
+            sha256 = "0mm7gj491yi6q4v0n4qkbsm94s59bvqir6fk60j73w7y4la8rg68";
+          })
+        ];
+      urlPrefix = mirror://ubuntu;
+      packages = commonDebPackages ++ [ "diffutils" "libc-bin" ];
+    };
+
     debian40i386 = {
       name = "debian-4.0r9-etch-i386";
       fullName = "Debian 4.0r9 Etch (i386)";
@@ -1710,22 +1815,22 @@ rec {
     };
 
     debian8i386 = {
-      name = "debian-8.2-jessie-i386";
-      fullName = "Debian 8.2 Jessie (i386)";
+      name = "debian-8.4-jessie-i386";
+      fullName = "Debian 8.4 Jessie (i386)";
       packagesList = fetchurl {
         url = mirror://debian/dists/jessie/main/binary-i386/Packages.xz;
-        sha256 = "f7eda33a296d792d467b84ba608a33f00ff249cb9a385c005586925645d83778";
+        sha256 = "1j8swc1nzsi20vbcmya2sv0fzcnz7lhwb32lxabgcwm3xlkzlg58";
       };
       urlPrefix = mirror://debian;
       packages = commonDebianPackages;
     };
 
     debian8x86_64 = {
-      name = "debian-8.2-jessie-amd64";
-      fullName = "Debian 8.2 Jessie (amd64)";
+      name = "debian-8.4-jessie-amd64";
+      fullName = "Debian 8.4 Jessie (amd64)";
       packagesList = fetchurl {
         url = mirror://debian/dists/jessie/main/binary-amd64/Packages.xz;
-        sha256 = "ff1b82b4c767769e594fd482de4ef8f70bce8e9f01fa8ef2d6952def0b071ba0";
+        sha256 = "0kipisyjkhczghzqj4a8y1n4az9c4c8lsj8sw7js13b053lpj6ga";
       };
       urlPrefix = mirror://debian;
       packages = commonDebianPackages;
