@@ -111,11 +111,11 @@ in rec {
       ];
     }).config.system.build;
   in
-    pkgs.symlinkJoin "netboot" [
+    pkgs.symlinkJoin {name="netboot"; paths=[
       build.netbootRamdisk
       build.kernel
       build.netbootIpxeScript
-    ];
+    ];};
 
   iso_minimal = forAllSystems (system: makeIso {
     module = ./modules/installer/cd-dvd/installation-cd-minimal.nix;
@@ -209,8 +209,9 @@ in rec {
   tests.bittorrent = callTest tests/bittorrent.nix {};
   tests.blivet = callTest tests/blivet.nix {};
   tests.boot = callSubTests tests/boot.nix {};
+  tests.boot-stage1 = callTest tests/boot-stage1.nix {};
   tests.cadvisor = hydraJob (import tests/cadvisor.nix { system = "x86_64-linux"; });
-  tests.chromium = callSubTests tests/chromium.nix {};
+  tests.chromium = (callSubTests tests/chromium.nix { system = "x86_64-linux"; }).stable;
   tests.cjdns = callTest tests/cjdns.nix {};
   tests.containers-ipv4 = callTest tests/containers-ipv4.nix {};
   tests.containers-ipv6 = callTest tests/containers-ipv6.nix {};

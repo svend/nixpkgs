@@ -243,6 +243,13 @@ let
     sha256 = "0gwplb1b4fvav1vjf4b2dypy5rcp2w41vrbxkd1dsmac870cy75p";
   };
 
+  archiver = buildFromGitHub {
+    rev = "85f054813ed511646b0ce5e047697e0651b8e1a4";
+    owner = "mholt";
+    repo = "archiver";
+    sha256 = "0b38mrfm3rwgdi7hrp4gjhf0y0f6bw73qjkfrkafxjrdpdg7nyly";
+  };
+  
   asciinema = buildFromGitHub {
     rev = "v1.2.0";
     owner = "asciinema";
@@ -412,13 +419,13 @@ let
   };
 
   caddy = buildFromGitHub {
-    rev     = "9099375b11b7b5e62b831627c2927d1c4c666071";
-    version = "v0.8.2";
+    rev     = "e2234497b79603388b58ba226abb157aa4aaf065";
+    version = "v0.8.3";
     owner   = "mholt";
     repo    = "caddy";
-    sha256  = "1zdy2sxir21ngh2ird01sv4fgj6sy3wl4s6k4piklri8ps1zw0k0";
+    sha256  = "1snijkbz02yr7wij7bcmrj4257709sbklb3nhb5qmy95b9ssffm6";
     buildInputs = [
-      acme blackfriday crypto go-humanize go-shlex go-syslog
+      acme archiver blackfriday crypto go-humanize go-shlex go-syslog
       http-authentication lumberjack-v2 toml websocket yaml-v2
     ];
     disabled = isGo14 || isGo15;
@@ -736,6 +743,22 @@ let
     owner = "odeke-em";
     repo = "cache";
     sha256 = "1rmm1ky7irqypqjkk6qcd2n0xkzpaggdxql9dp9i9qci5rvvwwd4";
+  };
+
+  ethereum = buildFromGitHub rec {
+    name = "ethereum";
+    rev = "v1.4.1";
+    goPackagePath = "github.com/ethereum/go-ethereum";
+    owner = "ethereum";
+    repo = "go-ethereum";
+    sha256 = "0z6yzkk72g41dzqa52fizxqxqh349y1m9s3byfh9ixq5xy5fnjn3";
+    preBuild = "export GOPATH=$GOPATH:$NIX_BUILD_TOP/go/src/${goPackagePath}/Godeps/_workspace";
+    postBuild = "rm $NIX_BUILD_TOP/go/bin/*test";
+    meta = with stdenv.lib; {
+      homepage = "https://ethereum.github.io/go-ethereum/";
+      description = "Official golang implementation of the Ethereum protocol";
+      license = with licenses; [ lgpl3 gpl3 ];
+    };
   };
 
   exercism = buildFromGitHub {
@@ -3652,11 +3675,11 @@ let
   };
 
   syncthing = buildFromGitHub rec {
-    version = "0.12.22";
+    version = "0.12.23";
     rev = "v${version}";
     owner = "syncthing";
     repo = "syncthing";
-    sha256 = "1pycmb5cwkp21p11rj6lbrqr66yiffi23zk5laas3p581ljdg5vj";
+    sha256 = "0v8343k670ncjfd25hzhyfi87cz46k57rmv6pf30v7iclfhpmy1s";
     buildFlags = [ "-tags noupgrade,release" ];
     disabled = isGo14;
     buildInputs = [
@@ -4152,4 +4175,22 @@ let
     sha256  = "14p3hvv82bsxqnbnzz8hjv75i39kzg154a132n6cdxx3vgw76gck";
     propagatedBuildInputs = [ go-colorable mattn.go-runewidth ingo ];
   };
+
+  textql = buildFromGitHub rec {
+    rev     = "1785cd353c68aa34f97627143b9c2908dfd4ea04";
+    version = "2.0.3";
+    owner   = "dinedal";
+    repo    = "textql";
+    sha256 = "1b61w4pc5gl7m12mphricihzq7ifnzwn0yyw3ypv0d0fj26h5hc3";
+    propagatedBuildInputs = [ go-sqlite3 ];
+
+    meta = with stdenv.lib; {
+      description = "Execute SQL against structured text like CSV or TSV";
+      homepage = https://github.com/dinedal/textql;
+      license = licenses.mit;
+      maintainers = with maintainers; [ vrthra ];
+    };
+
+  };
+
 }; in self

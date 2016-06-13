@@ -67,7 +67,9 @@ rec {
   Gundo               = gundo-vim; # backwards compat, added 2015-10-03
   haskellConceal      = haskellconceal; # backwards compat, added 2014-10-18
   haskellconceal      = vim-haskellconceal;
+  haskellConcealPlus  = vim-haskellConcealPlus;
   hier                = vim-hier;
+  hlint-refactor      = hlint-refactor-vim;
   hoogle              = Hoogle;
   ipython             = vim-ipython;
   latex-live-preview  = vim-latex-live-preview;
@@ -453,12 +455,12 @@ rec {
 
   };
 
-  vim-go = buildVimPluginFrom2Nix { # created by nix#NixDerivation
-    name = "vim-go-2016-04-15";
+  vim-go = buildVimPluginFrom2Nix {
+    name = "vim-go-2016-05-01";
     src = fetchgit {
       url = "git://github.com/fatih/vim-go";
-      rev = "b3fddb60fdab980d1fc339fbcbc879abd6cbf524";
-      sha256 = "1ggjisbc187kyzdizqffkicjdkz67mhgpxmqjcvzaq2wc2w44aja";
+      rev = "91ffc410832d0b027f2258c7a91dbbfa378bf71a";
+      sha256 = "00793ick6vralihvmmx8np7japxrd3jkbn5ggqzq0ymgr508gxj4";
     };
     dependencies = [];
 
@@ -1699,6 +1701,39 @@ rec {
       url = "git://github.com/tex/vimpreviewpandoc";
       rev = "7c05b4a7bf55a361c7ac33e6e05f7965daed5889";
       sha256 = "12xnnsvdsl2wc7fy537pdk6s3nfxw46g1l4xqr0fxzhz712nczk5";
+    };
+    dependencies = [];
+
+  };
+
+  vim-haskellConcealPlus = buildVimPluginFrom2Nix { # created by nix#NixDerivation
+    name = "vim-haskellConcealPlus-2015-11-14";
+    src = fetchgit {
+      url = "git://github.com/enomsg/vim-haskellConcealPlus";
+      rev = "fdd4e15800121edcb72e050650b02537af2d64ce";
+      sha256 = "0dw9ibj54bnszvkzxhfdwxwyjlv5a5k1pbyjmbw44ldqx48x4651";
+    };
+    dependencies = [];
+
+  };
+
+  hlint-refactor-vim = buildVimPluginFrom2Nix { # created by nix#NixDerivation
+    name = "hlint-refactor-vim-2015-12-05";
+    src = fetchgit {
+      url = "git://github.com/mpickering/hlint-refactor-vim";
+      rev = "fffb044ecef854a82c5c2efda252e09044ba03e0";
+      sha256 = "0z8d31arfy9aidg1dwj5msnnx799d9r7njkgh51z695w6ayxn6p8";
+    };
+    dependencies = [];
+
+  };
+
+  haskell-vim = buildVimPluginFrom2Nix { # created by nix#NixDerivation
+    name = "haskell-vim-2016-04-18";
+    src = fetchgit {
+      url = "git://github.com/neovimhaskell/haskell-vim";
+      rev = "40bb7c933d2e95432571fcb353d69323a1432d4e";
+      sha256 = "08da8hp1jirxzlwbnzf2zlpzya1jc74mahwsb37xnbs6hgvvpd86";
     };
     dependencies = [];
 
