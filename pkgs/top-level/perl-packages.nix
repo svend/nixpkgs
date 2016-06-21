@@ -2661,10 +2661,10 @@ let self = _self // overrides; _self = with self; {
   };
 
   CryptX = buildPerlPackage rec {
-    name = "CryptX-0.031";
+    name = "CryptX-0.032";
     src = fetchurl {
       url = "mirror://cpan/authors/id/M/MI/MIK/${name}.tar.gz";
-      sha256 = "7221a7a824ae07377f7e97c6daafff47524c46204c9b8ff58420a13fc2c104f1";
+      sha256 = "46892112056ca3929e26cd3512cd4560c5beea7548a8632b79f2fe11f4b220c0";
     };
     propagatedBuildInputs = [ JSONMaybeXS ];
     meta = {
@@ -2919,6 +2919,14 @@ let self = _self // overrides; _self = with self; {
     src = fetchurl {
       url = mirror://cpan/authors/id/M/MI/MIKO/Data-Taxi-0.96.tar.gz;
       sha256 = "0y4wls4jlwd6prvd77szymddhq9sfj06kaqnk4frlvd0zh83djxb";
+    };
+  };
+
+  DataUniqid = buildPerlPackage rec {
+    name = "Data-Uniqid-0.12";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/M/MW/MWX/${name}.tar.gz";
+      sha256 = "b6919ba49b9fe98bfdf3e8accae7b9b7f78dc9e71ebbd0b7fef7a45d99324ccb";
     };
   };
 
@@ -5460,10 +5468,10 @@ let self = _self // overrides; _self = with self; {
   };
 
   Glib = buildPerlPackage rec {
-    name = "Glib-1.320";
+    name = "Glib-1.321";
     src = fetchurl {
       url = "mirror://cpan/authors/id/X/XA/XAOC/${name}.tar.gz";
-      sha256 = "15mrwscqjgwpkw9n4x6rakr9rjz2ss8d90k574fs5wx9cmgg3np3";
+      sha256 = "0h4cfxrxcf1mrdab5n5kk0smsi8vcrfnmcw1k6xw87r4vbifnxdr";
     };
     buildInputs = [ ExtUtilsDepends ExtUtilsPkgConfig pkgs.glib ];
     meta = {
@@ -5570,10 +5578,10 @@ let self = _self // overrides; _self = with self; {
   };
 
   Gtk2 = buildPerlPackage rec {
-    name = "Gtk2-1.2497";
+    name = "Gtk2-1.2498";
     src = fetchurl {
       url = "mirror://cpan/authors/id/X/XA/XAOC/${name}.tar.gz";
-      sha256 = "0j5wm290ihpkx91gbk55qrrb0jhbh5fanbj5fjvs0d2xv6yyh921";
+      sha256 = "0gs6lr4clz86838s3klrl37lf48j24zv0p37jlsvsnr927whpq3j";
     };
     buildInputs = [ ExtUtilsDepends ExtUtilsPkgConfig Pango pkgs.gtk2 ];
     meta = {
@@ -6661,6 +6669,21 @@ let self = _self // overrides; _self = with self; {
     };
   };
 
+ JSONWebToken = buildPerlModule rec {
+    name = "JSON-WebToken-0.10";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/X/XA/XAICRON/${name}.tar.gz";
+      sha256 = "77c182a98528f1714d82afc548d5b3b4dc93e67069128bb9b9413f24cf07248b";
+    };
+    buildInputs = [ TestMockGuard TestRequires ];
+    propagatedBuildInputs = [ JSON ];
+    meta = {
+      homepage = https://github.com/xaicron/p5-JSON-WebToken;
+      description = "JSON Web Token (JWT) implementation";
+      license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
+    };
+  };
+
   JSONXS = buildPerlPackage {
     name = "JSON-XS-2.34";
     src = fetchurl {
@@ -7428,10 +7451,10 @@ let self = _self // overrides; _self = with self; {
   };
 
   MathPlanePath = buildPerlPackage rec {
-    name = "Math-PlanePath-114";
+    name = "Math-PlanePath-123";
     src = fetchurl {
       url = "mirror://cpan/authors/id/K/KR/KRYDE/${name}.tar.gz";
-      sha256 = "11808k6aqf7gfkv0k0r8586zk8dm0jg5idkdb839gzlr97ns2y61";
+      sha256 = "13by23pzwfa2f3rxiws7blqxb8lr3mfczdfq6jsi1kb3ml2wnxyc";
     };
     propagatedBuildInputs = [ MathLibm constant-defer ];
   };
@@ -9398,10 +9421,10 @@ let self = _self // overrides; _self = with self; {
   };
 
   Pango = buildPerlPackage rec {
-    name = "Pango-1.226";
+    name = "Pango-1.227";
     src = fetchurl {
       url = "mirror://cpan/authors/id/X/XA/XAOC/${name}.tar.gz";
-      sha256 = "0r4jx7d6gj6ixk2r5yr70biy1lpjxir08aywkw02g85wg6zkjw4z";
+      sha256 = "0wdcidnfnb6nm79fzfs39ivawj3x8m98a147fmcxgv1zvwia9c1l";
     };
     buildInputs = [ ExtUtilsDepends ExtUtilsPkgConfig pkgs.pango ];
     propagatedBuildInputs = [ Cairo Glib ];
@@ -9637,11 +9660,11 @@ let self = _self // overrides; _self = with self; {
     };
   };
 
-  PerlIOeol = buildPerlPackage {
-    name = "PerlIO-eol-0.14";
+  PerlIOeol = buildPerlPackage rec {
+    name = "PerlIO-eol-0.16";
     src = fetchurl {
-      url = mirror://cpan/authors/id/A/AU/AUDREYT/PerlIO-eol-0.14.tar.gz;
-      sha256 = "1rwj0r075jfvvd0fnzgdqldc7qdb94wwsi21rs2l6yhcv0380fs2";
+      url = "mirror://cpan/authors/id/S/SH/SHLOMIF/${name}.tar.gz";
+      sha256 = "159zrrf44469sjklsi0pb4c005q74d9242q7mqawvbwnxjqbh0a5";
     };
   };
 
@@ -10281,10 +10304,10 @@ let self = _self // overrides; _self = with self; {
   };
 
   Readonly = buildPerlModule rec {
-    name = "Readonly-2.01";
+    name = "Readonly-2.04";
     src = fetchurl {
       url = "mirror://cpan/authors/id/S/SA/SANKO/${name}.tar.gz";
-      sha256 = "ec7076c6851b6d3338e959645cd995343241f5b20000ffc29519faf28f6b482e";
+      sha256 = "2221243758afde3b3238d1325b9c32bf1b4d0b4d11065920c03408b2645c93b6";
     };
     buildInputs = [ ModuleBuildTiny ];
     meta = {
@@ -11354,10 +11377,10 @@ let self = _self // overrides; _self = with self; {
   };
 
   SysSyslog = buildPerlPackage {
-    name = "Sys-Syslog-0.33";
+    name = "Sys-Syslog-0.34";
     src = fetchurl {
-      url = mirror://cpan/authors/id/S/SA/SAPER/Sys-Syslog-0.33.tar.gz;
-      sha256 = "d5d901d9d9333a66db95fb1c7692ff457f7c7ad17287b51a87e40734f7c2741d";
+      url = mirror://cpan/authors/id/S/SA/SAPER/Sys-Syslog-0.34.tar.gz;
+      sha256 = "09cnzk0fpj2i8asi4ba5wzs3i5pmbins87xpgmxcw4ipmn66s7ld";
     };
     meta = {
       description = "Perl interface to the UNIX syslog(3) calls";
@@ -12064,6 +12087,20 @@ let self = _self // overrides; _self = with self; {
       license = licenses.lgpl2Plus;
       maintainers = with maintainers; [ ];
       platforms   = platforms.unix;
+    };
+  };
+
+  TestMockGuard = buildPerlModule rec {
+    name = "Test-Mock-Guard-0.10";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/X/XA/XAICRON/${name}.tar.gz";
+      sha256 = "7f228a63f8d6ceb92aa784080a13e85073121b2835eca06d794f9709950dbd3d";
+    };
+    propagatedBuildInputs = [ ClassLoad ];
+    meta = {
+      homepage = https://github.com/zigorou/p5-test-mock-guard;
+      description = "Simple mock test library using RAII";
+      license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
     };
   };
 
@@ -13047,10 +13084,10 @@ let self = _self // overrides; _self = with self; {
   };
 
   threads = buildPerlPackage rec {
-    name = "threads-2.02";
+    name = "threads-2.07";
     src = fetchurl {
       url = "mirror://cpan/authors/id/J/JD/JDHEDDEN/${name}.tar.gz";
-      sha256 = "0vij8lagq4x6gv88x9gg23jd7i0s5fyyzs2wrxacih2ppj6kkiff";
+      sha256 = "0fgprp2ghrh1ryxmr0y9bpsjl1ifbf4lqml8k017cbl4zbn21lim";
     };
     meta = {
       description = "Perl interpreter-based threads";
@@ -13058,11 +13095,11 @@ let self = _self // overrides; _self = with self; {
     };
   };
 
-  threadsshared = buildPerlPackage {
-    name = "threads-shared-1.48";
+  threadsshared = buildPerlPackage rec {
+    name = "threads-shared-1.51";
     src = fetchurl {
-      url = mirror://cpan/authors/id/J/JD/JDHEDDEN/threads-shared-1.48.tar.gz;
-      sha256 = "7378a72bae424705e354476da69995fb8f62432bca8e98eab0fb9842da5120f8";
+      url = "mirror://cpan/authors/id/J/JD/JDHEDDEN/${name}.tar.gz";
+      sha256 = "0qsbl8rx8p09cb5vj1yhwf1h2awvimfyckw1qwrqbk7dxjldrimn";
     };
     meta = {
       description = "Perl extension for sharing data structures between threads";
@@ -13070,11 +13107,11 @@ let self = _self // overrides; _self = with self; {
     };
   };
 
-  ThreadQueue = buildPerlPackage {
-    name = "Thread-Queue-3.05";
+  ThreadQueue = buildPerlPackage rec {
+    name = "Thread-Queue-3.09";
     src = fetchurl {
-      url = mirror://cpan/authors/id/J/JD/JDHEDDEN/Thread-Queue-3.05.tar.gz;
-      sha256 = "36bc1e50b5de47ff827fbaa1d7f028016e3ef115972cac84ed8cd73a0ef95300";
+      url = "mirror://cpan/authors/id/J/JD/JDHEDDEN/${name}.tar.gz";
+      sha256 = "0f03v10rsasi2j4lh8xw44jac8nfbw66274qgsz5lsmfd6wqvj12";
     };
     meta = {
       description = "Thread-safe queues";
@@ -13988,10 +14025,10 @@ let self = _self // overrides; _self = with self; {
   };
 
   XSLoader = buildPerlPackage {
-    name = "XSLoader-0.16";
+    name = "XSLoader-0.20";
     src = fetchurl {
-      url = mirror://cpan/authors/id/S/SA/SAPER/XSLoader-0.16.tar.gz;
-      sha256 = "96de61bad187919bf632cfa657f1b9957ad47defcc90dad8ee1f50c955eedb86";
+      url = mirror://cpan/authors/id/S/SA/SAPER/XSLoader-0.20.tar.gz;
+      sha256 = "020fyjhfp385nlkp217fm511sbjz768vqk1lmxz99k4bah740y7i";
     };
     meta = {
       homepage = https://metacpan.org/module/Math::BigInt;
