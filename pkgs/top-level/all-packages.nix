@@ -1496,7 +1496,9 @@ in
 
   fatsort = callPackage ../tools/filesystems/fatsort { };
 
-  fcitx = callPackage ../tools/inputmethods/fcitx { };
+  fcitx = callPackage ../tools/inputmethods/fcitx {
+    plugins = [];
+  };
 
   fcitx-engines = recurseIntoAttrs {
 
@@ -1519,10 +1521,6 @@ in
   };
 
   fcitx-configtool = callPackage ../tools/inputmethods/fcitx/fcitx-configtool.nix { };
-
-  fcitx-with-plugins = callPackage ../tools/inputmethods/fcitx/wrapper.nix {
-    plugins = [ ];
-  };
 
   fcppt = callPackage ../development/libraries/fcppt/default.nix { };
 
@@ -2367,6 +2365,8 @@ in
 
   libqmi = callPackage ../development/libraries/libqmi { };
 
+  libqrencode = callPackage ../development/libraries/libqrencode { };
+
   libmbim = callPackage ../development/libraries/libmbim { };
 
   libmongo-client = callPackage ../development/libraries/libmongo-client { };
@@ -2779,6 +2779,8 @@ in
   obex_data_server = callPackage ../tools/bluetooth/obex-data-server { };
 
   obexd = callPackage ../tools/bluetooth/obexd { };
+
+  ocproxy = callPackage ../tools/networking/ocproxy { };
 
   openfortivpn = callPackage ../tools/networking/openfortivpn { };
 
@@ -5651,6 +5653,8 @@ in
 
   elixir = callPackage ../development/interpreters/elixir { debugInfo = true; };
 
+  lfe = callPackage ../development/interpreters/lfe { };
+
   groovy = callPackage ../development/interpreters/groovy { };
 
   guile_1_8 = callPackage ../development/interpreters/guile/1.8.nix { };
@@ -6431,6 +6435,8 @@ in
   maven = maven3;
   maven3 = callPackage ../development/tools/build-managers/apache-maven { };
 
+  minify = callPackage ../development/web/minify { };
+
   mk = callPackage ../development/tools/build-managers/mk { };
 
   msitools = callPackage ../development/tools/misc/msitools { };
@@ -6655,6 +6661,8 @@ in
 
   uncrustify = callPackage ../development/tools/misc/uncrustify { };
 
+  universal-ctags = callPackage ../development/tools/misc/universal-ctags { };
+
   vagrant = callPackage ../development/tools/vagrant {
     ruby = ruby_2_2;
   };
@@ -6704,6 +6712,8 @@ in
   };
 
   grabserial = callPackage ../development/tools/grabserial { };
+
+  mypy-lang = callPackage ../development/tools/mypy-lang { };
 
 
   ### DEVELOPMENT / LIBRARIES
@@ -7559,6 +7569,7 @@ in
   hyena = callPackage ../development/libraries/hyena { };
 
   icu = callPackage ../development/libraries/icu { };
+  icu_54_1 = callPackage ../development/libraries/icu/54.1.nix { };
 
   id3lib = callPackage ../development/libraries/id3lib { };
 
@@ -10929,7 +10940,10 @@ in
   };
 
   linux_4_1 = callPackage ../os-specific/linux/kernel/linux-4.1.nix {
-    kernelPatches = [ kernelPatches.bridge_stp_helper ]
+    kernelPatches =
+      [ kernelPatches.bridge_stp_helper
+        kernelPatches.hiddev_CVE_2016_5829
+      ]
       ++ lib.optionals ((platform.kernelArch or null) == "mips")
       [ kernelPatches.mips_fpureg_emu
         kernelPatches.mips_fpu_sigill
@@ -10938,7 +10952,12 @@ in
   };
 
   linux_4_4 = callPackage ../os-specific/linux/kernel/linux-4.4.nix {
-    kernelPatches = [ kernelPatches.bridge_stp_helper kernelPatches.qat_common_Makefile ]
+    kernelPatches =
+      [ kernelPatches.bridge_stp_helper
+        kernelPatches.qat_common_Makefile
+        kernelPatches.hiddev_CVE_2016_5829
+        kernelPatches.ecryptfs_fix_mmap_bug
+      ]
       ++ lib.optionals ((platform.kernelArch or null) == "mips")
       [ kernelPatches.mips_fpureg_emu
         kernelPatches.mips_fpu_sigill
@@ -10947,7 +10966,11 @@ in
   };
 
   linux_4_5 = callPackage ../os-specific/linux/kernel/linux-4.5.nix {
-    kernelPatches = [ kernelPatches.bridge_stp_helper kernelPatches.qat_common_Makefile ]
+    kernelPatches =
+      [ kernelPatches.bridge_stp_helper
+        kernelPatches.qat_common_Makefile
+        kernelPatches.hiddev_CVE_2016_5829
+      ]
       ++ lib.optionals ((platform.kernelArch or null) == "mips")
       [ kernelPatches.mips_fpureg_emu
         kernelPatches.mips_fpu_sigill
@@ -10956,7 +10979,11 @@ in
   };
 
   linux_4_6 = callPackage ../os-specific/linux/kernel/linux-4.6.nix {
-    kernelPatches = [ kernelPatches.bridge_stp_helper kernelPatches.qat_common_Makefile ]
+    kernelPatches =
+      [ kernelPatches.bridge_stp_helper
+        kernelPatches.qat_common_Makefile
+        kernelPatches.hiddev_CVE_2016_5829
+      ]
       ++ lib.optionals ((platform.kernelArch or null) == "mips")
       [ kernelPatches.mips_fpureg_emu
         kernelPatches.mips_fpu_sigill
@@ -11026,6 +11053,8 @@ in
     e1000e = callPackage ../os-specific/linux/e1000e {};
 
     ixgbevf = callPackage ../os-specific/linux/ixgbevf {};
+
+    ena = callPackage ../os-specific/linux/ena {};
 
     v4l2loopback = callPackage ../os-specific/linux/v4l2loopback { };
 
@@ -11102,6 +11131,8 @@ in
     });
 
     virtualboxGuestAdditions = callPackage ../applications/virtualization/virtualbox/guest-additions { };
+
+    wireguard = callPackage ../os-specific/linux/wireguard {};
 
     x86_energy_perf_policy = callPackage ../os-specific/linux/x86_energy_perf_policy { };
 
@@ -13517,6 +13548,8 @@ in
   };
   ledger = self.ledger3;
 
+  lighthouse = callPackage ../applications/misc/lighthouse { };
+
   lighttable = callPackage ../applications/editors/lighttable {};
 
   links2 = callPackage ../applications/networking/browsers/links2 { };
@@ -15603,7 +15636,7 @@ in
   soi = callPackage ../games/soi {
     lua = lua5_1;
   };
-  
+
   solarus = callPackage ../games/solarus { };
 
   # You still can override by passing more arguments.
@@ -16147,8 +16180,8 @@ in
 
   kde5 =
     let
-      frameworks = import ../desktops/kde-5/frameworks-5.22 { inherit pkgs; };
-      plasma = import ../desktops/kde-5/plasma-5.6 { inherit pkgs; };
+      frameworks = import ../desktops/kde-5/frameworks-5.24 { inherit pkgs; };
+      plasma = import ../desktops/kde-5/plasma-5.7 { inherit pkgs; };
       applications = import ../desktops/kde-5/applications-16.04 { inherit pkgs; };
       merged = self:
         { plasma = plasma self;
@@ -17336,4 +17369,6 @@ in
   maphosts = callPackage ../tools/networking/maphosts {};
 
   zuki-themes = callPackage ../misc/themes/zuki { };
+
+  zoom-us = qt55.callPackage ../applications/networking/instant-messengers/zoom-us {};
 }

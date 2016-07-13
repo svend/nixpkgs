@@ -1359,13 +1359,13 @@ in modules // {
 
   awscli = buildPythonPackage rec {
     name = "awscli-${version}";
-    version = "1.10.38";
+    version = "1.10.46";
 
     namePrefix = "";
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/a/awscli/${name}.tar.gz";
-      sha256 = "01d14snp3h4dkbwyviyprhcl8qcngc6nyzwy3k3nxvm1ia9hvz2n";
+      sha256 = "1d2xjhdmjna9zxa4ybk7cjypib5yq2gd3w5fgpb4lfs6bh3mr554";
     };
 
     # No tests included
@@ -2746,12 +2746,12 @@ in modules // {
   };
 
   botocore = buildPythonPackage rec {
-    version = "1.4.28"; # This version is required by awscli
+    version = "1.4.36"; # This version is required by awscli
     name = "botocore-${version}";
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/b/botocore/${name}.tar.gz";
-      sha256 = "1qfvcb7japa3y1j4b86af9ph8q8mbq2mrx6xfhlqcf2x399l2phl";
+      sha256 = "0mkydnbbn0x97nfzwqia68zw2y5j7i9yzpq5kasvc80n2z999h39";
     };
 
     propagatedBuildInputs =
@@ -6099,6 +6099,22 @@ in modules // {
     patches = [ ../development/python-modules/fedpkg-buildfix.diff ];
     propagatedBuildInputs = with self; [ rpkg offtrac urlgrabber fedora_cert ];
   });
+
+  Flootty = buildPythonPackage rec {
+    name = "Flootty-3.2.0";
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/F/Flootty/${name}.tar.gz";
+      sha256 = "14n2q2k388xbmp5rda5ss879bg5cbibk4zzz7c8mrjsmxhgagmmg";
+    };
+
+    meta = with pkgs.stdenv.lib; {
+      description = "Floobits collaborative terminal";
+      homepage = "https://github.com/Floobits/flootty/";
+      maintainers = with maintainers; [ garbas ];
+      license = licenses.asl20;
+    };
+  };
 
   flowlogs_reader = buildPythonPackage rec {
     name = "flowlogs_reader-1.0.0";
