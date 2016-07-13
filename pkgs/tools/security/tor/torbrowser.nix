@@ -12,13 +12,13 @@ in
 
 stdenv.mkDerivation rec {
   name = "tor-browser-${version}";
-  version = "5.5.5";
+  version = "6.0.2";
 
   src = fetchurl {
     url = "https://archive.torproject.org/tor-package-archive/torbrowser/${version}/tor-browser-linux${if stdenv.is64bit then "64" else "32"}-${version}_en-US.tar.xz";
     sha256 = if stdenv.is64bit then
-      "0k6v41j880fb4zdxk1v13kmizdaz5rwvi5lskdbdi68iml4p53gj" else
-      "04mqjmnxwa75yi8gmdwadkzrzikgxn08bkvr50zdm7id9fj4nkza";
+      "08zik2id1rkcl5cw4yscdgb8rdahx342j1fps576465sziy5z06x" else
+      "062ddifhdbzj9hjcnvjnqb1is2ydrv9x7hzam4jkpsfvllf4hxcg";
   };
 
   desktopItem = makeDesktopItem {
@@ -58,6 +58,10 @@ stdenv.mkDerivation rec {
     if [ ! -d \$HOME ]; then
       mkdir -p \$HOME && cp -R $out/share/tor-browser/Browser/TorBrowser/Data \$HOME/ && chmod -R +w \$HOME
       echo "pref(\"extensions.torlauncher.tordatadir_path\", \"\$HOME/Data/Tor/\");" >> \
+        ~/Data/Browser/profile.default/preferences/extension-overrides.js
+      echo "pref(\"extensions.torlauncher.torrc-defaults_path\", \"\$HOME/Data/Tor/torrc-defaults\");" >> \
+        ~/Data/Browser/profile.default/preferences/extension-overrides.js
+      echo "pref(\"extensions.torlauncher.tor_path\", \"$out/share/tor-browser/Browser/TorBrowser/Tor/tor\");" >> \
         ~/Data/Browser/profile.default/preferences/extension-overrides.js
     fi
     export FONTCONFIG_PATH=\$HOME/Data/fontconfig

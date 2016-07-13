@@ -8,6 +8,7 @@ rec {
   runCommand = name: env: buildCommand:
     stdenv.mkDerivation ({
       inherit name buildCommand;
+      passAsFile = [ "buildCommand" ];
     } // env);
 
 
@@ -48,17 +49,15 @@ rec {
 
   # Create a forest of symlinks to the files in `paths'.
   symlinkJoin =
-    { name
-    , paths
-    , preferLocalBuild ? true
-    , allowSubstitutes ? false
-    , postBuild ? ""
-    , buildInputs ? []
-    , meta ? {}
-    }:
+    args@{ name
+         , paths
+         , preferLocalBuild ? true
+         , allowSubstitutes ? false
+         , postBuild ? ""
+         , ...
+         }:
     runCommand name
-      { inherit paths preferLocalBuild allowSubstitutes buildInputs meta;
-      }
+      (removeAttrs args [ "name" "postBuild" ])
       ''
         mkdir -p $out
         for i in $paths; do

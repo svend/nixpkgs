@@ -4,6 +4,7 @@
 , yasm, mesa, sqlite, unzip, makeWrapper, pysqlite
 , hunspell, libevent, libstartup_notification, libvpx
 , cairo, gstreamer, gst_plugins_base, icu, libpng, jemalloc, libpulseaudio
+, autoconf213, which
 , enableGTK3 ? false
 , debugBuild ? false
 , # If you want the resulting program to call itself "Firefox" instead
@@ -35,11 +36,14 @@ common = { pname, version, sha512 }: stdenv.mkDerivation rec {
       alsaLib nspr nss libnotify xorg.pixman yasm mesa
       xorg.libXScrnSaver xorg.scrnsaverproto pysqlite
       xorg.libXext xorg.xextproto sqlite unzip makeWrapper
-      hunspell libevent libstartup_notification /* libvpx */ /* cairo */
-      gstreamer gst_plugins_base icu libpng jemalloc
+      hunspell libevent libstartup_notification libvpx /* cairo */
+      icu libpng jemalloc
       libpulseaudio # only headers are needed
     ]
-    ++ lib.optional enableGTK3 gtk3;
+    ++ lib.optional enableGTK3 gtk3
+    ++ lib.optionals (!passthru.ffmpegSupport) [ gstreamer gst_plugins_base ];
+
+  nativeBuildInputs = [autoconf213 which];
 
   configureFlags =
     [ "--enable-application=browser"
@@ -50,7 +54,7 @@ common = { pname, version, sha512 }: stdenv.mkDerivation rec {
       "--with-system-nspr"
       "--with-system-nss"
       "--with-system-libevent"
-      #"--with-system-libvpx" # needs 1.5.0
+      "--with-system-libvpx"
       "--with-system-png" # needs APNG support
       "--with-system-icu"
       "--enable-system-ffi"
@@ -58,7 +62,6 @@ common = { pname, version, sha512 }: stdenv.mkDerivation rec {
       "--enable-system-pixman"
       "--enable-system-sqlite"
       #"--enable-system-cairo"
-      "--enable-gstreamer"
       "--enable-startup-notification"
       "--enable-content-sandbox"            # available since 26.0, but not much info available
       "--disable-content-sandbox-reporter"  # keeping disabled for now
@@ -96,7 +99,7 @@ common = { pname, version, sha512 }: stdenv.mkDerivation rec {
   postInstall =
     ''
       # For grsecurity kernels
-      paxmark m $out/lib/${pname}-${version}/{firefox,firefox-bin,plugin-container}
+      paxmark m $out/lib/firefox-[0-9]*/{firefox,firefox-bin,plugin-container}
 
       # Remove SDK cruft. FIXME: move to a separate output?
       rm -rf $out/share/idl $out/include $out/lib/firefox-devel-*
@@ -123,7 +126,8 @@ common = { pname, version, sha512 }: stdenv.mkDerivation rec {
   passthru = {
     inherit gtk nspr version;
     isFirefox3Like = true;
-    browserName = pname;
+    browserName = "firefox";
+    ffmpegSupport = lib.versionAtLeast version "46.0";
   };
 };
 
@@ -131,14 +135,14 @@ in {
 
   firefox-unwrapped = common {
     pname = "firefox";
-    version = "46.0.1";
-    sha512 = "c58642774f93ceaef4f99bc3fe578db6e4f6de7f1d23080da97b61bc4fc6b516ce99fa04368893c0fa2cb9cd0b36e96955656daa97d0bd0d8f4da6a2d364cb98";
+    version = "47.0.1";
+    sha512 = "f79c53b9acf0d96917aa11e57092a4e540ce694471123ef8e616e15864195fab7b37235ebd37367e4d0cc8e594a881a30c973075cc97346ef6f88d92944c0312";
   };
 
   firefox-esr-unwrapped = common {
     pname = "firefox-esr";
-    version = "45.1.1esr";
-    sha512 = "ee6bccdf01450c5b371e31c35f5bb084ad49f796fcc9cf3a346646972044ad85ce198cc34b697c32e2d3ad1e25955ef5b91b68790704ecaa4de9d3a412914fc7";
+    version = "45.2.0esr";
+    sha512 = "fd67353cff9400080a311af92562b1ed26d20ca2229e32e8c8289b364ebe27fd501eed78c72b614e0501c3841ae9b17f2102158fbeef5083bee8c12d952660e6";
   };
 
 }

@@ -1,6 +1,6 @@
 { stdenv, fetchgit, cmake, polkit-qt, libyamlcpp, python, boost, parted
 , extra-cmake-modules, kconfig, ki18n, kcoreaddons, solid, utillinux, libatasmart
-, ckbcomp, glibc, tzdata, xkeyboard_config, qtbase, qtquick1, qtsvg, qttools }:
+, ckbcomp, glibc, tzdata, xkeyboard_config, qtbase, qtsvg, qttools }:
 
 stdenv.mkDerivation rec {
   name = "calamares-${version}";
@@ -9,11 +9,11 @@ stdenv.mkDerivation rec {
   src = fetchgit {
     url = "https://github.com/calamares/calamares.git";
     rev = "dabfb68a68cb012a90cd7b94a22e1ea08f7dd8ad";
-    sha256 = "2851ce487aaac61d2df342a47f91ec87fe52ff036227ef697caa7056fe5f188c";
+    sha256 = "12n161fmzybi20pxcjikqnckhzh175ni5da122p74bx7fzv7q41p";
   };
 
   buildInputs = [
-    cmake qtbase qtquick1 qtsvg qttools libyamlcpp python boost polkit-qt parted
+    cmake qtbase qtsvg qttools libyamlcpp python boost polkit-qt parted
     extra-cmake-modules kconfig ki18n kcoreaddons solid utillinux libatasmart
   ];
 

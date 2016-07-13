@@ -5,6 +5,7 @@
 , wxSupport ? true, mesa ? null, wxGTK ? null, xorg ? null, wxmac ? null
 , javacSupport ? false, openjdk ? null
 , enableHipe ? true
+, enableDebugInfo ? false
 }:
 
 assert wxSupport -> (if stdenv.isDarwin
@@ -35,13 +36,15 @@ stdenv.mkDerivation rec {
 
   patchPhase = '' sed -i "s@/bin/rm@rm@" lib/odbc/configure erts/configure '';
 
+  debugInfo = enableDebugInfo;
+
   preConfigure = ''
     export HOME=$PWD/../
     sed -e s@/bin/pwd@pwd@g -i otp_build
   '';
 
   configureFlags= [
-    "--with-ssl=${openssl}"
+    "--with-ssl=${openssl.dev}"
   ] ++ optional enableHipe "--enable-hipe"
     ++ optional wxSupport "--enable-wx"
     ++ optional odbcSupport "--with-odbc=${unixODBC}"
@@ -85,8 +88,6 @@ stdenv.mkDerivation rec {
     '';
 
     platforms = platforms.unix;
-    # Note: Maintainer of prev. erlang version was simons. If he wants
-    # to continue maintaining erlang I'm totally ok with that.
     maintainers = [ maintainers.the-kenny maintainers.sjmackenzie ];
   };
 }

@@ -40,6 +40,7 @@ xfce_self = rec { # the lines are very long but it seems better than the even-od
   xfce4session    = callPackage ./core/xfce4-session.nix { };
   xfce4settings   = callPackage ./core/xfce4-settings.nix { };
   xfce4_power_manager = callPackage ./core/xfce4-power-manager.nix { };
+  xfce4_power_manager_gtk3 = callPackage ./core/xfce4-power-manager.nix { withGtk3 = true; };
   xfconf          = callPackage ./core/xfconf.nix { };
   xfdesktop       = callPackage ./core/xfdesktop.nix { };
   xfwm4           = callPackage ./core/xfwm4.nix { };
@@ -61,7 +62,7 @@ xfce_self = rec { # the lines are very long but it seems better than the even-od
   xfce4notifyd    = callPackage ./applications/xfce4-notifyd.nix { };
   xfce4taskmanager= callPackage ./applications/xfce4-taskmanager.nix { };
   xfce4terminal   = callPackage ./applications/terminal.nix { };
-  xfce4screenshooter   = callPackage ./applications/xfce4-screenshooter.nix { };
+  xfce4-screenshooter = callPackage ./applications/xfce4-screenshooter.nix { };
   xfce4volumed    = let
     gst = callPackage ./applications/xfce4-volumed.nix { };
     pulse = callPackage ./applications/xfce4-volumed-pulse.nix { };

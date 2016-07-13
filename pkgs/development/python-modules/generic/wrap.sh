@@ -28,8 +28,10 @@ wrapPythonProgramsIn() {
     # Find all regular files in the output directory that are executable.
     for f in $(find "$dir" -type f -perm -0100); do
         # Rewrite "#! .../env python" to "#! /nix/store/.../python".
+        # Strip suffix, like "3" or "2.7m" -- we don't have any choice on which
+        # Python to use besides one in $python anyway.
         if head -n1 "$f" | grep -q '#!.*/env.*\(python\|pypy\)'; then
-            sed -i "$f" -e "1 s^.*/env[ ]*\(python\|pypy\)^#! $python^"
+            sed -i "$f" -e "1 s^.*/env[ ]*\(python\|pypy\)[^ ]*^#! $python^"
         fi
 
         # catch /python and /.python-wrapped
@@ -44,16 +46,15 @@ wrapPythonProgramsIn() {
                 # wrapProgram creates the executable shell script described
                 # above. The script will set PYTHONPATH and PATH variables.!
                 # (see pkgs/build-support/setup-hooks/make-wrapper.sh)
-                local wrap_args="$f \
-                                 --prefix PYTHONPATH ':' $program_PYTHONPATH \
-                                 --prefix PATH ':' $program_PATH:$dir/bin"
+                local -a wrap_args=("$f"
+                                 --prefix PYTHONPATH ':' "$program_PYTHONPATH"
+                                 --prefix PATH ':' "$program_PATH:$dir/bin")
 
                 # Add any additional arguments provided by makeWrapperArgs
                 # argument to buildPythonPackage.
-                for arg in $makeWrapperArgs; do
-                    wrap_args="$wrap_args $arg"
-                done
-                wrapProgram $wrap_args
+                local -a user_args="($makeWrapperArgs)"
+                local -a wrapProgramArgs=("${wrap_args[@]}" "${user_args[@]}")
+                wrapProgram "${wrapProgramArgs[@]}"
             fi
         fi
     done

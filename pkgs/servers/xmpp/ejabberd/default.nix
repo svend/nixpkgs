@@ -54,17 +54,15 @@ in stdenv.mkDerivation rec {
 
     GIT_SSL_CAINFO = "${cacert}/etc/ssl/certs/ca-bundle.crt";
 
-    preBuild = ''
-      patchShebangs .
-    '';
-
     makeFlags = [ "deps" ];
+
+    phases = [ "unpackPhase" "configurePhase" "buildPhase" "installPhase" ];
 
     installPhase = ''
       for i in deps/*; do
         ( cd $i
           git reset --hard
-          git clean -fdx
+          git clean -ffdx
           git describe --always --tags > .rev
           rm -rf .git
         )
@@ -76,7 +74,7 @@ in stdenv.mkDerivation rec {
 
     outputHashMode = "recursive";
     outputHashAlgo = "sha256";
-    outputHash = "0zmb7g00y5q4alf70i1chv3yim63i03sy4p8i83bzvxri59vw0zv";
+    outputHash = "08s1j0xa65xkrqw810wzgssngs67sz722jsvj7p02v4ra8jcl31f";
   };
 
   configureFlags =
@@ -90,7 +88,7 @@ in stdenv.mkDerivation rec {
       (lib.enableFeature withIconv "iconv")
       (lib.enableFeature withTools "tools")
       (lib.enableFeature withRedis "redis")
-    ] ++ lib.optional withSqlite "--with-sqlite3=${sqlite}";
+    ] ++ lib.optional withSqlite "--with-sqlite3=${sqlite.dev}";
 
   enableParallelBuilding = true;
 

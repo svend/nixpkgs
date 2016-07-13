@@ -89,7 +89,7 @@ stdenv.mkDerivation rec {
 
   configurePhase = ''
     ./configure --prefix=$out \
-      --with-gmp-libraries=${gmp.out}/lib --with-gmp-includes=${gmp}/include \
+      --with-gmp-libraries=${gmp.out or gmp}/lib --with-gmp-includes=${gmp.dev or gmp}/include \
       ${stdenv.lib.optionalString stdenv.isDarwin "--with-gcc=${./gcc-clang-wrapper.sh}"}
   '';
 
@@ -99,7 +99,7 @@ stdenv.mkDerivation rec {
 
   # No building is necessary, but calling make without flags ironically
   # calls install-strip ...
-  buildPhase = "true";
+  dontBuild = true;
 
   postInstall =
       ''

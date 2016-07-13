@@ -1,6 +1,7 @@
 { stdenv, fetchurl, pkgconfig, gettext, perl
 , expat, glib, cairo, pango, gdk_pixbuf, atk, at_spi2_atk, gobjectIntrospection
-, xorg, wayland, epoxy, json_glib, libxkbcommon, gmp
+, xorg, epoxy, json_glib, libxkbcommon, gmp
+, waylandSupport ? stdenv.isLinux, wayland, wayland-protocols
 , xineramaSupport ? stdenv.isLinux
 , cupsSupport ? stdenv.isLinux, cups ? null
 , darwin
@@ -12,7 +13,7 @@ with stdenv.lib;
 
 let
   ver_maj = "3.20";
-  ver_min = "3";
+  ver_min = "6";
   version = "${ver_maj}.${ver_min}";
 in
 stdenv.mkDerivation rec {
@@ -20,7 +21,7 @@ stdenv.mkDerivation rec {
 
   src = fetchurl {
     url = "mirror://gnome/sources/gtk+/${ver_maj}/gtk+-${version}.tar.xz";
-    sha256 = "3834f3bf23b260b3e5ebfea41102e2026a8af29e36c3620edf4a5cf05e82f694";
+    sha256 = "3f8016563a96b1cfef4ac9e795647f6316deb2978ff939b19e4e4f8f936fa4b2";
   };
 
   outputs = [ "dev" "out" ];
@@ -28,11 +29,13 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [ pkgconfig gettext gobjectIntrospection perl ];
 
+  patches = [ ./3.0-immodules.cache.patch ];
+
   buildInputs = [ libxkbcommon epoxy json_glib ];
   propagatedBuildInputs = with xorg; with stdenv.lib;
     [ expat glib cairo pango gdk_pixbuf atk at_spi2_atk
       libXrandr libXrender libXcomposite libXi libXcursor libSM libICE ]
-    ++ optionals stdenv.isLinux [ wayland ]
+    ++ optionals waylandSupport [ wayland wayland-protocols ]
     ++ optional stdenv.isDarwin (with darwin.apple_sdk.frameworks; [ AppKit Cocoa ])
     ++ optional xineramaSupport libXinerama
     ++ optional cupsSupport cups;
@@ -51,19 +54,16 @@ stdenv.mkDerivation rec {
     "--disable-glibtest"
     "--with-gdktarget=quartz"
     "--enable-quartz-backend"
+  ] ++ optional stdenv.isLinux [
+    "--enable-x11-backend"
+  ] ++ optional waylandSupport [
+    "--enable-wayland-backend"
   ];
 
   postInstall = ''
     substituteInPlace "$out/lib/gtk-3.0/3.0.0/printbackends/libprintbackend-cups.la" \
       --replace '-L${gmp.dev}/lib' '-L${gmp.out}/lib'
   '';
-
-  passthru = {
-    gtkExeEnvPostBuild = ''
-      rm $out/lib/gtk-3.0/3.0.0/immodules.cache
-      $out/bin/gtk-query-immodules-3.0 $out/lib/gtk-3.0/3.0.0/immodules/*.so > $out/lib/gtk-3.0/3.0.0/immodules.cache
-    ''; # workaround for bug of nix-mode for Emacs */ '';
-  };
 
   meta = with stdenv.lib; {
     description = "A multi-platform toolkit for creating graphical user interfaces";

@@ -27,6 +27,7 @@ stdenv.mkDerivation {
     in ''
       {
         pandoc '${inputFile}' -w docbook ${optionalString useChapters "--chapters"} \
+          --smart \
           | sed -e 's|<ulink url=|<link xlink:href=|' \
               -e 's|</ulink>|</link>|' \
               -e 's|<sect. id=|<section xml:id=|' \
@@ -52,16 +53,15 @@ stdenv.mkDerivation {
       outputFile = "./languages-frameworks/python.xml";
     }
   + toDocbook {
-      inputFile = ./haskell-users-guide.md;
-      outputFile = "haskell-users-guide.xml";
-      useChapters = true;
+      inputFile = ./languages-frameworks/haskell.md;
+      outputFile = "./languages-frameworks/haskell.xml";
     }
   + toDocbook {
-      inputFile = ./../pkgs/development/idris-modules/README.md;
+      inputFile = ../pkgs/development/idris-modules/README.md;
       outputFile = "languages-frameworks/idris.xml";
     }
   + toDocbook {
-      inputFile = ./../pkgs/development/r-modules/README.md;
+      inputFile = ../pkgs/development/r-modules/README.md;
       outputFile = "languages-frameworks/r.xml";
     }
   + ''

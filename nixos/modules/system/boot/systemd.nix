@@ -669,6 +669,7 @@ in
 
       "systemd/logind.conf".text = ''
         [Login]
+        KillUserProcesses=no
         ${config.services.logind.extraConfig}
       '';
 
@@ -688,6 +689,8 @@ in
 
       "systemd/system-generators" = { source = generators; };
     });
+
+    services.dbus.enable = true;
 
     system.activationScripts.systemd = stringAfter [ "groups" ]
       ''
@@ -751,13 +754,6 @@ in
         "TMPFS_XATTR" "SECCOMP"
       ];
 
-    environment.shellAliases =
-      { start = "systemctl start";
-        stop = "systemctl stop";
-        restart = "systemctl restart";
-        status = "systemctl status";
-      };
-
     users.extraGroups.systemd-journal.gid = config.ids.gids.systemd-journal;
     users.extraUsers.systemd-journal-gateway.uid = config.ids.uids.systemd-journal-gateway;
     users.extraGroups.systemd-journal-gateway.gid = config.ids.gids.systemd-journal-gateway;
@@ -798,6 +794,8 @@ in
     systemd.services.systemd-remount-fs.restartIfChanged = false;
     systemd.services.systemd-update-utmp.restartIfChanged = false;
     systemd.services.systemd-user-sessions.restartIfChanged = false; # Restart kills all active sessions.
+    systemd.services.systemd-logind.restartTriggers = [ config.environment.etc."systemd/logind.conf".source ];
+    systemd.services.systemd-logind.stopIfChanged = false;
     systemd.targets.local-fs.unitConfig.X-StopOnReconfiguration = true;
     systemd.targets.remote-fs.unitConfig.X-StopOnReconfiguration = true;
     systemd.services.systemd-binfmt.wants = [ "proc-sys-fs-binfmt_misc.automount" ];

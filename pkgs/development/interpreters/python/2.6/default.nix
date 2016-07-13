@@ -1,5 +1,6 @@
 { stdenv, fetchurl, zlib ? null, zlibSupport ? true, bzip2, includeModules ? false
-, sqlite, tcl, tk, xlibsWrapper, openssl, readline, db, ncurses, gdbm, self, callPackage }:
+, sqlite, tcl, tk, xlibsWrapper, openssl, readline, db, ncurses, gdbm, self, callPackage
+, python26Packages }:
 
 assert zlibSupport -> zlib != null;
 
@@ -53,8 +54,8 @@ let
     ++ optional zlibSupport zlib;
 
   mkPaths = paths: {
-    C_INCLUDE_PATH = concatStringsSep ":" (map (p: "${p.dev or p}/include") paths);
-    LIBRARY_PATH = concatStringsSep ":" (map (p: "${p.lib or (p.out or p)}/lib") paths);
+    C_INCLUDE_PATH = makeSearchPathOutput "dev" "include" paths;
+    LIBRARY_PATH = makeLibraryPath paths;
   };
 
   # Build the basic Python interpreter without modules that have
@@ -97,6 +98,7 @@ let
       isPy2 = true;
       isPy26 = true;
       buildEnv = callPackage ../wrapper.nix { python = self; };
+      withPackages = import ../with-packages.nix { inherit buildEnv; pythonPackages = python26Packages; };
       libPrefix = "python${majorVersion}";
       executable = libPrefix;
       sitePackages = "lib/${libPrefix}/site-packages";
@@ -107,7 +109,7 @@ let
 
     meta = {
       homepage = "http://python.org";
-      description = "a high-level dynamically-typed programming language";
+      description = "A high-level dynamically-typed programming language";
       longDescription = ''
         Python is a remarkably powerful dynamic programming language that
         is used in a wide variety of application domains. Some of its key
@@ -119,7 +121,7 @@ let
       '';
       license = stdenv.lib.licenses.psfl;
       platforms = stdenv.lib.platforms.all;
-      maintainers = with stdenv.lib.maintainers; [ simons chaoflow iElectric ];
+      maintainers = with stdenv.lib.maintainers; [ chaoflow domenkozar ];
       # If you want to use Python 2.6, remove "broken = true;" at your own
       # risk.  Python 2.6 has known security vulnerabilities is not receiving
       # security updates as of October 2013.

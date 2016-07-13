@@ -1860,13 +1860,13 @@ let
 
     Rmpfr = old.Rmpfr.overrideDerivation (attrs: {
       configureFlags = [
-        "--with-mpfr-include=${pkgs.mpfr}/include"
+        "--with-mpfr-include=${pkgs.mpfr.dev}/include"
       ];
     });
 
     RVowpalWabbit = old.RVowpalWabbit.overrideDerivation (attrs: {
       configureFlags = [
-        "--with-boost=${pkgs.boost.dev}" "--with-boost-libdir=${pkgs.boost.lib}/lib"
+        "--with-boost=${pkgs.boost.dev}" "--with-boost-libdir=${pkgs.boost.out}/lib"
       ];
     });
 
@@ -1922,7 +1922,7 @@ let
     });
 
     openssl = old.openssl.overrideDerivation (attrs: {
-      OPENSSL_INCLUDES = "${pkgs.openssl}/include";
+      OPENSSL_INCLUDES = "${pkgs.openssl.dev}/include";
     });
 
     Rserve = old.Rserve.overrideDerivation (attrs: {

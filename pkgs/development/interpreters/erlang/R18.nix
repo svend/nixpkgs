@@ -5,6 +5,7 @@
 , wxSupport ? true, mesa ? null, wxGTK ? null, xorg ? null, wxmac ? null
 , javacSupport ? false, openjdk ? null
 , enableHipe ? true
+, enableDebugInfo ? false
 }:
 
 assert wxSupport -> (if stdenv.isDarwin
@@ -33,6 +34,8 @@ stdenv.mkDerivation rec {
       ++ optional javacSupport openjdk
       ++ stdenv.lib.optionals stdenv.isDarwin [ Carbon Cocoa ];
 
+  debugInfo = enableDebugInfo;
+
   patchPhase = '' sed -i "s@/bin/rm@rm@" lib/odbc/configure erts/configure '';
 
   preConfigure = ''
@@ -41,7 +44,7 @@ stdenv.mkDerivation rec {
   '';
 
   configureFlags= [
-    "--with-ssl=${openssl}"
+    "--with-ssl=${openssl.dev}"
   ] ++ optional enableHipe "--enable-hipe"
     ++ optional wxSupport "--enable-wx"
     ++ optional odbcSupport "--with-odbc=${unixODBC}"

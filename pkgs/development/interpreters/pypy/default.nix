@@ -1,13 +1,13 @@
 { stdenv, fetchurl, zlib ? null, zlibSupport ? true, bzip2, pkgconfig, libffi
 , sqlite, openssl, ncurses, pythonFull, expat, tcl, tk, xlibsWrapper, libX11
-, makeWrapper, callPackage, self, gdbm, db }:
+, makeWrapper, callPackage, self, pypyPackages, gdbm, db }:
 
 assert zlibSupport -> zlib != null;
 
 let
 
-  majorVersion = "4.0";
-  version = "${majorVersion}.1";
+  majorVersion = "5.1.1";
+  version = "${majorVersion}";
   libPrefix = "pypy${majorVersion}";
 
   pypy = stdenv.mkDerivation rec {
@@ -18,17 +18,27 @@ let
 
     src = fetchurl {
       url = "https://bitbucket.org/pypy/pypy/get/release-${version}.tar.bz2";
-      sha256 = "1g7iipllgdfjgdkypsa1g2pzxgjw9agp40rh82hk31rsbak2hfbl";
+      sha256 = "1dmckvffanmh0b50pq34shnw05r55gjxn43kgvnkz5kkvvsbxdg1";
     };
+
+   # http://bugs.python.org/issue27369
+    postPatch = let
+      expatch = fetchurl {
+        name = "tests-expat-2.2.0.patch";
+        url = "http://bugs.python.org/file43514/0001-Fix-Python-2.7.11-tests-for-Expat-2.2.0.patch";
+        sha256 = "1j3pa7ly9xrhp8jjwg5l77z7i3y68gx8f8jchqk6zc39d9glq3il";
+      };
+      in ''
+      patch lib-python/2.7/test/test_pyexpat.py < '${expatch}'
+    '';
 
     buildInputs = [ bzip2 openssl pkgconfig pythonFull libffi ncurses expat sqlite tk tcl xlibsWrapper libX11 makeWrapper gdbm db ]
       ++ stdenv.lib.optional (stdenv ? cc && stdenv.cc.libc != null) stdenv.cc.libc
       ++ stdenv.lib.optional zlibSupport zlib;
 
-    C_INCLUDE_PATH = stdenv.lib.concatStringsSep ":" (map (p: "${p.dev or p}/include") buildInputs);
-    LIBRARY_PATH = stdenv.lib.concatStringsSep ":" (map (p: "${p.lib or p.out or p}/lib") buildInputs);
-    LD_LIBRARY_PATH = stdenv.lib.concatStringsSep ":" (map (p: "${p.lib or p.out or p}/lib")
-      (stdenv.lib.filter (x : x.outPath != stdenv.cc.libc.outPath or "") buildInputs));
+    C_INCLUDE_PATH = stdenv.lib.makeSearchPathOutput "dev" "include" buildInputs;
+    LIBRARY_PATH = stdenv.lib.makeLibraryPath buildInputs;
+    LD_LIBRARY_PATH = stdenv.lib.makeLibraryPath (stdenv.lib.filter (x : x.outPath != stdenv.cc.libc.outPath or "") buildInputs);
 
     preConfigure = ''
       # hint pypy to find nix ncurses
@@ -71,15 +81,11 @@ let
        export HOME="$TMPDIR";
        # disable shutils because it assumes gid 0 exists
        # disable socket because it has two actual network tests that fail
-       # disable test_mhlib because it fails for unknown reason
-       # disable sqlite3 due to https://bugs.pypy.org/issue1740
-       # disable test_multiprocessing due to transient errors
-       # disable test_os because test_urandom_failure fails
        # disable test_urllib2net, test_urllib2_localnet, and test_urllibnet because they require networking (example.com)
-       # disable test_zipfile64 because it randomly timeouts
-       # disable test_cpickle because timeouts
        # disable test_ssl because no shared cipher' not found in '[Errno 1] error:14077410:SSL routines:SSL23_GET_SERVER_HELLO:sslv3 alert handshake failure
-      ./pypy-c ./pypy/test_all.py --pypy=./pypy-c -k 'not (test_ssl or test_cpickle or test_sqlite or test_urllib2net or test_urllibnet or test_urllib2_localnet or test_socket or test_os or test_shutil or test_mhlib or test_multiprocessing or test_zipfile64)' lib-python
+       # disable test_zipfile64 because it causes ENOSPACE
+       # disable test_epoll because of invalid arg, should be fixed in as of version 5.1.2
+      ./pypy-c ./pypy/test_all.py --pypy=./pypy-c -k 'not ( test_ssl or test_urllib2net or test_urllibnet or test_urllib2_localnet or test_socket or test_shutil or test_zipfile64 or test_epoll )' lib-python
     '';
 
     installPhase = ''
@@ -114,6 +120,7 @@ let
       buildEnv = callPackage ../python/wrapper.nix { python = self; };
       interpreter = "${self}/bin/${executable}";
       sitePackages = "site-packages";
+      withPackages = import ../python/with-packages.nix { inherit buildEnv; pythonPackages = pypyPackages; };
     };
 
     enableParallelBuilding = true;  # almost no parallelization without STM
@@ -123,7 +130,7 @@ let
       description = "Fast, compliant alternative implementation of the Python language (2.7.8)";
       license = licenses.mit;
       platforms = platforms.linux;
-      maintainers = with maintainers; [ iElectric ];
+      maintainers = with maintainers; [ domenkozar ];
     };
   };
 
