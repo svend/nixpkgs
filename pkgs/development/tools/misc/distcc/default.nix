@@ -70,12 +70,12 @@ let
     };
 
     meta = {
-      description = "a fast, free distributed C/C++ compiler";
+      description = "A fast, free distributed C/C++ compiler";
       homepage = "http://distcc.org";
       license = "GPL";
 
       platforms = stdenv.lib.platforms.linux;
-      maintainers = with stdenv.lib.maintainers; [ simons anderspapitto ];
+      maintainers = with stdenv.lib.maintainers; [ anderspapitto ];
     };
   };
 in

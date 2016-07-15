@@ -5,14 +5,14 @@
 let
   inherit (bootPkgs) ghc;
 
-in 
+in
 stdenv.mkDerivation rec {
   version = "8.0.1";
   name = "ghc-${version}";
 
   src = fetchurl {
     url = "https://downloads.haskell.org/~ghc/8.0.1/${name}-src.tar.xz";
-    sha256 = "0riyry246a6km4mw1q9iiw6p75ww2f8s81i34g151zwwdygk7qpf";
+    sha256 = "1lniqy29djhjkddnailpaqhlqh4ld2mqvb1fxgxw1qqjhz6j1ywh";
   };
 
   patches = [
@@ -22,6 +22,8 @@ stdenv.mkDerivation rec {
   buildInputs = [ ghc perl hscolour ];
 
   enableParallelBuilding = true;
+
+  outputs = [ "out" "doc" ];
 
   preConfigure = ''
     sed -i -e 's|-isysroot /Developer/SDKs/MacOSX10.5.sdk||' configure
@@ -33,8 +35,9 @@ stdenv.mkDerivation rec {
 
   configureFlags = [
     "--with-gcc=${stdenv.cc}/bin/cc"
-    "--with-gmp-includes=${gmp}/include" "--with-gmp-libraries=${gmp.out}/lib"
-    "--with-curses-includes=${ncurses}/include" "--with-curses-libraries=${ncurses.out}/lib"
+    "--with-gmp-includes=${gmp.dev}/include" "--with-gmp-libraries=${gmp.out}/lib"
+    "--with-curses-includes=${ncurses.dev}/include" "--with-curses-libraries=${ncurses.out}/lib"
+    "--datadir=$doc/share/doc/ghc"
   ] ++ stdenv.lib.optional stdenv.isDarwin [
     "--with-iconv-includes=${libiconv}/include" "--with-iconv-libraries=${libiconv}/lib"
   ];
@@ -62,7 +65,7 @@ stdenv.mkDerivation rec {
   meta = {
     homepage = "http://haskell.org/ghc";
     description = "The Glasgow Haskell Compiler";
-    maintainers = with stdenv.lib.maintainers; [ marcweber andres simons ];
+    maintainers = with stdenv.lib.maintainers; [ marcweber andres peti ];
     inherit (ghc.meta) license platforms;
   };
 

@@ -11,13 +11,18 @@ stdenv.mkDerivation rec {
     sha256 = "03fl2wgbc1cilaw8hrhfqjsbpi05cid6k4cr3s2vmv5gx0dnrgy4";
   };
 
-  patchPhase = ''
+  postPatch = ''
     substituteInPlace src/Command.cc --replace '_BSD_SOURCE' '_DEFAULT_SOURCE'
+    sed '7i#include <math.h>' -i src/Scheduler.cc
     patchShebangs .
   '';
 
   buildInputs = [ cmake libpfm zlib python pkgconfig pythonPackages.pexpect which procps gdb ];
-  cmakeFlags = "-DCMAKE_C_FLAGS_RELEASE:STRING= -DCMAKE_CXX_FLAGS_RELEASE:STRING=";
+  cmakeFlags = [
+    "-DCMAKE_C_FLAGS_RELEASE:STRING="
+    "-DCMAKE_CXX_FLAGS_RELEASE:STRING="
+    "-Ddisable32bit=ON"
+  ];
 
   enableParallelBuilding = true;
 

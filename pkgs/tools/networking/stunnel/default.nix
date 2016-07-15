@@ -11,7 +11,7 @@ stdenv.mkDerivation rec {
 
   buildInputs = [ openssl ];
   configureFlags = [
-    "--with-ssl=${openssl}"
+    "--with-ssl=${openssl.dev}"
     "--sysconfdir=/etc"
     "--localstatedir=/var"
   ];
@@ -22,7 +22,7 @@ stdenv.mkDerivation rec {
   ];
 
   meta = {
-    description = "universal tls/ssl wrapper";
+    description = "Universal tls/ssl wrapper";
     homepage    = "http://www.stunnel.org/";
     license     = stdenv.lib.licenses.gpl2Plus;
     platforms   = stdenv.lib.platforms.unix;

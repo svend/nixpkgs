@@ -14,9 +14,8 @@ stdenv.mkDerivation rec {
 
   meta = {
     homepage = "http://cgit.freedesktop.org/xorg/app/editres/";
-    description = "a dynamic resource editor for X Toolkit applications";
+    description = "A dynamic resource editor for X Toolkit applications";
 
     platforms = stdenv.lib.platforms.linux;
-    maintainers = [ stdenv.lib.maintainers.simons ];
   };
 }

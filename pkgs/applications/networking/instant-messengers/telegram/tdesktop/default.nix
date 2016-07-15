@@ -1,7 +1,7 @@
 { stdenv, lib, fetchFromGitHub, fetchgit, qtbase, qtimageformats
 , breakpad, ffmpeg, openalSoft, openssl, zlib, libexif, lzma, libopus
 , gtk2, glib, cairo, pango, gdk_pixbuf, atk, libappindicator-gtk2
-, libunity, dee, libdbusmenu-glib, libva, qmakeHook
+, libwebp, libunity, dee, libdbusmenu-glib, libva
 
 , pkgconfig, libxcb, xcbutilwm, xcbutilimage, xcbutilkeysyms
 , libxkbcommon, libpng, libjpeg, freetype, harfbuzz, pcre16
@@ -9,33 +9,56 @@
 }:
 
 let
+  /* Find the index of the first element in the list matching the specified
+     predicate or returns null if no such element exists.
+
+     Example:
+       findFirstIndex (x: x > 3) [ 1 6 4 ]
+       => 1
+  */
+  findFirstIndex = pred: list:
+    # Poor man's Either via a list.
+    let searchFun = old: curr:
+          if lib.isList old then old
+            else if pred curr then [old]
+            else old + 1;
+        res = lib.foldl searchFun 0 list;
+    in if lib.isList res then lib.elemAt res 0 else null;
+
+  extractVersion = ver:
+    let suffix = findFirstIndex (x: x == "-") (lib.stringToCharacters ver);
+    in if suffix == null then ver else lib.substring 0 suffix ver;
+
   system-x86_64 = lib.elem stdenv.system lib.platforms.x86_64;
+  packagedQt = "5.6.0";
+  systemQt = extractVersion qtbase.version;
+
 in stdenv.mkDerivation rec {
   name = "telegram-desktop-${version}";
-  version = "0.9.44";
-  qtVersion = lib.replaceStrings ["."] ["_"] qtbase.version;
+  version = "0.9.56";
+  qtVersion = lib.replaceStrings ["."] ["_"] packagedQt;
 
   src = fetchFromGitHub {
     owner = "telegramdesktop";
     repo = "tdesktop";
     rev = "v${version}";
-    sha256 = "0ydd5yhy2nq4n6x59ajb6c4d0blyj6gm7hkx4hfrx2a88iksc5rm";
+    sha256 = "000ngg6arfb6mif0hvin099f83q3sn7mw4vfvrikskczblw3a5lc";
   };
 
   tgaur = fetchgit {
     url = "https://aur.archlinux.org/telegram-desktop.git";
     rev = "f8907d1ccaf8345c06232238342921213270e3d8";
-    sha256 = "1fsp098ykpf5gynn3lq3qcj3a47bkjfr0l96pymmmfd4a2s1690v";
+    sha256 = "04jh0fsrh4iwg188d20z15qkxv05wa5lpd8h21yxx3jxqljpdkws";
   };
 
   buildInputs = [
     breakpad ffmpeg openalSoft openssl zlib libexif lzma libopus
     gtk2 glib libappindicator-gtk2 libunity cairo pango gdk_pixbuf atk
-    dee libdbusmenu-glib libva qtbase qmakeHook
+    dee libdbusmenu-glib libva
     # Qt dependencies
     libxcb xcbutilwm xcbutilimage xcbutilkeysyms libxkbcommon
     libpng libjpeg freetype harfbuzz pcre16 xproto libX11
-    inputproto sqlite dbus
+    inputproto sqlite dbus libwebp
   ];
 
   nativeBuildInputs = [ pkgconfig ];
@@ -46,99 +69,101 @@ in stdenv.mkDerivation rec {
     "CONFIG+=release"
     "DEFINES+=TDESKTOP_DISABLE_AUTOUPDATE"
     "DEFINES+=TDESKTOP_DISABLE_REGISTER_CUSTOM_SCHEME"
-    "INCLUDEPATH+=${gtk2}/include/gtk-2.0"
-    "INCLUDEPATH+=${glib}/include/glib-2.0"
+    "INCLUDEPATH+=${gtk2.dev}/include/gtk-2.0"
+    "INCLUDEPATH+=${glib.dev}/include/glib-2.0"
     "INCLUDEPATH+=${glib.out}/lib/glib-2.0/include"
-    "INCLUDEPATH+=${cairo}/include/cairo"
-    "INCLUDEPATH+=${pango}/include/pango-1.0"
+    "INCLUDEPATH+=${cairo.dev}/include/cairo"
+    "INCLUDEPATH+=${pango.dev}/include/pango-1.0"
     "INCLUDEPATH+=${gtk2.out}/lib/gtk-2.0/include"
-    "INCLUDEPATH+=${gdk_pixbuf}/include/gdk-pixbuf-2.0"
-    "INCLUDEPATH+=${atk}/include/atk-1.0"
+    "INCLUDEPATH+=${gdk_pixbuf.dev}/include/gdk-pixbuf-2.0"
+    "INCLUDEPATH+=${atk.dev}/include/atk-1.0"
     "INCLUDEPATH+=${libappindicator-gtk2}/include/libappindicator-0.1"
     "INCLUDEPATH+=${libunity}/include/unity"
     "INCLUDEPATH+=${dee}/include/dee-1.0"
     "INCLUDEPATH+=${libdbusmenu-glib}/include/libdbusmenu-glib-0.4"
     "INCLUDEPATH+=${breakpad}/include/breakpad"
+    "QT_TDESKTOP_VERSION=${systemQt}"
     "LIBS+=-lcrypto"
     "LIBS+=-lssl"
-    "LIBS+=-lz"
-    "LIBS+=-lgobject-2.0"
-    "LIBS+=-lxkbcommon"
-    "LIBS+=-lX11"
-    "LIBS+=${breakpad}/lib/libbreakpad_client.a"
-    "LIBS+=./../../../Libraries/QtStatic/qtbase/plugins/platforms/libqxcb.a"
-    "LIBS+=./../../../Libraries/QtStatic/qtimageformats/plugins/imageformats/libqwebp.a"
   ];
 
-  qtSrcs = qtbase.srcs ++ [ qtimageformats.src ];
+  qtSrcs = [ qtbase.src qtimageformats.src ];
   qtPatches = qtbase.patches;
-
-  dontUseQmakeConfigure = true;
 
   buildCommand = ''
     unpackPhase
     cd "$sourceRoot"
+
     patchPhase
     sed -i 'Telegram/Telegram.pro' \
-      -e 's/CUSTOM_API_ID//g' \
+      -e 's,CUSTOM_API_ID,,g' \
       -e 's,/usr,/does-not-exist,g' \
       -e '/LIBS += .*libxkbcommon.a/d' \
-      -e '/LIBS += .*libz.a/d' \
-      -e '/LIBS += .*libbreakpad_client.a/d' \
-      -e 's,-flto ,,g'
-    echo "Q_IMPORT_PLUGIN(QXcbIntegrationPlugin)" >> Telegram/SourceFiles/stdafx.cpp
+      -e 's,LIBS += .*libz.a,LIBS += -lz,' \
+      -e 's,LIBS += .*libbreakpad_client.a,LIBS += ${breakpad}/lib/libbreakpad_client.a,' \
+      -e 's, -flto,,g' \
+      -e 's, -static-libstdc++,,g'
 
-    ( mkdir -p Linux/DebugIntermediateStyle
-      cd Linux/DebugIntermediateStyle
-      qmake CONFIG+=debug ../../Telegram/MetaStyle.pro
-      buildPhase
-    )
-    ( mkdir -p Linux/DebugIntermediateLang
-      cd Linux/DebugIntermediateLang
-      qmake CONFIG+=debug ../../Telegram/MetaLang.pro
-      buildPhase
-    )
+    export qmakeFlags="$qmakeFlags QT_TDESKTOP_PATH=$PWD/../qt"
 
+    export QMAKE=$PWD/../qt/bin/qmake
     ( mkdir -p ../Libraries
       cd ../Libraries
       for i in $qtSrcs; do
         tar -xaf $i
       done
-      mv qt-everywhere-opensource-src-* QtStatic
-      mv qtbase-opensource-src-* ./QtStatic/qtbase
-      mv qtimageformats-opensource-src-* ./QtStatic/qtimageformats
-      cd QtStatic/qtbase
-      patch -p1 < ../../../$sourceRoot/Telegram/_qtbase_${qtVersion}_patch.diff
-      cd ..
+      cd qtbase-*
+      # This patch is outdated but the fixes doesn't feel very important
+      patch -p1 < ../../$sourceRoot/Telegram/Patches/qtbase_${qtVersion}.diff || true
       for i in $qtPatches; do
         patch -p1 < $i
       done
       ${qtbase.postPatch}
+      cd ..
 
-      export configureFlags="-prefix "../../qt" -release -opensource -confirm-license -system-zlib \
+      export configureFlags="-prefix "$PWD/../qt" -release -opensource -confirm-license -system-zlib \
         -system-libpng -system-libjpeg -system-freetype -system-harfbuzz -system-pcre -system-xcb \
         -system-xkbcommon-x11 -no-opengl -static -nomake examples -nomake tests \
         -openssl-linked -dbus-linked -system-sqlite -verbose \
         ${lib.optionalString (!system-x86_64) "-no-sse2"} -no-sse3 -no-ssse3 \
         -no-sse4.1 -no-sse4.2 -no-avx -no-avx2 -no-mips_dsp -no-mips_dspr2"
       export dontAddPrefix=1
-      export buildFlags="module-qtbase module-qtimageformats"
-      export installFlags="module-qtbase-install_subtargets module-qtimageformats-install_subtargets"
+      export MAKEFLAGS=-j$NIX_BUILD_CORES
 
-      ( export MAKEFLAGS=-j$NIX_BUILD_CORES
+      ( cd qtbase-*
         configurePhase
+        buildPhase
+        make install
       )
+
+      ( cd qtimageformats-*
+        $QMAKE
+        buildPhase
+        make install
+      )
+    )
+
+    ( mkdir -p Linux/obj/codegen_style/Debug
+      cd Linux/obj/codegen_style/Debug
+      $QMAKE $qmakeFlags ../../../../Telegram/build/qmake/codegen_style/codegen_style.pro
       buildPhase
-      installPhase
+    )
+    ( mkdir -p Linux/obj/codegen_numbers/Debug
+      cd Linux/obj/codegen_numbers/Debug
+      $QMAKE $qmakeFlags ../../../../Telegram/build/qmake/codegen_numbers/codegen_numbers.pro
+      buildPhase
+    )
+    ( mkdir -p Linux/DebugIntermediateLang
+      cd Linux/DebugIntermediateLang
+      $QMAKE $qmakeFlags ../../Telegram/MetaLang.pro
+      buildPhase
     )
 
     ( mkdir -p Linux/ReleaseIntermediate
       cd Linux/ReleaseIntermediate
-      qmake $qmakeFlags ../../Telegram/Telegram.pro
+      $QMAKE $qmakeFlags ../../Telegram/Telegram.pro
       pattern="^PRE_TARGETDEPS +="
       grep "$pattern" "../../Telegram/Telegram.pro" | sed "s/$pattern//g" | xargs make
-
-      qmake $qmakeFlags ../../Telegram/Telegram.pro
       buildPhase
     )
 
@@ -158,6 +183,6 @@ in stdenv.mkDerivation rec {
     license = licenses.gpl3;
     platforms = platforms.linux;
     homepage = "https://desktop.telegram.org/";
-    maintainers = with maintainers; [ abbradar ];
+    maintainers = with maintainers; [ abbradar garbas ];
   };
 }

@@ -5,12 +5,12 @@
 }:
 
 stdenv.mkDerivation rec {
-  version = "2.55.0";
+  version = "2.58.0";
   name = "calibre-${version}";
 
   src = fetchurl {
     url = "http://download.calibre-ebook.com/${version}/${name}.tar.xz";
-    sha256 = "12412d5vjp141xp5qvif50fskd1vsmr15h956z3bh6j99n8z5953";
+    sha256 = "0npqvfjqj1vwa7nmnsyd4d30z40brydw275ldf1jankrp6dr9dyd";
   };
 
   inherit python;
@@ -30,7 +30,6 @@ stdenv.mkDerivation rec {
   # hack around a build problem
   preBuild = ''
     mkdir -p ../tmp.*/lib
-    ln -s '${qtbase.out}/lib/libQt5PlatformSupport.a' ../tmp.*/lib/
   '';
 
   nativeBuildInputs = [ makeWrapper pkgconfig qmakeHook ];
@@ -46,10 +45,10 @@ stdenv.mkDerivation rec {
 
   installPhase = ''
     export HOME=$TMPDIR/fakehome
-    export POPPLER_INC_DIR=${poppler_utils}/include/poppler
+    export POPPLER_INC_DIR=${poppler_utils.dev}/include/poppler
     export POPPLER_LIB_DIR=${poppler_utils.out}/lib
-    export MAGICK_INC=${imagemagick}/include/ImageMagick
-    export MAGICK_LIB=${imagemagick}/lib
+    export MAGICK_INC=${imagemagick.dev}/include/ImageMagick
+    export MAGICK_LIB=${imagemagick.out}/lib
     export FC_INC_DIR=${fontconfig.dev}/include/fontconfig
     export FC_LIB_DIR=${fontconfig.lib}/lib
     export PODOFO_INC_DIR=${podofo}/include/podofo
@@ -74,7 +73,7 @@ stdenv.mkDerivation rec {
     description = "Comprehensive e-book software";
     homepage = http://calibre-ebook.com;
     license = with licenses; if unrarSupport then unfreeRedistributable else gpl3;
-    maintainers = with maintainers; [ viric iElectric pSub AndersonTorres ];
+    maintainers = with maintainers; [ viric domenkozar pSub AndersonTorres ];
     platforms = platforms.linux;
     inherit version;
   };

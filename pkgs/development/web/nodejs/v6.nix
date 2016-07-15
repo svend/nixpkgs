@@ -4,9 +4,9 @@
 }@args:
 
 import ./nodejs.nix (args // rec {
-  version = "6.1.0";
+  version = "6.2.2";
   src = fetchurl {
-    url = "https://nodejs.org/download/release/v${version}/node-v${version}.tar.gz";
-    sha256 = "1hsbmr3yc6zmyhz058zfxg77dzjhk94g1k0y65p6xq8ihq5yyrwy";
+    url = "https://nodejs.org/download/release/v${version}/node-v${version}.tar.xz";
+    sha256 = "2dfeeddba750b52a528b38a1c31e35c1fb40b19cf28fbf430c3c8c7a6517005a";
   };
 })

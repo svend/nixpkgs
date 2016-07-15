@@ -90,7 +90,7 @@ in
   nokogiri = attrs: {
     buildFlags = [
       "--use-system-libraries"
-      "--with-zlib-dir=${zlib}"
+      "--with-zlib-dir=${zlib.dev}"
       "--with-xml2-lib=${libxml2.out}/lib"
       "--with-xml2-include=${libxml2.dev}/include/libxml2"
       "--with-xslt-lib=${libxslt.out}/lib"
@@ -115,7 +115,7 @@ in
   };
 
   rmagick = attrs: {
-    buildInputs = [ imagemagick pkgconfig ];
+    buildInputs = [ imagemagick pkgconfig which ];
   };
 
   rugged = attrs: {
@@ -151,6 +151,10 @@ in
       "--with-v8-include=${v8}/include"
       "--with-v8-lib=${v8}/lib"
     ];
+  };
+
+  typhoeus = attrs: {
+    buildInputs = [ curl ];
   };
 
   tzinfo = attrs: {

@@ -12,11 +12,11 @@
 buildPythonApplication rec {
 
   name = "youtube-dl-${version}";
-  version = "2016.04.06";
+  version = "2016.07.09.2";
 
   src = fetchurl {
-    url = "http://yt-dl.org/downloads/${version}/${name}.tar.gz";
-    sha256 = "1kdrjwrn0x1wmvansvd2222gfqnld4zdihf2jwnz36112r1p8nhi";
+    url = "https://yt-dl.org/downloads/${version}/${name}.tar.gz";
+    sha256 = "0qs99ss1w22apx3n2173j5mly7h0ngfgkkgz07bn30235saf0fd3";
   };
 
   buildInputs = [ makeWrapper zip pandoc ];
@@ -40,6 +40,6 @@ buildPythonApplication rec {
     '';
     license = licenses.publicDomain;
     platforms = with platforms; linux ++ darwin;
-    maintainers = with maintainers; [ bluescreen303 simons phreedom AndersonTorres fuuzetsu ];
+    maintainers = with maintainers; [ bluescreen303 phreedom AndersonTorres fuuzetsu ];
   };
 }

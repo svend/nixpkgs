@@ -23,13 +23,13 @@ let
 in
 
 stdenv.mkDerivation rec {
-  name = "emacs-25.0.93";
+  name = "emacs-25.0.95";
 
   builder = ./builder.sh;
 
   src = fetchurl {
     url = "ftp://alpha.gnu.org/gnu/emacs/pretest/${name}.tar.xz";
-    sha256 = "1wbr2n723ycg16rlg81v9x17w9ciy7qyckxplnwghlyfj6j9k4dk";
+    sha256 = "0bmvg7cbrwfa9rbryjrqv2qcllgwja92sx9ikirl80r5d09caf0l";
   };
 
   patches = lib.optionals stdenv.isDarwin [
@@ -62,7 +62,7 @@ stdenv.mkDerivation rec {
              "--with-gif=no" "--with-tiff=no" ];
 
   NIX_CFLAGS_COMPILE = stdenv.lib.optionalString (stdenv.isDarwin && withX)
-    "-I${cairo}/include/cairo";
+    "-I${cairo.dev}/include/cairo";
 
   preBuild = ''
     find . -name '*.elc' -delete
@@ -83,7 +83,7 @@ stdenv.mkDerivation rec {
     description = "GNU Emacs 25 (pre), the extensible, customizable text editor";
     homepage    = http://www.gnu.org/software/emacs/;
     license     = licenses.gpl3Plus;
-    maintainers = with maintainers; [ chaoflow lovek323 simons the-kenny jwiegley ];
+    maintainers = with maintainers; [ chaoflow lovek323 peti the-kenny jwiegley ];
     platforms   = platforms.all;
 
     longDescription = ''

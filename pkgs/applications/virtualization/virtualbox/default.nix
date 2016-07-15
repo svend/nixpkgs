@@ -18,7 +18,7 @@ let
   # revision/hash as well. See
   # http://download.virtualbox.org/virtualbox/${version}/SHA256SUMS
   # for hashes.
-  version = "5.0.14";
+  version = "5.0.20";
 
   forEachModule = action: ''
     for mod in \
@@ -39,22 +39,22 @@ let
   '';
 
   # See https://github.com/NixOS/nixpkgs/issues/672 for details
-  extpackRevision = "105127";
+  extpackRevision = "106931";
   extensionPack = requireFile rec {
     name = "Oracle_VM_VirtualBox_Extension_Pack-${version}-${extpackRevision}.vbox-extpack";
     # IMPORTANT: Hash must be base16 encoded because it's used as an input to
     # VBoxExtPackHelperApp!
-    sha256 = "4a404b0d09dfd3952107e314ab63262293b2fb0a4dc6837b57fb7274bd016865";
+    sha256 = "11f40842a56ebb17da1bbc82a21543e66108a5330ebd54ded68038a990aa071b";
     message = ''
       In order to use the extension pack, you need to comply with the VirtualBox Personal Use
-      and Evaluation License (PUEL) by downloading the related binaries from:
+      and Evaluation License (PUEL) available at:
 
-      https://www.virtualbox.org/wiki/Downloads
+      https://www.virtualbox.org/wiki/VirtualBox_PUEL
 
-      Once you have downloaded the file, please use the following command and re-run the
-      installation:
+      Once you have read and if you agree with the license, please use the
+      following command and re-run the installation:
 
-      nix-prefetch-url file://${name}
+      nix-prefetch-url http://download.virtualbox.org/virtualbox/${version}/${name}
     '';
   };
 
@@ -63,7 +63,7 @@ in stdenv.mkDerivation {
 
   src = fetchurl {
     url = "http://download.virtualbox.org/virtualbox/${version}/VirtualBox-${version}.tar.bz2";
-    sha256 = "69abac7255b2251a18fd73c0b7c200d5f8ce72a59fa019b53a5cdbf7f2843002";
+    sha256 = "0asc5n9an2dzvrd4isjz3vac2h0sm6dbzvrc36hn8ag2ma3hg75g";
   };
 
   buildInputs =
@@ -97,7 +97,14 @@ in stdenv.mkDerivation {
     set +x
   '';
 
-  patches = optional enableHardening ./hardened.patch;
+  patches = optional enableHardening ./hardened.patch
+    ++ [
+      (fetchurl rec {
+        name = "fix-detect-gcc-5.4.patch";
+        url = "https://bugs.debian.org/cgi-bin/bugreport.cgi?att=1;bug=827193;filename=${name};msg=5";
+        sha256 = "0y6v5dc6fqj9iv27cl8q2g87v1kxg19129mpas4vjg7g0529v4g9";
+      })
+    ];
 
   postPatch = ''
     sed -i -e 's|/sbin/ifconfig|${nettools}/bin/ifconfig|' \
@@ -133,7 +140,7 @@ in stdenv.mkDerivation {
       ${optionalString (!pulseSupport) "--disable-pulse"} \
       ${optionalString (!enableHardening) "--disable-hardening"} \
       --disable-kmods --with-mkisofs=${xorriso}/bin/xorrisofs
-    sed -e 's@PKG_CONFIG_PATH=.*@PKG_CONFIG_PATH=${libIDL}/lib/pkgconfig:${glib}/lib/pkgconfig ${libIDL}/bin/libIDL-config-2@' \
+    sed -e 's@PKG_CONFIG_PATH=.*@PKG_CONFIG_PATH=${libIDL}/lib/pkgconfig:${glib.dev}/lib/pkgconfig ${libIDL}/bin/libIDL-config-2@' \
         -i AutoConfig.kmk
     sed -e 's@arch/x86/@@' \
         -i Config.kmk

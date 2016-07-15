@@ -34,7 +34,7 @@
 
 { overrides
 
-, lib, newScope, stdenv, fetchurl, fetchgit, fetchFromGitHub, fetchhg
+, lib, newScope, stdenv, fetchurl, fetchgit, fetchFromGitHub, fetchhg, runCommand
 
 , emacs, texinfo, lndir, makeWrapper
 , trivialBuild
@@ -64,7 +64,7 @@ let
   };
 
   emacsWithPackages = import ../build-support/emacs/wrapper.nix {
-    inherit lib lndir makeWrapper stdenv;
+    inherit lib lndir makeWrapper stdenv runCommand;
   };
 
   packagesFun = self: with self; {
@@ -395,7 +395,7 @@ let
     };
     packageRequires = [ company ghc-mod ];
     meta = {
-      description = "company-mode completion backend for haskell-mode via ghc-mod";
+      description = "Company-mode completion backend for haskell-mode via ghc-mod";
       license = gpl3Plus;
     };
   };
@@ -1531,6 +1531,7 @@ let
     src = external.structured-haskell-mode.src;
     packageRequires = [ haskell-mode ];
     fileSpecs = [ "elisp/*.el" ];
+    propagatedUserEnvPkgs = [ external.structured-haskell-mode ];
 
     meta = {
       description = "Structured editing Emacs mode for Haskell";

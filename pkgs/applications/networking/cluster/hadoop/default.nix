@@ -30,7 +30,7 @@ stdenv.mkDerivation rec {
 
   meta = {
     homepage = "http://hadoop.apache.org/";
-    description = "framework for distributed processing of large data sets across clusters of computers";
+    description = "Framework for distributed processing of large data sets across clusters of computers";
     license = stdenv.lib.licenses.asl20;
 
     longDescription = ''
@@ -46,6 +46,5 @@ stdenv.mkDerivation rec {
     '';
 
     platforms = stdenv.lib.platforms.linux;
-    maintainers = [ stdenv.lib.maintainers.simons ];
   };
 }

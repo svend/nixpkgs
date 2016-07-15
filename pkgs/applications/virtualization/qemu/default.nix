@@ -15,7 +15,7 @@
 
 with stdenv.lib;
 let
-  version = "2.5.1";
+  version = "2.6.0";
   audio = optionalString (hasSuffix "linux" stdenv.system) "alsa,"
     + optionalString pulseSupport "pa,"
     + optionalString sdlSupport "sdl,";
@@ -26,7 +26,7 @@ stdenv.mkDerivation rec {
 
   src = fetchurl {
     url = "http://wiki.qemu.org/download/qemu-${version}.tar.bz2";
-    sha256 = "0b2xa8604absdmzpcyjs7fix19y5blqmgflnwjzsp1mp7g1m51q2";
+    sha256 = "1v1lhhd6m59hqgmiz100g779rjq70pik5v4b3g936ci73djlmb69";
   };
 
   buildInputs =
@@ -59,6 +59,13 @@ stdenv.mkDerivation rec {
     ++ optional x86Only "--target-list=i386-softmmu,x86_64-softmmu"
     ++ optional stdenv.isDarwin "--enable-cocoa"
     ++ optional stdenv.isLinux "--enable-linux-aio";
+
+  postFixup =
+    ''
+      for exe in $out/bin/qemu-system-* ; do
+        paxmark m $exe
+      done
+    '';
 
   postInstall =
     ''

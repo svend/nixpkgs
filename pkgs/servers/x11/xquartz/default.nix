@@ -37,7 +37,6 @@
 # that point into the user's profile.
 
 let
-  shellEscape = x: "'${lib.replaceChars ["'"] [("'\\'" + "'")] x}'";
   installer = writeScript "xquartz-install" ''
     NIX_LINK=$HOME/.nix-profile
 
@@ -98,9 +97,13 @@ let
   };
 in stdenv.mkDerivation {
   name = "xquartz";
+
   buildInputs = [ ruby makeWrapper ];
+
   unpackPhase = "sourceRoot=.";
-  buildPhase = ":";
+
+  dontBuild = true;
+
   installPhase = ''
     cp -rT ${xorg.xinit} $out
     chmod -R u+w $out
@@ -134,7 +137,7 @@ in stdenv.mkDerivation {
     defaultStartX="$out/bin/startx -- $out/bin/Xquartz"
 
     ruby ${./patch_plist.rb} \
-      ${shellEscape (builtins.toXML {
+      ${lib.escapeShellArg (builtins.toXML {
         XQUARTZ_DEFAULT_CLIENT = "${xterm}/bin/xterm";
         XQUARTZ_DEFAULT_SHELL  = "${shell}";
         XQUARTZ_DEFAULT_STARTX = "@STARTX@";
@@ -179,6 +182,7 @@ in stdenv.mkDerivation {
       --replace "@DEFAULT_CLIENT@"  "${xterm}/bin/xterm" \
       --replace "@FONTCONFIG_FILE@" "$fontsConfPath"
   '';
+
   meta = with lib; {
     platforms   = platforms.darwin;
     maintainers = with maintainers; [ cstrahan ];
