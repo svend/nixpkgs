@@ -25,7 +25,7 @@ in
 stdenv.mkDerivation rec {
   # nix-prefetch-git --rev refs/heads/emacs-25 git://git.sv.gnu.org/emacs.git
   srcRev = "8f9c1eda934fd842f53be2d4e72c41728f9b5bd1";
-  srcSha = "1yn25wc0qyzghhcw7xiax5i527nphqwdkmhgzh9rn07gyhq8zwgd";
+  srcSha = "039qka3b10qgaj4drxkg8bv4xr75ikcb1c9xnka2cyjndwjv77za";
   srcDate = "2016-07-06";
 
   name = "emacs-25.0-git-${srcDate}-${builtins.substring 0 7 srcRev}";
@@ -61,9 +61,6 @@ stdenv.mkDerivation rec {
 
   propagatedBuildInputs = stdenv.lib.optionals stdenv.isDarwin [ AppKit GSS ImageIO ];
 
-  # preConfigure = "./autogen.sh";
-  preConfigurePhases = [ "./autogen.sh" ];
-
   configureFlags =
     if stdenv.isDarwin
       then [ "--with-ns" "--disable-ns-self-contained" ]
@@ -73,7 +70,7 @@ stdenv.mkDerivation rec {
              "--with-gif=no" "--with-tiff=no" ];
 
   NIX_CFLAGS_COMPILE = stdenv.lib.optionalString (stdenv.isDarwin && withX)
-    "-I${cairo}/include/cairo";
+    "-I${cairo.dev}/include/cairo";
 
   preBuild = ''
     find . -name '*.elc' -delete
@@ -94,7 +91,7 @@ stdenv.mkDerivation rec {
     description = "GNU Emacs 25 (pre), the extensible, customizable text editor";
     homepage    = http://www.gnu.org/software/emacs/;
     license     = licenses.gpl3Plus;
-    maintainers = with maintainers; [ chaoflow lovek323 simons the-kenny jwiegley ];
+    maintainers = with maintainers; [ chaoflow lovek323 peti the-kenny jwiegley ];
     platforms   = platforms.all;
 
     longDescription = ''
