@@ -198,6 +198,8 @@ in {
 
     environment.systemPackages = [ pkgs.xorg.xf86inputlibinput ];
 
+    services.udev.packages = [ pkgs.libinput ];
+
     services.xserver.config =
       ''
         # Automatically enable the libinput driver for all touchpads.
@@ -224,6 +226,14 @@ in {
           ${cfg.additionalOptions}
         EndSection
       '';
+
+    assertions = [
+      # already present in synaptics.nix
+      /* {
+        assertion = !config.services.xserver.synaptics.enable;
+        message = "Synaptics and libinput are incompatible, you cannot enable both (in services.xserver).";
+      } */
+    ];
 
   };
 
