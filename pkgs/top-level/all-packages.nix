@@ -740,6 +740,8 @@ in
 
   dialog = callPackage ../development/tools/misc/dialog { };
 
+  dibbler = callPackage ../tools/networking/dibbler { };
+
   ding = callPackage ../applications/misc/ding {
     aspellDicts_de = aspellDicts.de;
     aspellDicts_en = aspellDicts.en;
@@ -3308,6 +3310,8 @@ in
   renameutils = callPackage ../tools/misc/renameutils { };
 
   replace = callPackage ../tools/text/replace { };
+
+  reckon = callPackage ../tools/text/reckon { };
 
   reposurgeon = callPackage ../applications/version-management/reposurgeon { };
 
@@ -7172,7 +7176,7 @@ in
     inherit (darwin.apple_sdk.frameworks) Cocoa;
   };
   ffmpeg_3_1 = callPackage ../development/libraries/ffmpeg/3.1.nix {
-    inherit (darwin.apple_sdk.frameworks) Cocoa;
+    inherit (darwin.apple_sdk.frameworks) Cocoa CoreMedia;
   };
   # Aliases
   ffmpeg_0 = self.ffmpeg_0_10;
@@ -8203,7 +8207,9 @@ in
 
   librevisa = callPackage ../development/libraries/librevisa { };
 
-  libsamplerate = callPackage ../development/libraries/libsamplerate { };
+  libsamplerate = callPackage ../development/libraries/libsamplerate {
+    inherit (darwin.apple_sdk.frameworks) ApplicationServices Carbon CoreServices;
+  };
 
   libsieve = callPackage ../development/libraries/libsieve { };
 
@@ -8292,7 +8298,9 @@ in
 
   libmicrohttpd = callPackage ../development/libraries/libmicrohttpd { };
 
-  libmikmod = callPackage ../development/libraries/libmikmod { };
+  libmikmod = callPackage ../development/libraries/libmikmod {
+    inherit (darwin.apple_sdk.frameworks) CoreAudio;
+  };
 
   libmilter = callPackage ../development/libraries/libmilter { };
 
@@ -11752,8 +11760,6 @@ in
 
   udisks_glue = callPackage ../os-specific/linux/udisks-glue { };
 
-  uksmtools = callPackage ../os-specific/linux/uksmtools { };
-
   untie = callPackage ../os-specific/linux/untie { };
 
   upower = callPackage ../os-specific/linux/upower { };
@@ -12104,7 +12110,7 @@ in
   stix-otf = callPackage ../data/fonts/stix-otf { };
 
   inherit (callPackages ../data/fonts/gdouros { })
-    aegean textfonts symbola aegyptus akkadian anatolian maya unidings musica analecta;
+    symbola aegyptus akkadian anatolian maya unidings musica analecta;
 
   iana_etc = callPackage ../data/misc/iana-etc { };
 
@@ -16359,6 +16365,8 @@ in
 
     konversation = callPackage ../applications/networking/irc/konversation/1.6.nix { };
 
+    kronometer = callPackage ../tools/misc/kronometer { };
+
     krita = callPackage ../applications/graphics/krita {
       vc = vc_0_7;
       openjpeg = openjpeg_1;
@@ -16853,6 +16861,8 @@ in
   fricas = callPackage ../applications/science/math/fricas { };
 
   gap = callPackage ../applications/science/math/gap { };
+
+  geogebra = callPackage ../applications/science/math/geogebra { };
 
   maxima = callPackage ../applications/science/math/maxima { };
 
