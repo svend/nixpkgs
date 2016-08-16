@@ -28,9 +28,9 @@ stdenv.mkDerivation {
     ${python.executable} configure.py $configureFlags "''${configureFlagsArray[@]}"
   '';
 
-  buildInputs = [ python pkgconfig makeWrapper qt4 lndir ];
+  buildInputs = [ pkgconfig makeWrapper qt4 lndir ];
 
-  propagatedBuildInputs = [ pythonPackages.sip_4_16 ];
+  propagatedBuildInputs = [ pythonPackages.sip_4_16 python ];
 
   postInstall = ''
     for i in $out/bin/*; do
@@ -40,7 +40,10 @@ stdenv.mkDerivation {
 
   enableParallelBuilding = true;
 
-  passthru.pythonPath = [];
+  passthru = {
+    pythonPath = [];
+    qt = qt4;
+  };
 
   meta = {
     description = "Python bindings for Qt";
