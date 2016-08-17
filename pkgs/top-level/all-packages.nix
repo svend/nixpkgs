@@ -843,14 +843,7 @@ in
 
   mpdcron = callPackage ../tools/audio/mpdcron { };
 
-  mpdris2 = callPackage ../tools/audio/mpdris2 {
-    python = pythonFull;
-    wrapPython = pythonPackages.wrapPython;
-    mpd = pythonPackages.mpd;
-    pygtk = pythonPackages.pygtk;
-    dbus = pythonPackages.dbus;
-    pynotify = pythonPackages.notify;
-  };
+  mpdris2 = callPackage ../tools/audio/mpdris2 { };
 
   playerctl = callPackage ../tools/audio/playerctl { };
 
@@ -3196,8 +3189,6 @@ in
 
   pwnat = callPackage ../tools/networking/pwnat { };
 
-  pyatspi = python3Packages.pyatspi;
-
   pycangjie = pythonPackages.pycangjie;
 
   pydb = callPackage ../development/tools/pydb { };
@@ -3205,8 +3196,6 @@ in
   pygmentex = callPackage ../tools/typesetting/pygmentex { };
 
   pystringtemplate = callPackage ../development/python-modules/stringtemplate { };
-
-  pythonDBus = self.dbus_python;
 
   pythonIRClib = pythonPackages.pythonIRClib;
 
@@ -3532,9 +3521,7 @@ in
 
   sonarr = callPackage ../servers/sonarr { };
 
-  sonata = callPackage ../applications/audio/sonata {
-    inherit (python3Packages) buildPythonApplication python isPy3k dbus pygobject3 mpd2;
-  };
+  sonata = callPackage ../applications/audio/sonata { };
 
   sparsehash = callPackage ../development/libraries/sparsehash { };
 
@@ -7106,7 +7093,6 @@ in
   dbus_cplusplus  = callPackage ../development/libraries/dbus-cplusplus { };
   dbus_glib       = callPackage ../development/libraries/dbus-glib { };
   dbus_java       = callPackage ../development/libraries/java/dbus-java { };
-  dbus_python     = self.pythonPackages.dbus;
 
   dbus-sharp-1_0 = callPackage ../development/libraries/dbus-sharp/dbus-sharp-1.0.nix { };
   dbus-sharp-2_0 = callPackage ../development/libraries/dbus-sharp { };
@@ -10769,10 +10755,6 @@ in
 
   blktrace = callPackage ../os-specific/linux/blktrace { };
 
-  bluez4 = lowPrio (callPackage ../os-specific/linux/bluez {
-    pygobject = pygobject3;
-  });
-
   bluez5 = callPackage ../os-specific/linux/bluez/bluez5.nix { };
 
   # Needed for LibreOffice
@@ -10922,7 +10904,7 @@ in
   fatrace = callPackage ../os-specific/linux/fatrace { };
 
   ffadoFull = callPackage ../os-specific/linux/ffado {
-    inherit (pythonPackages) python pyqt4;
+    inherit (pythonPackages) python pyqt4 dbus-python;
   };
   libffado = self.ffadoFull.override { prefix = "lib"; };
 
@@ -10957,6 +10939,8 @@ in
   gradm = callPackage ../os-specific/linux/gradm {
     flex = flex_2_5_35;
   };
+
+  hd-idle = callPackage ../os-specific/linux/hd-idle { };
 
   hdparm = callPackage ../os-specific/linux/hdparm { };
 
@@ -11126,7 +11110,6 @@ in
   linux_4_1 = callPackage ../os-specific/linux/kernel/linux-4.1.nix {
     kernelPatches =
       [ kernelPatches.bridge_stp_helper
-        kernelPatches.hiddev_CVE_2016_5829
       ]
       ++ lib.optionals ((platform.kernelArch or null) == "mips")
       [ kernelPatches.mips_fpureg_emu
@@ -13426,7 +13409,6 @@ in
   hakuneko = callPackage ../tools/misc/hakuneko { };
 
   hamster-time-tracker = callPackage ../applications/misc/hamster-time-tracker {
-    inherit (pythonPackages) pyxdg pygtk dbus sqlite3;
     inherit (gnome) gnome_python;
   };
 
@@ -14462,12 +14444,9 @@ in
 
   quirc = callPackage ../tools/graphics/quirc {};
 
-  quodlibet = callPackage ../applications/audio/quodlibet {
-    inherit (pythonPackages) mutagen;
-  };
+  quodlibet = callPackage ../applications/audio/quodlibet { };
 
   quodlibet-with-gst-plugins = callPackage ../applications/audio/quodlibet {
-    inherit (pythonPackages) mutagen;
     withGstPlugins = true;
     gst_plugins_bad = null;
   };
