@@ -24,9 +24,9 @@ in
 
 stdenv.mkDerivation rec {
   # nix-prefetch-git --rev refs/heads/emacs-25 git://git.sv.gnu.org/emacs.git
-  srcRev = "3c9cb57c6fae57d3798298faecccd0402b4ddd9a";
-  srcSha = "1q1v2lq7g9f5sswpfnzybzajwq7bak6h13rcc0043yggy5ykdhg2";
-  srcDate = "2016-08-06";
+  srcRev = "927afa1ef6514e62162068d7dbdc9d8381a71598";
+  srcSha = "17rjyzxd4s5niaslrwmbmyxkay31f67ab2fvaxcyj8jcbzsz1w0j";
+  srcDate = "2016-08-21";
 
   name = "emacs-25.0-git-${srcDate}-${builtins.substring 0 7 srcRev}";
 
