@@ -271,7 +271,7 @@ with stdenv.lib;
   DEBUG_SET_MODULE_RONX? y # Detect writes to read-only module pages
 
   # Security related features.
-  RANDOMIZE_BASE y
+  RANDOMIZE_BASE? y
   STRICT_DEVMEM y # Filter access to /dev/mem
   SECURITY_SELINUX_BOOTPARAM_VALUE 0 # Disable SELinux by default
   DEVKMEM n # Disable /dev/kmem
@@ -321,6 +321,7 @@ with stdenv.lib;
   DVB_DYNAMIC_MINORS? y # we use udev
   EFI_STUB y # EFI bootloader in the bzImage itself
   FHANDLE y # used by systemd
+  SECCOMP y # used by systemd >= 231
   FRONTSWAP y
   FUSION y # Fusion MPT device support
   IDE n # deprecated IDE support
@@ -498,7 +499,7 @@ with stdenv.lib;
   # zram support (e.g for in-memory compressed swap).
   ZSMALLOC y
   ZRAM m
-  ZSWAP y
+  ZSWAP? y
 
   # Enable PCIe and USB for the brcmfmac driver
   BRCMFMAC_USB? y

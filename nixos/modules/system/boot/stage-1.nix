@@ -87,15 +87,11 @@ let
         LDD="$(ldd $BIN)" || continue
         LIBS="$(echo "$LDD" | awk '{print $3}' | sed '/^$/d')"
         for LIB in $LIBS; do
-          [ ! -f "$out/lib/$(basename $LIB)" ] && cp -pdv $LIB $out/lib
-          while [ "$(readlink $LIB)" != "" ]; do
-            LINK="$(readlink $LIB)"
-            if [ "${LINK:0:1}" != "/" ]; then
-              LINK="$(dirname $LIB)/$LINK"
-            fi
-            LIB="$LINK"
-            [ ! -f "$out/lib/$(basename $LIB)" ] && cp -pdv $LIB $out/lib
-          done
+          TGT="$out/lib/$(basename $LIB)"
+          if [ ! -f "$TGT" ]; then
+            SRC="$(readlink -e $LIB)"
+            cp -pdv "$SRC" "$TGT"
+          fi
         done
       done
 
@@ -202,7 +198,9 @@ let
       preLVMCommands preDeviceCommands postDeviceCommands postMountCommands preFailCommands kernelModules;
 
     resumeDevices = map (sd: if sd ? device then sd.device else "/dev/disk/by-label/${sd.label}")
-                    (filter (sd: (sd ? label || hasPrefix "/dev/" sd.device) && !sd.randomEncryption) config.swapDevices);
+                    (filter (sd: (sd ? label || hasPrefix "/dev/" sd.device) && !sd.randomEncryption 
+                    # Don't include zram devices
+                    && !(hasPrefix "/dev/zram" sd.device)) config.swapDevices);
 
     fsInfo =
       let f = fs: [ fs.mountPoint (if fs.device != null then fs.device else "/dev/disk/by-label/${fs.label}") fs.fsType (builtins.concatStringsSep "," fs.options) ];

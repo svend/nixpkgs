@@ -90,11 +90,12 @@ let
       qtsensors = callPackage ./qtsensors.nix {};
       qtserialport = callPackage ./qtserialport {};
       qtsvg = callPackage ./qtsvg.nix {};
-      qttools = callPackage ./qttools.nix {};
+      qttools = callPackage ./qttools {};
       qttranslations = callPackage ./qttranslations.nix {};
       /* qtwayland = not packaged */
       qtwebchannel = callPackage ./qtwebchannel.nix {};
       qtwebengine = callPackage ./qtwebengine.nix {};
+      qtwebkit = callPackage ./qtwebkit {};
       qtwebsockets = callPackage ./qtwebsockets.nix {};
       /* qtwinextras = not packaged */
       qtx11extras = callPackage ./qtx11extras.nix {};
