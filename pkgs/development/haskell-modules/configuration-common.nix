@@ -824,10 +824,10 @@ self: super: {
   # https://github.com/ivanperez-keera/hcwiid/pull/4
   hcwiid = overrideCabal super.hcwiid (drv: {
     configureFlags = (drv.configureFlags or []) ++ [
-      "--extra-lib-dirs=${pkgs.bluez}/lib"
+      "--extra-lib-dirs=${pkgs.bluez.out}/lib"
       "--extra-lib-dirs=${pkgs.cwiid}/lib"
       "--extra-include-dirs=${pkgs.cwiid}/include"
-      "--extra-include-dirs=${pkgs.bluez}/include"
+      "--extra-include-dirs=${pkgs.bluez.dev}/include"
     ];
     prePatch = '' sed -i -e "/Extra-Lib-Dirs/d" -e "/Include-Dirs/d" "hcwiid.cabal" '';
   });
@@ -896,7 +896,7 @@ self: super: {
   dnssd = super.dnssd.override { dns_sd = pkgs.avahi.override { withLibdnssdCompat = true; }; };
 
   # Haste stuff
-  haste-Cabal         = self.callPackage ../tools/haskell/haste/haste-Cabal.nix {};
+  haste-Cabal         = markBroken (self.callPackage ../tools/haskell/haste/haste-Cabal.nix {});
   haste-cabal-install = self.callPackage ../tools/haskell/haste/haste-cabal-install.nix { Cabal = self.haste-Cabal; };
   haste-compiler      = self.callPackage ../tools/haskell/haste/haste-compiler.nix { inherit overrideCabal; super-haste-compiler = super.haste-compiler; };
 
@@ -980,16 +980,6 @@ self: super: {
   # RPATH also needs to be propagated when using static linking. GHC automatically handles this for
   # us when we patch the cabal file (Link options will be recored in the ghc package registry).
   GLUT = addPkgconfigDepend (appendPatch super.GLUT ./patches/GLUT.patch) pkgs.freeglut;
-
-  # https://github.com/gwern/mueval/issues/14
-  mueval = overrideCabal super.mueval (drv: {
-    revision = null;
-    editedCabalFile = null;
-    patches = [(pkgs.fetchpatch {
-      url = "https://github.com/gwern/mueval/commit/866f895e0b671bcaa232b46ed93dd7d47a4b32b2.patch";
-      sha256 = "16pb9nfr52hwidxv0f7j4yg8yd86959kzbcw9lmnzpvgdy5qyvkg";
-    })];
-  });
 
   # remove if a version > 0.1.0.1 ever gets released
   stunclient = overrideCabal super.stunclient (drv: {

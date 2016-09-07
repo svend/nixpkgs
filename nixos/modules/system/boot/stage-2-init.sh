@@ -29,14 +29,14 @@ setPath "@path@"
 # Normally, stage 1 mounts the root filesystem read/writable.
 # However, in some environments, stage 2 is executed directly, and the
 # root is read-only.  So make it writable here.
-if [ "$container" != systemd-nspawn ]; then
+if [ -z "$container" ]; then
     mount -n -o remount,rw none /
 fi
 
 
 # Likewise, stage 1 mounts /proc, /dev and /sys, so if we don't have a
 # stage 1, we need to do that here.
-if [ ! -e /proc/1 ]; then
+if [ ! -e /proc/1 ] || [ -n "$container" ]; then
     specialMount() {
         local device="$1"
         local mountPoint="$2"
@@ -140,13 +140,6 @@ fi
 if [ -n "@useHostResolvConf@" -a -e /etc/resolv.conf ]; then
     cat /etc/resolv.conf | resolvconf -m 1000 -a host
 fi
-
-
-# Create /var/setuid-wrappers as a tmpfs.
-rm -rf /var/setuid-wrappers
-mkdir -m 0755 -p /var/setuid-wrappers
-mount -t tmpfs -o "mode=0755" tmpfs /var/setuid-wrappers
-
 
 # Log the script output to /dev/kmsg or /run/log/stage-2-init.log.
 # Only at this point are all the necessary prerequisites ready for these commands.
