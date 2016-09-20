@@ -74,7 +74,6 @@
       rtkit = 45;
       dovecot2 = 46;
       dovenull2 = 47;
-      unbound = 48;
       prayer = 49;
       mpd = 50;
       clamav = 51;
@@ -275,6 +274,7 @@
       terraria = 253;
       mattermost = 254;
       prometheus = 255;
+      telegraf = 256;
 
       # When adding a uid, make sure it doesn't match an existing gid. And don't use uids above 399!
 
@@ -331,7 +331,6 @@
       #rtkit = 45; # unused
       dovecot2 = 46;
       #dovenull = 47; # unused
-      #unbound = 48; # unused
       prayer = 49;
       mpd = 50;
       clamav = 51;
@@ -520,6 +519,7 @@
       terraria = 253;
       mattermost = 254;
       prometheus = 255;
+      #telegraf = 256; # unused
 
       # When adding a gid, make sure it doesn't match an existing
       # uid. Users and groups with the same name should have equal

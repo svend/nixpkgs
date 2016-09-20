@@ -734,6 +734,8 @@ in
 
   consul-template = callPackage ../tools/system/consul-template { };
 
+  corebird = callPackage ../applications/networking/corebird { };
+
   corosync = callPackage ../servers/corosync { };
 
   cherrytree = callPackage ../applications/misc/cherrytree { };
@@ -849,6 +851,8 @@ in
 
   gmic = callPackage ../tools/graphics/gmic { };
 
+  goa = callPackage ../development/tools/goa { };
+
   gringo = callPackage ../tools/misc/gringo { };
 
   gti = callPackage ../tools/misc/gti { };
@@ -944,6 +948,8 @@ in
   });
 
   asciidoctor = callPackage ../tools/typesetting/asciidoctor { };
+
+  asunder = callPackage ../applications/audio/asunder { };
 
   autossh = callPackage ../tools/networking/autossh { };
 
@@ -1264,11 +1270,6 @@ in
     zlibSupport = true;
     sslSupport = zlibSupport;
     scpSupport = zlibSupport && !stdenv.isSunOS && !stdenv.isCygwin;
-  };
-
-  curl3 = callPackage ../tools/networking/curl/7.15.nix rec {
-    zlibSupport = true;
-    sslSupport = zlibSupport;
   };
 
   curl_unix_socket = callPackage ../tools/networking/curl-unix-socket rec { };
@@ -1905,6 +1906,8 @@ in
 
   groff = callPackage ../tools/text/groff {
     ghostscript = null;
+    psutils = null;
+    netpbm = null;
   };
 
   groonga = callPackage ../servers/search/groonga { };
@@ -1939,11 +1942,11 @@ in
   sbsigntool = callPackage ../tools/security/sbsigntool { };
 
   gsmartcontrol = callPackage ../tools/misc/gsmartcontrol {
-    inherit (gnome) libglademm;
+    inherit (gnome2) libglademm;
   };
 
   gssdp = callPackage ../development/libraries/gssdp {
-    inherit (gnome) libsoup;
+    inherit (gnome2) libsoup;
   };
 
   gt5 = callPackage ../tools/system/gt5 { };
@@ -1966,7 +1969,7 @@ in
   gup = callPackage ../development/tools/build-managers/gup {};
 
   gupnp = callPackage ../development/libraries/gupnp {
-    inherit (gnome) libsoup;
+    inherit (gnome2) libsoup;
   };
 
   gupnp_av = callPackage ../development/libraries/gupnp-av {};
@@ -2566,6 +2569,8 @@ in
 
   man-db = callPackage ../tools/misc/man-db { };
 
+  mandoc = callPackage ../tools/misc/mandoc { };
+
   mawk = callPackage ../tools/text/mawk { };
 
   mbox = callPackage ../tools/security/mbox { };
@@ -2601,7 +2606,7 @@ in
   mdbtools = callPackage ../tools/misc/mdbtools { };
 
   mdbtools_git = callPackage ../tools/misc/mdbtools/git.nix {
-    inherit (gnome) scrollkeeper;
+    inherit (gnome2) scrollkeeper;
   };
 
   mdk = callPackage ../development/tools/mdk { };
@@ -2788,7 +2793,7 @@ in
 
   networkmanager_openconnect = callPackage ../tools/networking/network-manager/openconnect.nix { };
 
-  networkmanagerapplet = newScope gnome ../tools/networking/network-manager-applet { };
+  networkmanagerapplet = newScope gnome2 ../tools/networking/network-manager-applet { };
 
   newsbeuter = callPackage ../applications/networking/feedreaders/newsbeuter { };
 
@@ -3361,7 +3366,7 @@ in
   reiserfsprogs = callPackage ../tools/filesystems/reiserfsprogs { };
 
   relfs = callPackage ../tools/filesystems/relfs {
-    inherit (gnome) gnome_vfs GConf;
+    inherit (gnome2) gnome_vfs GConf;
   };
 
   remarkjs = callPackage ../development/web/remarkjs { };
@@ -3613,7 +3618,7 @@ in
 
   squashfsTools = callPackage ../tools/filesystems/squashfs { };
 
-  sshfsFuse = callPackage ../tools/filesystems/sshfs-fuse { };
+  sshfs-fuse = callPackage ../tools/filesystems/sshfs-fuse { };
 
   sshuttle = callPackage ../tools/security/sshuttle { };
 
@@ -3694,7 +3699,7 @@ in
 
   stricat = callPackage ../tools/security/stricat { };
 
-  staruml = callPackage ../tools/misc/staruml { inherit (gnome) GConf; libgcrypt = libgcrypt_1_5; };
+  staruml = callPackage ../tools/misc/staruml { inherit (gnome2) GConf; libgcrypt = libgcrypt_1_5; };
 
   privoxy = callPackage ../tools/networking/privoxy {
     w3m = w3m-batch;
@@ -3729,6 +3734,8 @@ in
   };
 
   telnet = callPackage ../tools/networking/telnet { };
+
+  telegraf = callPackage ../servers/monitoring/telegraf { };
 
   texmacs = callPackage ../applications/editors/texmacs {
     tex = texlive.combined.scheme-small;
@@ -3912,7 +3919,7 @@ in
   vifm = callPackage ../applications/misc/vifm { };
 
   viking = callPackage ../applications/misc/viking {
-    inherit (gnome) scrollkeeper;
+    inherit (gnome2) scrollkeeper;
     inherit (gnome3) gexiv2;
   };
 
@@ -4217,9 +4224,9 @@ in
   xflux-gui = callPackage ../tools/misc/xflux/gui.nix {
     pexpect = pythonPackages.pexpect;
     pyGtkGlade = pythonPackages.pyGtkGlade;
-    pygobject = pythonPackages.pygobject;
+    pygobject = pythonPackages.pygobject2;
     pyxdg = pythonPackages.pyxdg;
-    gnome_python = gnome.gnome_python;
+    gnome_python = gnome2.gnome_python;
   };
 
   xfsprogs = callPackage ../tools/filesystems/xfsprogs { };
@@ -4385,7 +4392,7 @@ in
   };
 
   boo = callPackage ../development/compilers/boo {
-    inherit (gnome) gtksourceview;
+    inherit (gnome2) gtksourceview;
   };
 
   colm = callPackage ../development/compilers/colm { };
@@ -4408,6 +4415,7 @@ in
 
   clang = llvmPackages.clang;
 
+  clang_39 = llvmPackages_39.clang;
   clang_38 = llvmPackages_38.clang;
   clang_37 = llvmPackages_37.clang;
   clang_36 = llvmPackages_36.clang;
@@ -4666,8 +4674,7 @@ in
     langC = false;
     profiledCompiler = false;
     inherit zip unzip zlib boehmgc gettext pkgconfig perl;
-    inherit gtk;
-    inherit (gnome) libart_lgpl;
+    inherit (gnome2) libart_lgpl;
   });
 
   gnat = gnat45; # failed to make 4.6 or 4.8 build
@@ -4701,7 +4708,7 @@ in
     profiledCompiler = false;
   });
 
-  ghdl_mcode = callPackage ../development/compilers/ghdl { };
+  ghdl_mcode = callPackage_i686 ../development/compilers/ghdl { };
 
   gcl = callPackage ../development/compilers/gcl {
     gmp = gmp4;
@@ -4935,6 +4942,7 @@ in
 
   llvm = llvmPackages.llvm;
 
+  llvm_39 = llvmPackages_39.llvm;
   llvm_38 = llvmPackages_38.llvm;
   llvm_37 = llvmPackages_37.llvm;
   llvm_36 = llvmPackages_36.llvm;
@@ -5253,10 +5261,10 @@ in
     lablgl = callPackage ../development/ocaml-modules/lablgl { };
 
     lablgtk_2_14 = callPackage ../development/ocaml-modules/lablgtk/2.14.0.nix {
-      inherit (gnome) libgnomecanvas libglade gtksourceview;
+      inherit (gnome2) libgnomecanvas libglade gtksourceview;
     };
     lablgtk = callPackage ../development/ocaml-modules/lablgtk {
-      inherit (gnome) libgnomecanvas libglade gtksourceview;
+      inherit (gnome2) libgnomecanvas libglade gtksourceview;
     };
 
     lablgtk-extras =
@@ -5446,9 +5454,7 @@ in
       oasis = ocaml_oasis;
     };
 
-    qtest = callPackage ../development/ocaml-modules/qtest {
-      oasis = ocaml_oasis;
-    };
+    qtest = callPackage ../development/ocaml-modules/qtest { };
 
     re = callPackage ../development/ocaml-modules/re { };
 
@@ -5565,6 +5571,7 @@ in
       };
     });
 
+  rainicorn = callPackage ../development/tools/rust/rainicorn { };
   rustfmt = callPackage ../development/tools/rust/rustfmt { };
   rustracer = callPackage ../development/tools/rust/racer { };
   rustracerd = callPackage ../development/tools/rust/racerd { };
@@ -5622,7 +5629,7 @@ in
   };
 
   thrust = callPackage ../development/tools/thrust {
-    gconf = pkgs.gnome.GConf;
+    gconf = pkgs.gnome2.GConf;
   };
 
   tinycc = callPackage ../development/compilers/tinycc { };
@@ -6102,8 +6109,8 @@ in
   guileCairo = callPackage ../development/guile-modules/guile-cairo { };
 
   guileGnome = callPackage ../development/guile-modules/guile-gnome {
-    gconf = gnome.GConf;
-    inherit (gnome) gnome_vfs libglade libgnome libgnomecanvas libgnomeui;
+    gconf = gnome2.GConf;
+    inherit (gnome2) gnome_vfs libglade libgnome libgnomecanvas libgnomeui;
   };
 
   guile_lib = callPackage ../development/guile-modules/guile-lib { };
@@ -6281,6 +6288,8 @@ in
 
   cgdb = callPackage ../development/tools/misc/cgdb { };
 
+  cheat = callPackage ../applications/misc/cheat { };
+
   chefdk = callPackage ../development/tools/chefdk {
     ruby = ruby_2_0;
   };
@@ -6291,7 +6300,7 @@ in
 
   checkstyle = callPackage ../development/tools/analysis/checkstyle { };
 
-  chromedriver = callPackage ../development/tools/selenium/chromedriver { gconf = gnome.GConf; };
+  chromedriver = callPackage ../development/tools/selenium/chromedriver { gconf = gnome2.GConf; };
 
   chrpath = callPackage ../development/tools/misc/chrpath { };
 
@@ -6350,6 +6359,8 @@ in
 
   libcxx = llvmPackages.libcxx;
   libcxxabi = llvmPackages.libcxxabi;
+
+  libstdcxx5 = callPackage ../development/libraries/libstdc++5 { };
 
   libsigrok = callPackage ../development/tools/libsigrok { };
   # old version:
@@ -6586,6 +6597,8 @@ in
   maven = maven3;
   maven3 = callPackage ../development/tools/build-managers/apache-maven { };
 
+  go-md2man = callPackage ../development/tools/misc/md2man {};
+
   minify = callPackage ../development/web/minify { };
 
   minizinc = callPackage ../development/tools/minizinc { };
@@ -6618,15 +6631,15 @@ in
   node_webkit = node_webkit_0_9;
 
   nwjs_0_12 = callPackage ../development/tools/node-webkit/nw12.nix {
-    gconf = pkgs.gnome.GConf;
+    gconf = pkgs.gnome2.GConf;
   };
 
   node_webkit_0_11 = callPackage ../development/tools/node-webkit/nw11.nix {
-    gconf = pkgs.gnome.GConf;
+    gconf = pkgs.gnome2.GConf;
   };
 
   node_webkit_0_9 = callPackage ../development/tools/node-webkit/nw9.nix {
-    gconf = pkgs.gnome.GConf;
+    gconf = pkgs.gnome2.GConf;
   };
 
   noweb = callPackage ../development/tools/literate-programming/noweb { };
@@ -6683,7 +6696,7 @@ in
   };
 
   radare = callPackage ../development/tools/analysis/radare {
-    inherit (gnome) vte;
+    inherit (gnome2) vte;
     lua = lua5;
     useX11 = config.radare.useX11 or false;
     pythonBindings = config.radare.pythonBindings or false;
@@ -6691,7 +6704,7 @@ in
     luaBindings = config.radare.luaBindings or false;
   };
   radare2 = callPackage ../development/tools/analysis/radare2 {
-    inherit (gnome) vte;
+    inherit (gnome2) vte;
     lua = lua5;
     useX11 = config.radare.useX11 or false;
     pythonBindings = config.radare.pythonBindings or false;
@@ -7048,7 +7061,7 @@ in
   classpath = callPackage ../development/libraries/java/classpath {
     javac = gcj;
     jvm = gcj;
-    gconf = gnome.GConf;
+    gconf = gnome2.GConf;
   };
 
   clearsilver = callPackage ../development/libraries/clearsilver { };
@@ -7230,7 +7243,7 @@ in
   faad2 = callPackage ../development/libraries/faad2 { };
 
   factor-lang = callPackage ../development/compilers/factor-lang {
-    inherit (pkgs.gnome) gtkglext;
+    inherit (pkgs.gnome2) gtkglext;
   };
 
   farbfeld = callPackage ../development/libraries/farbfeld { };
@@ -7359,7 +7372,7 @@ in
   gcab = callPackage ../development/libraries/gcab { };
 
   gdome2 = callPackage ../development/libraries/gdome2 {
-    inherit (gnome) gtkdoc;
+    inherit (gnome2) gtkdoc;
   };
 
   gdbm = callPackage ../development/libraries/gdbm { };
@@ -7374,7 +7387,9 @@ in
     inherit (darwin.apple_sdk.frameworks) OpenGL;
   };
 
-  gegl_0_3 = callPackage ../development/libraries/gegl/3.0.nix { };
+  gegl_0_3 = callPackage ../development/libraries/gegl/3.0.nix {
+    gtk = self.gtk2;
+  };
 
   geoclue = callPackage ../development/libraries/geoclue {};
 
@@ -7558,7 +7573,7 @@ in
   gnonlin = callPackage ../development/libraries/gstreamer/legacy/gnonlin {};
 
   gusb = callPackage ../development/libraries/gusb {
-    inherit (gnome) gtkdoc;
+    inherit (gnome2) gtkdoc;
   };
 
   qt-mobility = callPackage ../development/libraries/qt-mobility {};
@@ -7657,32 +7672,28 @@ in
 
   gtk3 = callPackage ../development/libraries/gtk+/3.x.nix { };
 
-  gtk = pkgs.gtk2;
-
-  gtkmm = callPackage ../development/libraries/gtkmm/2.x.nix { };
+  gtkmm2 = callPackage ../development/libraries/gtkmm/2.x.nix { };
   gtkmm3 = callPackage ../development/libraries/gtkmm/3.x.nix { };
 
   gtkmozembedsharp = callPackage ../development/libraries/gtkmozembed-sharp {
-    gtksharp = gtk-sharp;
+    gtksharp = gtk-sharp-2_0;
   };
 
   gtk-sharp-2_0 = callPackage ../development/libraries/gtk-sharp/2.0.nix {
-    inherit (gnome) libglade libgtkhtml gtkhtml
+    inherit (gnome2) libglade libgtkhtml gtkhtml
               libgnomecanvas libgnomeui libgnomeprint
               libgnomeprintui GConf;
   };
 
   gtk-sharp-3_0 = callPackage ../development/libraries/gtk-sharp/3.0.nix {
-    inherit (gnome) libglade libgtkhtml gtkhtml
+    inherit (gnome2) libglade libgtkhtml gtkhtml
               libgnomecanvas libgnomeui libgnomeprint
               libgnomeprintui GConf;
   };
 
-  gtk-sharp = gtk-sharp-2_0;
-
   gtk-sharp-beans = callPackage ../development/libraries/gtk-sharp-beans { };
 
-  gtkspell = callPackage ../development/libraries/gtkspell { };
+  gtkspell2 = callPackage ../development/libraries/gtkspell { };
 
   gtkspell3 = callPackage ../development/libraries/gtkspell/3.nix { };
 
@@ -7690,7 +7701,9 @@ in
 
   gts = callPackage ../development/libraries/gts { };
 
-  gvfs = callPackage ../development/libraries/gvfs { gconf = gnome.GConf; };
+  gvfs = callPackage ../development/libraries/gvfs {
+    gnome = self.gnome2;
+  };
 
   gwenhywfar = callPackage ../development/libraries/aqbanking/gwenhywfar.nix { };
 
@@ -7939,11 +7952,14 @@ in
 
   libcaca = callPackage ../development/libraries/libcaca { };
 
-  libcanberra = callPackage ../development/libraries/libcanberra { };
-  libcanberra_gtk3 = libcanberra.override { gtk = gtk3; };
+  libcanberra_gtk3 = callPackage ../development/libraries/libcanberra {
+    gtk = pkgs.gtk3; 
+  };
+  libcanberra_gtk2 = pkgs.libcanberra_gtk3.override { gtk = pkgs.gtk2; };
+
   libcanberra_kde = if (config.kde_runtime.libcanberraWithoutGTK or true)
-    then libcanberra.override { gtk = null; }
-    else libcanberra;
+    then pkgs.libcanberra_gtk2.override { gtk = null; }
+    else pkgs.libcanberra_gtk2;
 
   libcec = callPackage ../development/libraries/libcec { };
   libcec_platform = callPackage ../development/libraries/libcec/platform.nix { };
@@ -7960,7 +7976,7 @@ in
   libcdr = callPackage ../development/libraries/libcdr { lcms = lcms2; };
 
   libchamplain = callPackage ../development/libraries/libchamplain {
-    inherit (gnome) libsoup;
+    inherit (gnome2) libsoup;
   };
 
   libchardet = callPackage ../development/libraries/libchardet { };
@@ -8254,6 +8270,8 @@ in
 
   libltc = callPackage ../development/libraries/libltc { };
 
+  libmaxminddb = callPackage ../development/libraries/libmaxminddb { };
+
   libmcrypt = callPackage ../development/libraries/libmcrypt {};
 
   libmediainfo = callPackage ../development/libraries/libmediainfo { };
@@ -8342,7 +8360,7 @@ in
   libiec61883 = callPackage ../development/libraries/libiec61883 { };
 
   libinfinity = callPackage ../development/libraries/libinfinity {
-    inherit (gnome) gtkdoc;
+    inherit (gnome2) gtkdoc;
   };
 
   libinput = callPackage ../development/libraries/libinput {
@@ -8587,14 +8605,7 @@ in
 
   libtorrentRasterbar = callPackage ../development/libraries/libtorrent-rasterbar { };
 
-  libtorrentRasterbar_1_09 = callPackage ../development/libraries/libtorrent-rasterbar/1.09.nix { };
-
-  libtorrentRasterbar_0_16 = callPackage ../development/libraries/libtorrent-rasterbar/0.16.nix {
-    # fix "unrecognized option -arch" error
-    stdenv = if stdenv.isDarwin
-      then clangStdenv
-      else stdenv;
-  };
+  libtorrentRasterbar_1_0 = callPackage ../development/libraries/libtorrent-rasterbar/1.0.nix { };
 
   libtoxcore = callPackage ../development/libraries/libtoxcore/old-api { };
 
@@ -8636,7 +8647,7 @@ in
   libunibreak = callPackage ../development/libraries/libunibreak { };
 
   libunique = callPackage ../development/libraries/libunique/default.nix { };
-  libunique3 = callPackage ../development/libraries/libunique/3.x.nix { inherit (gnome) gtkdoc; };
+  libunique3 = callPackage ../development/libraries/libunique/3.x.nix { inherit (gnome2) gtkdoc; };
 
   liburcu = callPackage ../development/libraries/liburcu { };
 
@@ -9037,10 +9048,7 @@ in
   openjpeg_2_1 = callPackage ../development/libraries/openjpeg/2.1.nix { };
   openjpeg = openjpeg_2_1;
 
-  openscenegraph = callPackage ../development/libraries/openscenegraph {
-    giflib = giflib_4_1;
-    ffmpeg = ffmpeg_0;
-  };
+  openscenegraph = callPackage ../development/libraries/openscenegraph { };
 
   openslp = callPackage ../development/libraries/openslp {};
 
@@ -9824,18 +9832,18 @@ in
   wxGTK = wxGTK28;
 
   wxGTK28 = callPackage ../development/libraries/wxGTK-2.8 {
-    inherit (gnome) GConf;
+    inherit (gnome2) GConf;
     withMesa = lib.elem system lib.platforms.mesaPlatforms;
   };
 
   wxGTK29 = callPackage ../development/libraries/wxGTK-2.9/default.nix {
-    inherit (gnome) GConf;
+    inherit (gnome2) GConf;
     inherit (darwin.stubs) setfile;
     withMesa = lib.elem system lib.platforms.mesaPlatforms;
   };
 
   wxGTK30 = callPackage ../development/libraries/wxGTK-3.0/default.nix {
-    inherit (gnome) GConf;
+    inherit (gnome2) GConf;
     inherit (darwin.stubs) setfile;
     withMesa = lib.elem system lib.platforms.mesaPlatforms;
   };
@@ -9945,6 +9953,8 @@ in
 
   czmq = callPackage ../development/libraries/czmq { };
 
+  czmqpp = callPackage ../development/libraries/czmqpp { };
+
   zimlib = callPackage ../development/libraries/zimlib { };
 
   zita-convolver = callPackage ../development/libraries/audio/zita-convolver { };
@@ -10050,7 +10060,7 @@ in
   smack = callPackage ../development/libraries/java/smack { };
 
   swt = callPackage ../development/libraries/java/swt {
-    inherit (gnome) libsoup;
+    inherit (gnome2) libsoup;
   };
 
 
@@ -10172,11 +10182,9 @@ in
 
   pyexiv2 = pythonPackages.pyexiv2;
 
-  pygobject = pythonPackages.pygobject;
-
-  pygobject3 = pythonPackages.pygobject3;
-
-  pygtk = pythonPackages.pygtk;
+  inherit (self.pythonPackages)
+    pygtk
+    pygobject2 pygobject3;
 
   pygtksourceview = pythonPackages.pygtksourceview;
 
@@ -10686,6 +10694,10 @@ in
       HTTPDate MailDKIM LWP IOSocketSSL;
   };
 
+  deadpixi-sam-unstable = callPackage ../applications/editors/deadpixi-sam { };
+  deadpixi-sam = deadpixi-sam-unstable;
+  sam = deadpixi-sam;
+
   samba3 = callPackage ../servers/samba/3.x.nix { };
 
   samba4 = callPackage ../servers/samba/4.x.nix {
@@ -10752,7 +10764,7 @@ in
 
   storm = callPackage ../servers/computing/storm { };
 
-  slurm-llnl = callPackage ../servers/computing/slurm { gtk = null; };
+  slurm-llnl = callPackage ../servers/computing/slurm { gtk2 = null; };
 
   slurm-llnl-full = appendToName "full" (callPackage ../servers/computing/slurm { });
 
@@ -10925,7 +10937,10 @@ in
       xctoolchain = xcode.toolchain;
     };
 
-    cctools = (callPackage ../os-specific/darwin/cctools/port.nix { inherit libobjc; }).native;
+    cctools = (callPackage ../os-specific/darwin/cctools/port.nix {
+      inherit libobjc;
+      stdenv = if stdenv.isDarwin then stdenv else libcxxStdenv;
+    }).native;
 
     cf-private = callPackage ../os-specific/darwin/cf-private {
       inherit (apple-source-releases) CF;
@@ -11206,15 +11221,6 @@ in
       ];
   };
 
-  linux_3_14 = callPackage ../os-specific/linux/kernel/linux-3.14.nix {
-    kernelPatches = [ kernelPatches.bridge_stp_helper ]
-      ++ lib.optionals ((platform.kernelArch or null) == "mips")
-      [ kernelPatches.mips_fpureg_emu
-        kernelPatches.mips_fpu_sigill
-        kernelPatches.mips_ext3_n32
-      ];
-  };
-
   linux_3_18 = callPackage ../os-specific/linux/kernel/linux-3.18.nix {
     kernelPatches = [ kernelPatches.bridge_stp_helper ]
       ++ lib.optionals ((platform.kernelArch or null) == "mips")
@@ -11403,23 +11409,13 @@ in
 
     vhba = callPackage ../misc/emulators/cdemu/vhba.nix { };
 
-    virtualbox = callPackage ../applications/virtualization/virtualbox {
-      stdenv = stdenv_32bit;
-      inherit (gnome) libIDL;
-      enableExtensionPack = config.virtualbox.enableExtensionPack or false;
-      pulseSupport = config.pulseaudio or false;
+    virtualbox = callPackage ../os-specific/linux/virtualbox {
+      virtualbox = pkgs.virtualboxHardened;
     };
 
-    virtualboxHardened = lowPrio (virtualbox.override {
-      enableHardening = true;
-    });
-
-    virtualboxHeadless = lowPrio (virtualbox.override {
-      enableHardening = true;
-      headless = true;
-    });
-
-    virtualboxGuestAdditions = callPackage ../applications/virtualization/virtualbox/guest-additions { };
+    virtualboxGuestAdditions = callPackage ../applications/virtualization/virtualbox/guest-additions {
+      virtualbox = pkgs.virtualboxHardened;
+    };
 
     wireguard = callPackage ../os-specific/linux/wireguard { };
 
@@ -11445,7 +11441,6 @@ in
   linuxPackages_3_10 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_3_10 linuxPackages_3_10);
   linuxPackages_3_10_tuxonice = linuxPackagesFor pkgs.linux_3_10_tuxonice linuxPackages_3_10_tuxonice;
   linuxPackages_3_12 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_3_12 linuxPackages_3_12);
-  linuxPackages_3_14 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_3_14 linuxPackages_3_14);
   linuxPackages_3_18 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_3_18 linuxPackages_3_18);
   linuxPackages_4_1 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_1 linuxPackages_4_1);
   linuxPackages_4_4 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_4 linuxPackages_4_4);
@@ -11592,7 +11587,7 @@ in
   numad = callPackage ../os-specific/linux/numad { };
 
   open-vm-tools = callPackage ../applications/virtualization/open-vm-tools {
-    inherit (gnome) gtk gtkmm;
+    inherit (gnome2) gtk gtkmm;
   };
 
   go-bindata = callPackage ../development/tools/go-bindata { };
@@ -11738,7 +11733,7 @@ in
   sysfsutils = callPackage ../os-specific/linux/sysfsutils { };
 
   sysprof = callPackage ../development/tools/profiling/sysprof {
-    inherit (gnome) libglade;
+    inherit (gnome2) libglade;
   };
 
   # Provided with sysfsutils.
@@ -12246,7 +12241,9 @@ in
 
   inherit (callPackages ../data/fonts/tai-languages { }) tai-ahom;
 
-  tango-icon-theme = callPackage ../data/icons/tango-icon-theme { };
+  tango-icon-theme = callPackage ../data/icons/tango-icon-theme {
+    gtk = self.gtk2;
+  };
 
   themes = name: callPackage (../data/misc/themes + ("/" + name + ".nix")) {};
 
@@ -12328,7 +12325,7 @@ in
   };
 
   abiword = callPackage ../applications/office/abiword {
-    inherit (gnome) libglade libgnomecanvas;
+    inherit (gnome2) libglade libgnomecanvas;
     iconTheme = gnome3.defaultIconTheme;
   };
 
@@ -12388,12 +12385,12 @@ in
   ardour = ardour4;
 
   ardour3 =  callPackage ../applications/audio/ardour/ardour3.nix {
-    inherit (gnome) libgnomecanvas libgnomecanvasmm;
+    inherit (gnome2) libgnomecanvas libgnomecanvasmm;
     inherit (vamp) vampSDK;
   };
 
   ardour4 =  callPackage ../applications/audio/ardour {
-    inherit (gnome) libgnomecanvas libgnomecanvasmm;
+    inherit (gnome2) libgnomecanvas libgnomecanvasmm;
     inherit (vamp) vampSDK;
   };
 
@@ -12404,7 +12401,7 @@ in
   artha = callPackage ../applications/misc/artha { };
 
   atomEnv = callPackage ../applications/editors/atom/env.nix {
-    gconf = gnome.GConf;
+    gconf = gnome2.GConf;
   };
 
   atom = callPackage ../applications/editors/atom { };
@@ -12482,7 +12479,7 @@ in
   };
 
   banshee = callPackage ../applications/audio/banshee {
-    gconf = pkgs.gnome.GConf;
+    gconf = pkgs.gnome2.GConf;
     libgpod = pkgs.libgpod.override { monoSupport = true; };
   };
 
@@ -12500,7 +12497,7 @@ in
   bazaarTools = callPackage ../applications/version-management/bazaar/tools.nix { };
 
   beast = callPackage ../applications/audio/beast {
-    inherit (gnome) libgnomecanvas libart_lgpl;
+    inherit (gnome2) libgnomecanvas libart_lgpl;
     guile = guile_1_8;
   };
 
@@ -12555,7 +12552,7 @@ in
   bviplus = callPackage ../applications/editors/bviplus { };
 
   calf = callPackage ../applications/audio/calf {
-      inherit (gnome) libglade;
+      inherit (gnome2) libglade;
   };
 
   calcurse = callPackage ../applications/misc/calcurse { };
@@ -12621,6 +12618,7 @@ in
     enablePepperFlash = config.chromium.enablePepperFlash or false;
     enableWideVine = config.chromium.enableWideVine or false;
     hiDPISupport = config.chromium.hiDPISupport or false;
+    gnome = gnome2;
   };
 
   chronos = callPackage ../applications/networking/cluster/chronos { };
@@ -12659,7 +12657,7 @@ in
   CompBus = callPackage ../applications/audio/CompBus { };
 
   compiz = callPackage ../applications/window-managers/compiz {
-    inherit (gnome) GConf ORBit2 metacity;
+    inherit (gnome2) GConf ORBit2 metacity;
   };
 
   constant-detune-chorus = callPackage ../applications/audio/constant-detune-chorus { };
@@ -12667,7 +12665,7 @@ in
   copyq = callPackage ../applications/misc/copyq { };
 
   coriander = callPackage ../applications/video/coriander {
-    inherit (gnome) libgnomeui GConf;
+    inherit (gnome2) libgnomeui GConf;
   };
 
   cortex = callPackage ../applications/misc/cortex { };
@@ -12687,6 +12685,8 @@ in
 
   conkeror-unwrapped = callPackage ../applications/networking/browsers/conkeror { };
   conkeror = wrapFirefox conkeror-unwrapped { };
+
+  containerd = callPackage ../applications/virtualization/containerd { };
 
   cpp_ethereum = callPackage ../applications/misc/webthree-umbrella {
     withOpenCL = true;
@@ -12737,7 +12737,7 @@ in
   });
 
   darktable = callPackage ../applications/graphics/darktable {
-    inherit (gnome) GConf libglade;
+    inherit (gnome2) GConf libglade;
     pugixml = pugixml.override { shared = true; };
   };
 
@@ -12762,7 +12762,7 @@ in
   dfilemanager = qt5.callPackage ../applications/misc/dfilemanager { };
 
   dia = callPackage ../applications/graphics/dia {
-    inherit (pkgs.gnome) libart_lgpl libgnomeui;
+    inherit (pkgs.gnome2) libart_lgpl libgnomeui;
   };
 
   diffuse = callPackage ../applications/version-management/diffuse { };
@@ -12791,11 +12791,11 @@ in
   dmtx-utils = callPackage (callPackage ../tools/graphics/dmtx-utils) {
   };
 
-  docker = callPackage ../applications/virtualization/docker {
-    btrfs-progs = btrfs-progs_4_4_1;
-  };
+  docker = callPackage ../applications/virtualization/docker { };
 
   docker-gc = callPackage ../applications/virtualization/docker/gc.nix { };
+
+  docker-machine = callPackage ../applications/networking/cluster/docker-machine { };
 
   doodle = callPackage ../applications/search/doodle { };
 
@@ -12844,12 +12844,12 @@ in
 
   elvis = callPackage ../applications/editors/elvis { };
 
-  emacs = emacs24;
-  emacsPackages = emacs24Packages;
-  emacsPackagesNg = emacs24PackagesNg;
-  emacsMelpa = emacs24PackagesNg; # for backward compatibility
+  emacs = emacs25;
+  emacsPackages = emacs25Packages;
+  emacsPackagesNg = emacs25PackagesNg;
+  emacsMelpa = emacs25PackagesNg; # for backward compatibility
 
-  emacs24 = callPackage ../applications/editors/emacs-24 {
+  emacs25 = callPackage ../applications/editors/emacs {
     # use override to enable additional features
     libXaw = xorg.libXaw;
     Xaw3d = null;
@@ -12861,30 +12861,18 @@ in
     inherit (darwin.apple_sdk.frameworks) AppKit CoreWLAN GSS Kerberos ImageIO;
   };
 
-  emacs24-nox = lowPrio (appendToName "nox" (emacs24.override {
+  emacs25-nox = lowPrio (appendToName "nox" (emacs25.override {
     withX = false;
     withGTK2 = false;
     withGTK3 = false;
   }));
 
-  emacs24Macport_24_5 = lowPrio (callPackage ../applications/editors/emacs-24/macport-24.5.nix {
+  emacs24Macport_24_5 = lowPrio (callPackage ../applications/editors/emacs/macport-24.5.nix {
     inherit (darwin.apple_sdk.frameworks)
       AppKit Carbon Cocoa IOKit OSAKit Quartz QuartzCore WebKit
       ImageCaptureCore GSS ImageIO;
   });
   emacs24Macport = self.emacs24Macport_24_5;
-
-  emacs25pre = lowPrio (callPackage ../applications/editors/emacs-25 {
-    # use override to enable additional features
-    libXaw = xorg.libXaw;
-    Xaw3d = null;
-    gconf = null;
-    alsaLib = null;
-    imagemagick = null;
-    acl = null;
-    gpm = null;
-    inherit (darwin.apple_sdk.frameworks) AppKit CoreWLAN GSS Kerberos ImageIO;
-  });
 
   emacsPackagesGen = emacs: self: let callPackage = newScope self; in rec {
     inherit emacs;
@@ -13039,7 +13027,7 @@ in
     cask = callPackage ../applications/editors/emacs-modes/cask { };
   };
 
-  emacs24Packages = emacsPackagesGen emacs24 pkgs.emacs24Packages;
+  emacs25Packages = emacsPackagesGen emacs25 pkgs.emacs25Packages;
 
   emacsPackagesNgGen = emacs: import ./emacs-packages.nix {
     overrides = (config.emacsPackageOverrides or (p: {})) pkgs;
@@ -13064,9 +13052,9 @@ in
     };
   };
 
-  emacs24PackagesNg = emacsPackagesNgGen emacs24;
+  emacs25PackagesNg = emacsPackagesNgGen emacs25;
 
-  emacs24WithPackages = emacs24PackagesNg.emacsWithPackages;
+  emacs25WithPackages = emacs25PackagesNg.emacsWithPackages;
   emacsWithPackages = emacsPackagesNg.emacsWithPackages;
 
   # inherit (gnome3) empathy;
@@ -13095,7 +13083,7 @@ in
   eterm = callPackage ../applications/misc/eterm { };
 
   etherape = callPackage ../applications/networking/sniffers/etherape {
-    inherit (gnome) gnomedocutils libgnome libglade libgnomeui scrollkeeper;
+    inherit (gnome2) gnomedocutils libgnome libglade libgnomeui scrollkeeper;
   };
 
   evilvte = callPackage ../applications/misc/evilvte {
@@ -13192,7 +13180,7 @@ in
   grepm = callPackage ../applications/search/grepm { };
 
   grip = callPackage ../applications/misc/grip {
-    inherit (gnome) libgnome libgnomeui vte;
+    inherit (gnome2) libgnome libgnomeui vte;
   };
 
   gsimplecal = callPackage ../applications/misc/gsimplecal { };
@@ -13238,7 +13226,7 @@ in
   filezilla = callPackage ../applications/networking/ftp/filezilla { };
 
   inherit (callPackages ../applications/networking/browsers/firefox {
-    inherit (gnome) libIDL;
+    inherit (gnome2) libIDL;
     inherit (pythonPackages) pysqlite;
     libpng = libpng_apng;
     enableGTK3 = false;
@@ -13248,8 +13236,8 @@ in
   firefox-esr = wrapFirefox firefox-esr-unwrapped { };
 
   firefox-bin-unwrapped = callPackage ../applications/networking/browsers/firefox-bin {
-    gconf = pkgs.gnome.GConf;
-    inherit (pkgs.gnome) libgnome libgnomeui;
+    gconf = pkgs.gnome2.GConf;
+    inherit (pkgs.gnome2) libgnome libgnomeui;
     inherit (pkgs.gnome3) defaultIconTheme;
   };
 
@@ -13262,8 +13250,8 @@ in
 
   firefox-beta-bin-unwrapped = callPackage ../applications/networking/browsers/firefox-bin {
     generated = import ../applications/networking/browsers/firefox-bin/beta_sources.nix;
-    gconf = pkgs.gnome.GConf;
-    inherit (pkgs.gnome) libgnome libgnomeui;
+    gconf = pkgs.gnome2.GConf;
+    inherit (pkgs.gnome2) libgnome libgnomeui;
     inherit (pkgs.gnome3) defaultIconTheme;
   };
 
@@ -13291,7 +13279,7 @@ in
   fluxbox = callPackage ../applications/window-managers/fluxbox { };
 
   fme = callPackage ../applications/misc/fme {
-    inherit (gnome) libglademm;
+    inherit (gnome2) libglademm;
   };
 
   fomp = callPackage ../applications/audio/fomp { };
@@ -13331,7 +13319,7 @@ in
   get_iplayer = callPackage ../applications/misc/get_iplayer {};
 
   gimp_2_8 = callPackage ../applications/graphics/gimp/2.8.nix {
-    inherit (gnome) libart_lgpl;
+    inherit (gnome2) libart_lgpl;
     webkit = null;
     lcms = lcms2;
     wrapPython = pythonPackages.wrapPython;
@@ -13436,12 +13424,12 @@ in
   gmu = callPackage ../applications/audio/gmu { };
 
   gnash = callPackage ../applications/video/gnash {
-    inherit (gnome) gtkglext;
+    inherit (gnome2) gtkglext;
     xulrunner = firefox-unwrapped;
   };
 
   gnome_mplayer = callPackage ../applications/video/gnome-mplayer {
-    inherit (gnome) GConf;
+    inherit (gnome2) GConf;
   };
 
   gnumeric = callPackage ../applications/office/gnumeric { };
@@ -13453,7 +13441,7 @@ in
   gocr = callPackage ../applications/graphics/gocr { };
 
   gobby5 = callPackage ../applications/editors/gobby {
-    inherit (gnome) gtksourceview;
+    inherit (gnome2) gtksourceview;
   };
 
   gphoto2 = callPackage ../applications/misc/gphoto2 { };
@@ -13467,7 +13455,7 @@ in
 
   gtkpod = callPackage ../applications/audio/gtkpod {
     gnome = gnome3;
-    inherit (gnome) libglade;
+    inherit (gnome2) libglade;
   };
 
   jbidwatcher = callPackage ../applications/misc/jbidwatcher {
@@ -13477,7 +13465,7 @@ in
   qrencode = callPackage ../tools/graphics/qrencode { };
 
   gecko_mediaplayer = callPackage ../applications/networking/browsers/mozilla-plugins/gecko-mediaplayer {
-    inherit (gnome) GConf;
+    inherit (gnome2) GConf;
     browser = firefox-unwrapped;
   };
 
@@ -13490,18 +13478,18 @@ in
   gmpc = callPackage ../applications/audio/gmpc {};
 
   gmtk = callPackage ../applications/networking/browsers/mozilla-plugins/gmtk {
-    inherit (gnome) GConf;
+    inherit (gnome2) GConf;
   };
 
   gnome-mpv = callPackage ../applications/video/gnome-mpv { };
 
   gollum = callPackage ../applications/misc/gollum { };
 
-  google-chrome = callPackage ../applications/networking/browsers/google-chrome { gconf = gnome.GConf; };
+  google-chrome = callPackage ../applications/networking/browsers/google-chrome { gconf = gnome2.GConf; };
 
-  google-chrome-beta = google-chrome.override { channel = "beta"; };
+  google-chrome-beta = google-chrome.override { chromium = chromiumBeta; channel = "beta"; };
 
-  google-chrome-dev = google-chrome.override { channel = "dev"; };
+  google-chrome-dev = google-chrome.override { chromium = chromiumDev; channel = "dev"; };
 
   googleearth = callPackage_i686 ../applications/misc/googleearth { };
 
@@ -13526,8 +13514,8 @@ in
   };
 
   guake = callPackage ../applications/misc/guake {
-    gconf = gnome.GConf;
-    vte = gnome.vte.override { pythonSupport = true; };
+    gconf = gnome2.GConf;
+    vte = gnome2.vte.override { pythonSupport = true; };
   };
 
   guitone = callPackage ../applications/version-management/guitone {
@@ -13548,7 +13536,7 @@ in
   hakuneko = callPackage ../tools/misc/hakuneko { };
 
   hamster-time-tracker = callPackage ../applications/misc/hamster-time-tracker {
-    inherit (gnome) gnome_python;
+    inherit (gnome2) gnome_python;
   };
 
   hello = callPackage ../applications/misc/hello { };
@@ -13583,7 +13571,7 @@ in
 
   hydrogen = callPackage ../applications/audio/hydrogen { };
 
-  hyperterm = callPackage ../applications/misc/hyperterm { inherit (gnome) GConf; };
+  hyperterm = callPackage ../applications/misc/hyperterm { inherit (gnome2) GConf; };
 
   slack = callPackage ../applications/networking/instant-messengers/slack { };
 
@@ -13786,7 +13774,7 @@ in
   kile = kde5.callPackage ../applications/editors/kile/frameworks.nix { };
 
   kino = callPackage ../applications/video/kino {
-    inherit (gnome) libglade;
+    inherit (gnome2) libglade;
     ffmpeg = ffmpeg_2;
   };
 
@@ -13842,7 +13830,7 @@ in
   lci = callPackage ../applications/science/logic/lci {};
 
   ldcpp = callPackage ../applications/networking/p2p/ldcpp {
-    inherit (gnome) libglade;
+    inherit (gnome2) libglade;
   };
 
   lemonbar = callPackage ../applications/window-managers/lemonbar { };
@@ -13860,7 +13848,7 @@ in
 
   libreoffice-fresh = lowPrio (callPackage ../applications/office/libreoffice {
     inherit (perlPackages) ArchiveZip CompressZlib;
-    inherit (gnome) GConf ORBit2 gnome_vfs;
+    inherit (gnome2) GConf ORBit2 gnome_vfs;
     inherit (gnome3) gsettings_desktop_schemas defaultIconTheme;
     zip = zip.override { enableNLS = false; };
     bluez5 = bluez5_28;
@@ -13878,7 +13866,7 @@ in
 
   libreoffice-still = lowPrio (callPackage ../applications/office/libreoffice/still.nix {
     inherit (perlPackages) ArchiveZip CompressZlib;
-    inherit (gnome) GConf ORBit2 gnome_vfs;
+    inherit (gnome2) GConf ORBit2 gnome_vfs;
     inherit (gnome3) gsettings_desktop_schemas defaultIconTheme;
     zip = zip.override { enableNLS = false; };
     #glm = glm_0954;
@@ -13902,7 +13890,7 @@ in
   };
 
   lingot = callPackage ../applications/audio/lingot {
-    inherit (gnome) libglade;
+    inherit (gnome2) libglade;
   };
 
   linuxband = callPackage ../applications/audio/linuxband { };
@@ -13953,7 +13941,7 @@ in
   };
 
   lilyterm = callPackage ../applications/misc/lilyterm {
-    inherit (gnome) vte;
+    inherit (gnome2) vte;
     gtk = gtk2;
   };
 
@@ -14059,7 +14047,7 @@ in
 
   monotoneViz = callPackage ../applications/version-management/monotone-viz {
     inherit (ocamlPackages_4_01_0) lablgtk ocaml camlp4;
-    inherit (gnome) libgnomecanvas glib;
+    inherit (gnome2) libgnomecanvas glib;
   };
 
   moonlight-embedded = callPackage ../applications/misc/moonlight-embedded { };
@@ -14153,7 +14141,7 @@ in
   multimon-ng = callPackage ../applications/misc/multimon-ng { };
 
   multisync = callPackage ../applications/misc/multisync {
-    inherit (gnome) ORBit2 libbonobo libgnomeui GConf;
+    inherit (gnome2) ORBit2 libbonobo libgnomeui GConf;
   };
 
   inherit (callPackages ../applications/networking/mumble {
@@ -14286,7 +14274,7 @@ in
 
   notmuch = callPackage ../applications/networking/mailreaders/notmuch {
     # No need to build Emacs - notmuch.el works just fine without
-    # byte-compilation. Use emacs24Packages.notmuch if you want to
+    # byte-compilation. Use emacsPackages.notmuch if you want to
     # byte-compiled files
     emacs = null;
     sphinx = pythonPackages.sphinx;
@@ -14309,7 +14297,7 @@ in
   nvpy = callPackage ../applications/editors/nvpy { };
 
   obconf = callPackage ../tools/X11/obconf {
-    inherit (gnome) libglade;
+    inherit (gnome2) libglade;
   };
 
   obs-studio = qt5.callPackage ../applications/video/obs-studio {
@@ -14372,7 +14360,7 @@ in
   panotools = callPackage ../applications/graphics/panotools { };
 
   paprefs = callPackage ../applications/audio/paprefs {
-    inherit (gnome) libglademm gconfmm GConf;
+    inherit (gnome2) libglademm gconfmm GConf;
   };
 
   pavucontrol = callPackage ../applications/audio/pavucontrol { };
@@ -14395,7 +14383,7 @@ in
   perseus = callPackage ../applications/science/math/perseus {};
 
   petrifoo = callPackage ../applications/audio/petrifoo {
-    inherit (gnome) libgnomecanvas;
+    inherit (gnome2) libgnomecanvas;
   };
 
   pdftk = callPackage ../tools/typesetting/pdftk { };
@@ -14474,7 +14462,7 @@ in
   };
 
   pinta = callPackage ../applications/graphics/pinta {
-    gtksharp = gtk-sharp;
+    gtksharp = gtk-sharp-2_0;
   };
 
   plugin-torture = callPackage ../applications/audio/plugin-torture { };
@@ -14525,7 +14513,7 @@ in
 
   qbittorrent = qt5.callPackage ../applications/networking/p2p/qbittorrent {
     boost = boost;
-    libtorrentRasterbar = libtorrentRasterbar_1_09;
+    libtorrentRasterbar = libtorrentRasterbar_1_0;
   };
 
   eiskaltdcpp = callPackage ../applications/networking/p2p/eiskaltdcpp { lua5 = lua5_1; };
@@ -14678,6 +14666,8 @@ in
 
   rubyripper = callPackage ../applications/audio/rubyripper {};
 
+  runc = callPackage ../applications/virtualization/runc {};
+
   rxvt = callPackage ../applications/misc/rxvt { };
 
   # urxvt
@@ -14723,7 +14713,7 @@ in
   scite = callPackage ../applications/editors/scite { };
 
   scribus = callPackage ../applications/office/scribus {
-    inherit (gnome) libart_lgpl;
+    inherit (gnome2) libart_lgpl;
   };
 
   seafile-client = callPackage ../applications/networking/seafile-client { };
@@ -14890,7 +14880,7 @@ in
   };
 
   spotify = callPackage ../applications/audio/spotify {
-    inherit (gnome) GConf;
+    inherit (gnome2) GConf;
     libgcrypt = libgcrypt_1_5;
     libpng = libpng12;
   };
@@ -14985,7 +14975,7 @@ in
   tailor = callPackage ../applications/version-management/tailor {};
 
   tangogps = callPackage ../applications/misc/tangogps {
-    gconf = gnome.GConf;
+    gconf = gnome2.GConf;
   };
 
   teamspeak_client = qt55.callPackage ../applications/networking/instant-messengers/teamspeak/client.nix { };
@@ -15026,7 +15016,7 @@ in
   terminal-notifier = callPackage ../applications/misc/terminal-notifier {};
 
   terminator = callPackage ../applications/misc/terminator {
-    vte = gnome.vte.override { pythonSupport = true; };
+    vte = gnome2.vte.override { pythonSupport = true; };
     inherit (pythonPackages) notify;
   };
 
@@ -15041,14 +15031,14 @@ in
   thinkingRock = callPackage ../applications/misc/thinking-rock { };
 
   thunderbird = callPackage ../applications/networking/mailreaders/thunderbird {
-    inherit (gnome) libIDL;
+    inherit (gnome2) libIDL;
     inherit (pythonPackages) pysqlite;
     libpng = libpng_apng;
   };
 
   thunderbird-bin = callPackage ../applications/networking/mailreaders/thunderbird-bin {
-    gconf = pkgs.gnome.GConf;
-    inherit (pkgs.gnome) libgnome libgnomeui;
+    gconf = pkgs.gnome2.GConf;
+    inherit (pkgs.gnome2) libgnome libgnomeui;
   };
 
   tig = gitAndTools.tig;
@@ -15220,7 +15210,7 @@ in
   };
 
   virtmanager = callPackage ../applications/virtualization/virt-manager {
-    inherit (gnome) gnome_python;
+    inherit (gnome2) gnome_python;
     vte = gnome3.vte;
     dconf = gnome3.dconf;
     gtkvnc = gtkvnc.override { enableGTK3 = true; };
@@ -15229,6 +15219,22 @@ in
   };
 
   virtinst = callPackage ../applications/virtualization/virtinst {};
+
+  virtualbox = callPackage ../applications/virtualization/virtualbox {
+    stdenv = stdenv_32bit;
+    inherit (gnome2) libIDL;
+    enableExtensionPack = config.virtualbox.enableExtensionPack or false;
+    pulseSupport = config.pulseaudio or true;
+  };
+
+  virtualboxHardened = lowPrio (virtualbox.override {
+    enableHardening = true;
+  });
+
+  virtualboxHeadless = lowPrio (virtualbox.override {
+    enableHardening = true;
+    headless = true;
+  });
 
   virtualglLib = callPackage ../tools/X11/virtualgl/lib.nix {
     fltk = fltk13;
@@ -15356,7 +15362,7 @@ in
   wordnet = callPackage ../applications/misc/wordnet { };
 
   workrave = callPackage ../applications/misc/workrave {
-    inherit (gnome) GConf gconfmm;
+    inherit (gnome2) GConf gconfmm;
     inherit (python27Packages) cheetah;
   };
 
@@ -15419,7 +15425,7 @@ in
   wxhexeditor = callPackage ../applications/editors/wxhexeditor { };
 
   wxcam = callPackage ../applications/video/wxcam {
-    inherit (gnome) libglade;
+    inherit (gnome2) libglade;
     wxGTK = wxGTK28;
     gtk = gtk2;
   };
@@ -15519,7 +15525,7 @@ in
   xneur = xneur_0_13;
 
   gxneur = callPackage ../applications/misc/gxneur  {
-    inherit (gnome) libglade GConf;
+    inherit (gnome2) libglade GConf;
   };
 
   xiphos = callPackage ../applications/misc/xiphos {
@@ -15530,7 +15536,7 @@ in
   };
 
   xournal = callPackage ../applications/graphics/xournal {
-    inherit (gnome) libgnomeprint libgnomeprintui libgnomecanvas;
+    inherit (gnome2) libgnomeprint libgnomeprintui libgnomecanvas;
   };
 
   apvlv = callPackage ../applications/misc/apvlv { };
@@ -15583,7 +15589,7 @@ in
   xsd = callPackage ../development/libraries/xsd { };
 
   xscreensaver = callPackage ../misc/screensavers/xscreensaver {
-    inherit (gnome) libglade;
+    inherit (gnome2) libglade;
   };
 
   xss-lock = callPackage ../misc/screensavers/xss-lock { };
@@ -15592,7 +15598,9 @@ in
 
   xterm = callPackage ../applications/misc/xterm { };
 
-  mlterm = callPackage ../applications/misc/mlterm { };
+  mlterm = callPackage ../applications/misc/mlterm {
+    vte = gnome3.vte_290;
+  };
 
   finalterm = callPackage ../applications/misc/finalterm { };
 
@@ -15615,7 +15623,7 @@ in
   xnee = callPackage ../tools/X11/xnee { };
 
   xvidcap = callPackage ../applications/video/xvidcap {
-    inherit (gnome) scrollkeeper libglade;
+    inherit (gnome2) scrollkeeper libglade;
   };
 
   xzgv = callPackage ../applications/graphics/xzgv { };
@@ -15780,6 +15788,8 @@ in
 
   dhewm3 = callPackage ../games/dhewm3 {};
 
+  digikam5 = kde5.callPackage ../applications/graphics/digikam/5.1.nix {};
+
   drumkv1 = callPackage ../applications/audio/drumkv1 { };
 
   duckmarines = callPackage ../games/duckmarines { love = love_0_9; };
@@ -15862,8 +15872,6 @@ in
   gnuchess = callPackage ../games/gnuchess { };
 
   gnugo = callPackage ../games/gnugo { };
-
-  gsb = callPackage ../games/gsb { };
 
   gtypist = callPackage ../games/gtypist { };
 
@@ -16181,7 +16189,9 @@ in
 
   ue4demos = recurseIntoAttrs (callPackage ../games/ue4demos { });
 
-  ut2004demo = callPackage_i686 ../games/ut2004demo { };
+  ut2004Packages = callPackage ../games/ut2004 { };
+
+  ut2004demo = self.ut2004Packages.ut2004 [ self.ut2004Packages.ut2004-demo ];
 
   vapor = callPackage ../games/vapor { love = love_0_8; };
 
@@ -16280,23 +16290,25 @@ in
     callPackage = newScope pkgs.enlightenment;
   });
 
-  gnome2 = callPackage ../desktops/gnome-2 {
+  gnome2 = recurseIntoAttrs (callPackage ../desktops/gnome-2 {
     callPackage = pkgs.newScope pkgs.gnome2;
     self = pkgs.gnome2;
   } // {
     inherit (pkgs)
       # GTK Libs
-      glib glibmm atk atkmm cairo pango pangomm gdk_pixbuf gtk gtkmm
+      glib glibmm atk atkmm cairo pango pangomm gdk_pixbuf gtkmm2
 
       # Included for backwards compatibility
       libsoup libwnck gtk_doc gnome_doc_utils;
-  };
+
+    gtk = self.gtk2;
+    gtkmm = self.gtkmm2;
+    libcanberra = self.libcanberra_gtk2;
+  });
 
   gnome3_20 = recurseIntoAttrs (callPackage ../desktops/gnome-3/3.20 { });
 
   gnome3 = gnome3_20;
-
-  gnome = recurseIntoAttrs gnome2;
 
   hsetroot = callPackage ../tools/X11/hsetroot { };
 
@@ -16568,7 +16580,7 @@ in
   ### SCIENCE/GEOMETRY
 
   drgeo = callPackage ../applications/science/geometry/drgeo {
-    inherit (gnome) libglade;
+    inherit (gnome2) libglade;
     guile = guile_1_8;
   };
 
@@ -17006,7 +17018,7 @@ in
   pcalc = callPackage ../applications/science/math/pcalc { };
 
   pspp = callPackage ../applications/science/math/pssp {
-    inherit (gnome) libglade gtksourceview;
+    inherit (gnome2) libglade gtksourceview;
   };
 
   singular = callPackage ../applications/science/math/singular {};
@@ -17043,7 +17055,7 @@ in
 
   celestia = callPackage ../applications/science/astronomy/celestia {
     lua = lua5_1;
-    inherit (pkgs.gnome) gtkglext;
+    inherit (pkgs.gnome2) gtkglext;
   };
 
   cytoscape = callPackage ../applications/science/misc/cytoscape { };
@@ -17150,7 +17162,7 @@ in
 
   darling-dmg = callPackage ../tools/filesystems/darling-dmg { };
 
-  desmume = callPackage ../misc/emulators/desmume { inherit (pkgs.gnome) gtkglext libglade; };
+  desmume = callPackage ../misc/emulators/desmume { inherit (pkgs.gnome2) gtkglext libglade; };
 
   dbacl = callPackage ../tools/misc/dbacl { };
 
@@ -17170,7 +17182,7 @@ in
 
   dpkg = callPackage ../tools/package-management/dpkg { };
 
-  ekiga = newScope pkgs.gnome ../applications/networking/instant-messengers/ekiga { };
+  ekiga = newScope pkgs.gnome2 ../applications/networking/instant-messengers/ekiga { };
 
   emulationstation = callPackage ../misc/emulators/emulationstation { };
 
@@ -17281,7 +17293,7 @@ in
   martyr = callPackage ../development/libraries/martyr { };
 
   mess = callPackage ../misc/emulators/mess {
-    inherit (pkgs.gnome) GConf;
+    inherit (pkgs.gnome2) GConf;
   };
 
   moltengamepad = callPackage ../misc/drivers/moltengamepad { };
@@ -17355,7 +17367,7 @@ in
 
   mnemonicode = callPackage ../misc/mnemonicode { };
 
-  mysqlWorkbench = newScope gnome ../applications/misc/mysql-workbench {
+  mysqlWorkbench = newScope gnome2 ../applications/misc/mysql-workbench {
     lua = lua5_1;
     libctemplate = libctemplate_2_2;
   };
@@ -17694,7 +17706,7 @@ in
   snes9x-gtk = callPackage ../misc/emulators/snes9x-gtk { };
 
   higan = callPackage ../misc/emulators/higan {
-    inherit (gnome) gtksourceview;
+    inherit (gnome2) gtksourceview;
   };
 
   misc = callPackage ../misc/misc.nix { };

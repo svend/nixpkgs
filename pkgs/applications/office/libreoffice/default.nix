@@ -1,7 +1,7 @@
 { stdenv, fetchurl, pam, python3, libxslt, perl, ArchiveZip
 , CompressZlib, zlib, libjpeg, expat, pkgconfigUpstream, freetype, libwpd
 , libxml2, db, sablotron, curl, fontconfig, libsndfile, neon
-, bison, flex, zip, unzip, gtk3, gtk, libmspack, getopt, file, cairo, which
+, bison, flex, zip, unzip, gtk3, gtk2, libmspack, getopt, file, cairo, which
 , icu, boost, jdk, ant, cups, xorg, libcmis
 , openssl, gperf, cppunit, GConf, ORBit2, poppler
 , librsvg, gnome_vfs, mesa, bsh, CoinMP, libwps, libabw
@@ -19,14 +19,14 @@
 }:
 
 let
+  primary-src = import ./default-primary-src.nix { inherit fetchurl; };
+in
+
+with { inherit (primary-src) major minor subdir version; };
+
+let
   lib = stdenv.lib;
   langsSpaces = lib.concatStringsSep " " langs;
-  major = "5";
-  minor = "2";
-  patch = "1";
-  tweak = "2";
-  subdir = "${major}.${minor}.${patch}";
-  version = "${subdir}${if tweak == "" then "" else "."}${tweak}";
 
   fetchThirdParty = {name, md5, brief, subDir ? ""}: fetchurl {
     inherit name md5;
@@ -64,10 +64,7 @@ let
 in stdenv.mkDerivation rec {
   name = "libreoffice-${version}";
 
-  src = fetchurl {
-    url = "http://download.documentfoundation.org/libreoffice/src/${subdir}/libreoffice-${version}.tar.xz";
-    sha256 = "14g2xwpid4vsgmc69rs7hz1wx96dfkq0cbm32vjgljsm7a19qfc1";
-  };
+  inherit (primary-src) src;
 
   # Openoffice will open libcups dynamically, so we link it directly
   # to make its dlopen work.
@@ -242,7 +239,7 @@ in stdenv.mkDerivation rec {
   buildInputs = with xorg;
     [ ant ArchiveZip autoconf automake bison boost cairo clucene_core
       CompressZlib cppunit cups curl db dbus_glib expat file flex fontconfig
-      freetype GConf getopt gnome_vfs gperf gtk3 gtk
+      freetype GConf getopt gnome_vfs gperf gtk3 gtk2
       hunspell icu jdk lcms libcdr libexttextcat unixODBC libjpeg
       libmspack librdf_redland librsvg libsndfile libvisio libwpd libwpg libX11
       libXaw libXext libXi libXinerama libxml2 libxslt libXtst

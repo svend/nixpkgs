@@ -26,9 +26,7 @@ self: super: {
   c2hs = dontCheck super.c2hs;
 
   # fix errors caused by hardening flags
-  epanet-haskell = super.epanet-haskell.overrideDerivation (drv: {
-    hardeningDisable = [ "format" ];
-  });
+  epanet-haskell = disableHardening super.epanet-haskell ["format"];
 
   # This test keeps being aborted because it runs too quietly for too long
   Lazy-Pbkdf2 = if pkgs.stdenv.isi686 then dontCheck super.Lazy-Pbkdf2 else super.Lazy-Pbkdf2;
@@ -48,6 +46,7 @@ self: super: {
       sha256 = "0an1rafbv48m04g7crfj2qrk64d98yrjn2z4hfv2pybwmqdmx78z";
       rev = drv.version;
     };
+    doCheck = false;  # version 6.20160907 has a test suite failure; reported upstream
   })).overrideScope (self: super: {
     # https://github.com/prowdsponsor/esqueleto/issues/137
     persistent = self.persistent_2_2_4_1;
@@ -214,24 +213,10 @@ self: super: {
   jwt = dontCheck super.jwt;
 
   # https://github.com/NixOS/cabal2nix/issues/136 and https://github.com/NixOS/cabal2nix/issues/216
-  gio = pkgs.lib.overrideDerivation (addPkgconfigDepend (
-    addBuildTool super.gio self.gtk2hs-buildtools
-  ) pkgs.glib) (drv: {
-    hardeningDisable = [ "fortify" ];
-  });
-  glib = pkgs.lib.overrideDerivation (addPkgconfigDepend (
-    addBuildTool super.glib self.gtk2hs-buildtools
-  ) pkgs.glib) (drv: {
-    hardeningDisable = [ "fortify" ];
-  });
-  gtk3 = pkgs.lib.overrideDerivation (super.gtk3.override { inherit (pkgs) gtk3; }) (drv: {
-    hardeningDisable = [ "fortify" ];
-  });
-  gtk = pkgs.lib.overrideDerivation (addPkgconfigDepend (
-    addBuildTool super.gtk self.gtk2hs-buildtools
-  ) pkgs.gtk) (drv: {
-    hardeningDisable = [ "fortify" ];
-  });
+  gio = disableHardening (addPkgconfigDepend (addBuildTool super.gio self.gtk2hs-buildtools) pkgs.glib) ["fortify"];
+  glib = disableHardening (addPkgconfigDepend (addBuildTool super.glib self.gtk2hs-buildtools) pkgs.glib) ["fortify"];
+  gtk3 = disableHardening (super.gtk3.override { inherit (pkgs) gtk3; }) ["fortify"];
+  gtk = disableHardening (addPkgconfigDepend (addBuildTool super.gtk self.gtk2hs-buildtools) pkgs.gtk2) ["fortify"];
   gtksourceview2 = (addPkgconfigDepend super.gtksourceview2 pkgs.gtk2).override { inherit (pkgs.gnome2) gtksourceview; };
   gtksourceview3 = super.gtksourceview3.override { inherit (pkgs.gnome3) gtksourceview; };
 
@@ -302,7 +287,6 @@ self: super: {
   hadoop-rpc = dontCheck super.hadoop-rpc;              # http://hydra.cryp.to/build/527461/nixlog/2/raw
   hasql = dontCheck super.hasql;                        # http://hydra.cryp.to/build/502489/nixlog/4/raw
   hjsonschema = overrideCabal super.hjsonschema (drv: { testTarget = "local"; });
-  hoogle = overrideCabal super.hoogle (drv: { testTarget = "--test-option=--no-net"; });
   marmalade-upload = dontCheck super.marmalade-upload;  # http://hydra.cryp.to/build/501904/nixlog/1/raw
   network-transport-tcp = dontCheck super.network-transport-tcp;
   network-transport-zeromq = dontCheck super.network-transport-zeromq; # https://github.com/tweag/network-transport-zeromq/issues/30
@@ -337,49 +321,57 @@ self: super: {
   acme-year = dontCheck super.acme-year;                # http://hydra.cryp.to/build/497858/log/raw
   aeson-lens = dontCheck super.aeson-lens;              # http://hydra.cryp.to/build/496769/log/raw
   aeson-schema = dontCheck super.aeson-schema;          # https://github.com/timjb/aeson-schema/issues/9
+  angel = dontCheck super.angel;
   apache-md5 = dontCheck super.apache-md5;              # http://hydra.cryp.to/build/498709/nixlog/1/raw
   app-settings = dontCheck super.app-settings;          # http://hydra.cryp.to/build/497327/log/raw
   aws = dontCheck super.aws;                            # needs aws credentials
   aws-kinesis = dontCheck super.aws-kinesis;            # needs aws credentials for testing
   binary-protocol = dontCheck super.binary-protocol;    # http://hydra.cryp.to/build/499749/log/raw
+  binary-search = dontCheck super.binary-search;
   bits = dontCheck super.bits;                          # http://hydra.cryp.to/build/500239/log/raw
   bloodhound = dontCheck super.bloodhound;
   buildwrapper = dontCheck super.buildwrapper;
   burst-detection = dontCheck super.burst-detection;    # http://hydra.cryp.to/build/496948/log/raw
   cabal-bounds = dontCheck super.cabal-bounds;          # http://hydra.cryp.to/build/496935/nixlog/1/raw
   cabal-meta = dontCheck super.cabal-meta;              # http://hydra.cryp.to/build/497892/log/raw
+  camfort = dontCheck super.camfort;
   cautious-file = dontCheck super.cautious-file;        # http://hydra.cryp.to/build/499730/log/raw
-  CLI = dontCheck super.CLI;                            # Upstream has no issue tracker.
   cjk = dontCheck super.cjk;
+  CLI = dontCheck super.CLI;                            # Upstream has no issue tracker.
   command-qq = dontCheck super.command-qq;              # http://hydra.cryp.to/build/499042/log/raw
   conduit-connection = dontCheck super.conduit-connection;
   craftwerk = dontCheck super.craftwerk;
+  css-text = dontCheck super.css-text;
   damnpacket = dontCheck super.damnpacket;              # http://hydra.cryp.to/build/496923/log
   data-hash = dontCheck super.data-hash;
   Deadpan-DDP = dontCheck super.Deadpan-DDP;            # http://hydra.cryp.to/build/496418/log/raw
   DigitalOcean = dontCheck super.DigitalOcean;
+  direct-sqlite = dontCheck super.direct-sqlite;
   directory-layout = dontCheck super.directory-layout;
+  dlist = dontCheck super.dlist;
   docopt = dontCheck super.docopt;                      # http://hydra.cryp.to/build/499172/log/raw
   dom-selector = dontCheck super.dom-selector;          # http://hydra.cryp.to/build/497670/log/raw
   dotfs = dontCheck super.dotfs;                        # http://hydra.cryp.to/build/498599/log/raw
   DRBG = dontCheck super.DRBG;                          # http://hydra.cryp.to/build/498245/nixlog/1/raw
+  ed25519 = dontCheck super.ed25519;
   either-unwrap = dontCheck super.either-unwrap;        # http://hydra.cryp.to/build/498782/log/raw
   etcd = dontCheck super.etcd;
   fb = dontCheck super.fb;                              # needs credentials for Facebook
   fptest = dontCheck super.fptest;                      # http://hydra.cryp.to/build/499124/log/raw
   ghc-events = dontCheck super.ghc-events;              # http://hydra.cryp.to/build/498226/log/raw
   ghc-events-parallel = dontCheck super.ghc-events-parallel;    # http://hydra.cryp.to/build/496828/log/raw
-  ghcid = dontCheck super.ghcid;
   ghc-imported-from = dontCheck super.ghc-imported-from;
   ghc-parmake = dontCheck super.ghc-parmake;
-  gitlib-cmdline = dontCheck super.gitlib-cmdline;
+  ghcid = dontCheck super.ghcid;
   git-vogue = dontCheck super.git-vogue;
+  gitlib-cmdline = dontCheck super.gitlib-cmdline;
   GLFW-b = dontCheck super.GLFW-b;                      # https://github.com/bsl/GLFW-b/issues/50
   hackport = dontCheck super.hackport;
   hadoop-formats = dontCheck super.hadoop-formats;
   haeredes = dontCheck super.haeredes;
   hashed-storage = dontCheck super.hashed-storage;
   hashring = dontCheck super.hashring;
+  hastache = dontCheck super.hastache;
   hath = dontCheck super.hath;
   haxl-facebook = dontCheck super.haxl-facebook;        # needs facebook credentials for testing
   hdbi-postgresql = dontCheck super.hdbi-postgresql;
@@ -411,13 +403,14 @@ self: super: {
   lensref = dontCheck super.lensref;
   liquidhaskell = dontCheck super.liquidhaskell;
   lucid = dontCheck super.lucid; #https://github.com/chrisdone/lucid/issues/25
-  lvmrun = pkgs.lib.overrideDerivation (dontCheck super.lvmrun) (drv: {
-    hardeningDisable = [ "format" ];
-  });
+  lvmrun = disableHardening (dontCheck super.lvmrun) ["format"];
   memcache = dontCheck super.memcache;
+  MemoTrie = dontHaddock (dontCheck super.MemoTrie);
+  metrics = dontCheck super.metrics;
   milena = dontCheck super.milena;
   nats-queue = dontCheck super.nats-queue;
   netpbm = dontCheck super.netpbm;
+  network = dontCheck super.network;
   network-dbus = dontCheck super.network-dbus;
   notcpp = dontCheck super.notcpp;
   ntp-control = dontCheck super.ntp-control;
@@ -438,6 +431,7 @@ self: super: {
   redis-io = dontCheck super.redis-io;
   rethinkdb = dontCheck super.rethinkdb;
   Rlang-QQ = dontCheck super.Rlang-QQ;
+  safecopy = dontCheck super.safecopy;
   sai-shape-syb = dontCheck super.sai-shape-syb;
   scp-streams = dontCheck super.scp-streams;
   sdl2-ttf = dontCheck super.sdl2-ttf; # as of version 0.2.1, the test suite requires user intervention
@@ -447,7 +441,9 @@ self: super: {
   static-resources = dontCheck super.static-resources;
   strive = dontCheck super.strive;                      # fails its own hlint test with tons of warnings
   svndump = dontCheck super.svndump;
+  symengine = dontCheck super.symengine;
   tar = dontCheck super.tar; #http://hydra.nixos.org/build/25088435/nixlog/2 (fails only on 32-bit)
+  th-printf = dontCheck super.th-printf;
   thumbnail-plus = dontCheck super.thumbnail-plus;
   tickle = dontCheck super.tickle;
   tpdb = dontCheck super.tpdb;
@@ -457,11 +453,13 @@ self: super: {
   wai-app-file-cgi = dontCheck super.wai-app-file-cgi;
   wai-logger = dontCheck super.wai-logger;
   WebBits = dontCheck super.WebBits;                    # http://hydra.cryp.to/build/499604/log/raw
-  webdriver-angular = dontCheck super.webdriver-angular;
   webdriver = dontCheck super.webdriver;
+  webdriver-angular = dontCheck super.webdriver-angular;
   xsd = dontCheck super.xsd;
+  snap-core = dontCheck super.snap-core;
+  sourcemap = dontCheck super.sourcemap;
 
-  # Needs access to locale data, but looks for it in the wrong place.
+   # Needs access to locale data, but looks for it in the wrong place.
   scholdoc-citeproc = dontCheck super.scholdoc-citeproc;
 
   # These test suites run for ages, even on a fast machine. This is nuts.
@@ -502,7 +500,7 @@ self: super: {
   duplo = dontCheck super.duplo;
 
   # Nix-specific workaround
-  xmonad = appendPatch super.xmonad ./patches/xmonad-nix.patch;
+  xmonad = appendPatch (dontCheck super.xmonad) ./patches/xmonad-nix.patch;
 
   # https://github.com/evanrinehart/mikmod/issues/1
   mikmod = addExtraLibrary super.mikmod pkgs.libmikmod;
@@ -775,7 +773,7 @@ self: super: {
       local lispdir=( "$out/share/"*"-${self.ghc.name}/${drv.pname}-${drv.version}/elisp" )
       pushd >/dev/null $lispdir
       for i in *.el; do
-        emacs -Q -L . -L ${pkgs.emacs24Packages.haskellMode}/share/emacs/site-lisp \
+        emacs -Q -L . -L ${pkgs.emacsPackages.haskellMode}/share/emacs/site-lisp \
           --batch --eval "(byte-compile-disable-warning 'cl-functions)" \
           -f batch-byte-compile $i
       done
@@ -792,7 +790,7 @@ self: super: {
       local lispdir=( "$out/share/"*"-${self.ghc.name}/${drv.pname}-${drv.version}/elisp" )
       pushd >/dev/null $lispdir
       for i in *.el; do
-        emacs -Q -L . -L ${pkgs.emacs24Packages.haskellMode}/share/emacs/site-lisp \
+        emacs -Q -L . -L ${pkgs.emacsPackages.haskellMode}/share/emacs/site-lisp \
           --batch --eval "(byte-compile-disable-warning 'cl-functions)" \
           -f batch-byte-compile $i
       done
@@ -951,9 +949,7 @@ self: super: {
 
   # Tools that use gtk2hs-buildtools now depend on them in a custom-setup stanza
   cairo = addBuildTool super.cairo self.gtk2hs-buildtools;
-  pango = (addBuildTool super.pango self.gtk2hs-buildtools).overrideDerivation (drv: {
-    hardeningDisable = [ "fortify" ];
-  });
+  pango = disableHardening (addBuildTool super.pango self.gtk2hs-buildtools) ["fortify"];
 
   # Fix tests which would otherwise fail with "Couldn't launch intero process."
   intero = overrideCabal super.intero (drv: {
@@ -985,9 +981,6 @@ self: super: {
     '';
   });
 
-  # https://bitbucket.org/ssaasen/spy/pull-requests/3/fsnotify-dropped-system-filepath
-  spy = appendPatch super.spy ./patches/spy.patch;
-
   idris = overrideCabal super.idris (drv: {
     # "idris" binary cannot find Idris library otherwise while building. After
     # installing it's completely fine though. This seems like a bug in Idris
@@ -996,11 +989,11 @@ self: super: {
     preBuild = "export LD_LIBRARY_PATH=$PWD/dist/build:$LD_LIBRARY_PATH";
     # https://github.com/idris-lang/Idris-dev/issues/2499
     librarySystemDepends = (drv.librarySystemDepends or []) ++ [pkgs.gmp];
+    # test suite cannot find its own "idris" binary
+    doCheck = false;
   });
 
-  # https://github.com/MarcWeber/hasktags/issues/32
-  hasktags = overrideCabal super.hasktags (drv: {
-    postInstall = "rm $out/bin/test";
-  });
+  # https://github.com/pontarius/pontarius-xmpp/issues/105
+  pontarius-xmpp = dontCheck super.pontarius-xmpp;
 
 }
