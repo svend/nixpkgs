@@ -1,5 +1,5 @@
 { stdenv, fetchurl
-, coreutils, gnused, getopt, pwgen, git, tree, gnupg, which, procps
+, coreutils, gnused, getopt, pwgen, git, tree, gnupg, which
 , makeWrapper
 
 , xclip ? null, xdotool ? null, dmenu ? null
@@ -64,11 +64,10 @@ stdenv.mkDerivation rec {
 
   wrapperPath = with stdenv.lib; makeBinPath ([
     coreutils
+    gnused
     getopt
     git
     gnupg
-    gnused
-    procps
     pwgen
     tree
     which
