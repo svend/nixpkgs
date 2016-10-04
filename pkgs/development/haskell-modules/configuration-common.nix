@@ -160,8 +160,10 @@ self: super: {
   ABList = dontCheck super.ABList;
 
   # https://github.com/haskell/vector/issues/47
-  vector = if pkgs.stdenv.isi686 then appendConfigureFlag super.vector "--ghc-options=-msse2" else super.vector;
+  # https://github.com/haskell/vector/issues/138
+  vector = doJailbreak (if pkgs.stdenv.isi686 then appendConfigureFlag super.vector "--ghc-options=-msse2" else super.vector);
 
+  # Fix Darwin build.
   halive = if pkgs.stdenv.isDarwin
     then addBuildDepend super.halive pkgs.darwin.apple_sdk.frameworks.AppKit
     else super.halive;
@@ -1013,5 +1015,8 @@ self: super: {
 
   # https://github.com/pontarius/pontarius-xmpp/issues/105
   pontarius-xmpp = dontCheck super.pontarius-xmpp;
+
+  # https://github.com/fpco/store/issues/77
+  store = dontCheck super.store;
 
 }

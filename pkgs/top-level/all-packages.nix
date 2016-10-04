@@ -666,6 +666,8 @@ in
 
   btfs = callPackage ../os-specific/linux/btfs { };
 
+  burpsuite = callPackage ../tools/networking/burpsuite {};
+
   cabal2nix = haskell.lib.overrideCabal haskellPackages.cabal2nix (drv: {
     isLibrary = false;
     enableSharedExecutables = false;
@@ -1199,6 +1201,8 @@ in
 
   biosdevname = callPackage ../tools/networking/biosdevname { };
 
+  c14 = callPackage ../applications/networking/c14 { };
+
   checkbashisms = callPackage ../development/tools/misc/checkbashisms { };
 
   clamav = callPackage ../tools/security/clamav { };
@@ -1676,6 +1680,8 @@ in
 
   fprint_demo = callPackage ../tools/security/fprint_demo { };
 
+  franz = callPackage ../applications/networking/instant-messengers/franz { };
+
   freeipmi = callPackage ../tools/system/freeipmi {};
 
   freetalk = callPackage ../applications/networking/instant-messengers/freetalk { };
@@ -1762,6 +1768,8 @@ in
   genext2fs = callPackage ../tools/filesystems/genext2fs { };
 
   gengetopt = callPackage ../development/tools/misc/gengetopt { };
+
+  geteltorito = callPackage ../tools/misc/geteltorito { };
 
   getmail = callPackage ../tools/networking/getmail { };
 
@@ -2241,6 +2249,8 @@ in
   kazam = callPackage ../applications/video/kazam { };
 
   kalibrate-rtl = callPackage ../tools/misc/kalibrate-rtl { };
+
+  kalibrate-hackrf = callPackage ../tools/misc/kalibrate-hackrf { };
 
   kakoune = callPackage ../applications/editors/kakoune { };
 
@@ -2816,6 +2826,8 @@ in
 
   nextcloud = callPackage ../servers/nextcloud { };
 
+  nextcloud-news-updater = callPackage ../servers/nextcloud/news-updater.nix { };
+
   ngrep = callPackage ../tools/networking/ngrep { };
 
   ngrok = callPackage ../tools/networking/ngrok { };
@@ -3342,6 +3354,8 @@ in
 
   radvd = callPackage ../tools/networking/radvd { };
 
+  rambox = callPackage ../applications/networking/instant-messengers/rambox { };
+
   ranger = callPackage ../applications/misc/ranger { };
 
   rarcrack = callPackage ../tools/security/rarcrack { };
@@ -3622,6 +3636,8 @@ in
 
   storebrowse = callPackage ../tools/system/storebrowse { };
 
+  syntex = callPackage ../tools/graphics/syntex {};
+
   fusesmb = callPackage ../tools/filesystems/fusesmb { samba = samba3; };
 
   sl = callPackage ../tools/misc/sl { };
@@ -3882,6 +3898,8 @@ in
 
   udftools = callPackage ../tools/filesystems/udftools {};
 
+  udpt = callPackage ../servers/udpt { };
+
   udptunnel = callPackage ../tools/networking/udptunnel { };
 
   ufraw = callPackage ../applications/graphics/ufraw { };
@@ -3986,6 +4004,8 @@ in
   wal_e = callPackage ../tools/backup/wal-e { };
 
   watchman = callPackage ../development/tools/watchman { };
+
+  wavefunctioncollapse = callPackage ../tools/graphics/wavefunctioncollapse {};
 
   wbox = callPackage ../tools/networking/wbox {};
 
@@ -4324,6 +4344,8 @@ in
   zpaqd = callPackage ../tools/archivers/zpaq/zpaqd.nix { };
 
   zsh-navigation-tools = callPackage ../tools/misc/zsh-navigation-tools { };
+
+  zsh-syntax-highlighting = callPackage ../shells/zsh-syntax-highlighting { };
 
   zstd = callPackage ../tools/compression/zstd { };
 
@@ -5344,6 +5366,7 @@ in
 
   lua51Packages = recurseIntoAttrs (callPackage ./lua-packages.nix { lua = lua5_1; });
   lua52Packages = recurseIntoAttrs (callPackage ./lua-packages.nix { lua = lua5_2; });
+  luajitPackages = recurseIntoAttrs (callPackage ./lua-packages.nix { lua = luajit; });
 
   luaPackages = lua52Packages;
 
@@ -6188,6 +6211,8 @@ in
     withDocumentation = false; # 'true' is currently broken with qt>=5.5
   };
 
+  r10k = callPackage ../tools/system/r10k { };
+
   radare = callPackage ../development/tools/analysis/radare {
     inherit (gnome2) vte;
     lua = lua5;
@@ -6563,25 +6588,16 @@ in
 
   clutter = callPackage ../development/libraries/clutter { };
 
-  clutter_1_26 = callPackage ../development/libraries/clutter/1.26.nix {
-    cogl = cogl_1_22;
-  };
-
   clutter-gst = callPackage ../development/libraries/clutter-gst {
-    inherit (gnome3) cogl clutter;
   };
 
-  clutter_gtk = callPackage ../development/libraries/clutter-gtk {
-    inherit (gnome3) clutter;
-  };
+  clutter_gtk = callPackage ../development/libraries/clutter-gtk { };
 
   cminpack = callPackage ../development/libraries/cminpack { };
 
   cmocka = callPackage ../development/libraries/cmocka { };
 
   cogl = callPackage ../development/libraries/cogl { };
-
-  cogl_1_22 = callPackage ../development/libraries/cogl/1.22.nix { };
 
   coin3d = callPackage ../development/libraries/coin3d { };
 
@@ -7252,6 +7268,8 @@ in
 
   imlib2 = callPackage ../development/libraries/imlib2 { };
 
+  imlibsetroot = callPackage ../applications/graphics/imlibsetroot { libXinerama = xorg.libXinerama; } ;
+
   ijs = callPackage ../development/libraries/ijs { };
 
   incrtcl = callPackage ../development/libraries/incrtcl { };
@@ -7366,6 +7384,9 @@ in
   libaal = callPackage ../development/libraries/libaal { };
 
   libaccounts-glib = callPackage ../development/libraries/libaccounts-glib { };
+
+  libagar = callPackage ../development/libraries/libagar { };
+  libagar_test = callPackage ../development/libraries/libagar/libagar_test.nix { };
 
   libao = callPackage ../development/libraries/libao {
     usePulseAudio = config.pulseaudio or true;
@@ -7542,7 +7563,9 @@ in
 
   libdwg = callPackage ../development/libraries/libdwg { };
 
-  libdvdcss = callPackage ../development/libraries/libdvdcss { };
+  libdvdcss = callPackage ../development/libraries/libdvdcss {
+    inherit (darwin) IOKit;
+  };
 
   libdvdnav = callPackage ../development/libraries/libdvdnav { };
   libdvdnav_4_2_1 = callPackage ../development/libraries/libdvdnav/4.2.1.nix {
@@ -8246,6 +8269,8 @@ in
 
   lightlocker = callPackage ../misc/screensavers/light-locker { };
 
+  linenoise = callPackage ../development/libraries/linenoise { };
+
   lirc = callPackage ../development/libraries/lirc { };
 
   liquidfun = callPackage ../development/libraries/liquidfun { };
@@ -8306,7 +8331,6 @@ in
   mesa_drivers = mesaDarwinOr (
     let mo = mesa_noglu.override {
       grsecEnabled = config.grsecurity or false;
-      wayland = wayland_1_9; # work-around for #16779
     };
     in mo.drivers
   );
@@ -9255,7 +9279,13 @@ in
 
   vsqlite = callPackage ../development/libraries/vsqlite { };
 
-  vtk = callPackage ../development/libraries/vtk { };
+  vtk = callPackage ../development/libraries/vtk {
+    inherit (darwin) cf-private libobjc;
+    inherit (darwin.apple_sdk.libs) xpc;
+    inherit (darwin.apple_sdk.frameworks) Cocoa CoreServices DiskArbitration
+                                          IOKit CFNetwork Security ApplicationServices
+                                          CoreText IOSurface ImageIO OpenGL GLUT;
+  };
 
   vtkWithQt4 = vtk.override { qtLib = qt4; };
 
@@ -10732,6 +10762,8 @@ in
       ];
   };
 
+  /* See https://github.com/NixOS/nixpkgs/issues/19213 before adding Linux 4.8 */
+
   linux_testing = callPackage ../os-specific/linux/kernel/linux-testing.nix {
     kernelPatches = [
       kernelPatches.bridge_stp_helper
@@ -10940,8 +10972,6 @@ in
   # An unsupported grsec xen guest kernel
   linux_grsec_server_xen = linux_grsec_nixos.override {
     extraConfig = ''
-      GRKERNSEC y
-      PAX y
       GRKERNSEC_CONFIG_AUTO y
       GRKERNSEC_CONFIG_PRIORITY_SECURITY y
       GRKERNSEC_CONFIG_SERVER y
@@ -11585,6 +11615,8 @@ in
   # lohit-fonts.kashmiri lohit-fonts.konkani lohit-fonts.maithili lohit-fonts.sindhi
   lohit-fonts = recurseIntoAttrs ( callPackages ../data/fonts/lohit-fonts { } );
 
+  maia-icon-theme = callPackage ../data/icons/maia-icon-theme { };
+
   marathi-cursive = callPackage ../data/fonts/marathi-cursive { };
 
   man-pages = callPackage ../data/documentation/man-pages { };
@@ -12152,15 +12184,9 @@ in
 
   containerd = callPackage ../applications/virtualization/containerd { };
 
-  cpp_ethereum = callPackage ../applications/misc/webthree-umbrella {
-    withOpenCL = true;
+  convchain = callPackage ../tools/graphics/convchain {};
 
-    # withEVMJIT = true;
-    # inherit (pkgs.llvmPackages_38) llvm;
-
-    # withGUI = true;
-    # inherit (pkgs.qt5) qtwebengine qtbase qtdeclarative;
-  };
+  cpp_ethereum = callPackage ../applications/misc/cpp-ethereum { };
 
   csdp = callPackage ../applications/science/math/csdp {
     liblapack = liblapackWithoutAtlas;
@@ -13737,6 +13763,10 @@ in
 
   nedit = callPackage ../applications/editors/nedit { };
 
+  notepadqq = callPackage ../applications/editors/notepadqq {
+    qtbase = qt55;
+  };
+
   notmuch = callPackage ../applications/networking/mailreaders/notmuch {
     # No need to build Emacs - notmuch.el works just fine without
     # byte-compilation. Use emacsPackages.notmuch if you want to
@@ -14089,6 +14119,7 @@ in
     cmake = cmake_2_8; # problems after 3.4 -> 3.6.0
   });
 
+  rclone = callPackage ../applications/networking/sync/rclone { };
 
   rcs = callPackage ../applications/version-management/rcs { };
 
@@ -14244,6 +14275,8 @@ in
 
   ssvnc = callPackage ../applications/networking/remote/ssvnc { };
 
+  tecoc = callPackage ../applications/editors/tecoc { };
+
   viber = callPackage ../applications/networking/instant-messengers/viber { };
 
   sonic-pi = callPackage ../applications/audio/sonic-pi {
@@ -14341,7 +14374,9 @@ in
     inherit (pkgs.vamp) vampSDK;
   };
 
-  sox = callPackage ../applications/misc/audio/sox { };
+  sox = callPackage ../applications/misc/audio/sox {
+    enableLame = config.sox.enableLame or false;
+  };
 
   soxr = callPackage ../applications/misc/audio/soxr { };
 
@@ -14673,7 +14708,6 @@ in
   };
 
   virt-viewer = callPackage ../applications/virtualization/virt-viewer {
-    gtkvnc = gtkvnc.override { enableGTK3 = true; };
     spice_gtk = spice_gtk;
   };
 
@@ -14681,7 +14715,6 @@ in
     inherit (gnome2) gnome_python;
     vte = gnome3.vte;
     dconf = gnome3.dconf;
-    gtkvnc = gtkvnc.override { enableGTK3 = true; };
     spice_gtk = spice_gtk;
     system-libvirt = libvirt;
   };
@@ -15195,6 +15228,8 @@ in
   beancount = callPackage ../applications/office/beancount {
       pythonPackages = python3Packages;
   };
+
+  bean-add = callPackage ../applications/office/beancount/bean-add.nix { };
 
   beret = callPackage ../games/beret { };
 
@@ -16582,6 +16617,8 @@ in
   cups-filters = callPackage ../misc/cups/filters.nix { };
 
   cups-pk-helper = callPackage ../misc/cups/cups-pk-helper.nix { };
+
+  cups-kyocera = callPackage ../misc/cups/drivers/kyocera {};
 
   crashplan = callPackage ../applications/backup/crashplan { };
 
