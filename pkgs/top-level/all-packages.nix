@@ -869,6 +869,8 @@ in
 
   kapacitor = callPackage ../servers/monitoring/kapacitor { };
 
+  languagetool = callPackage ../tools/text/languagetool {  };
+
   long-shebang = callPackage ../misc/long-shebang {};
 
   mathics = pythonPackages.mathics;
@@ -3036,6 +3038,8 @@ in
     nix = nixUnstable;
   };
 
+  pakcs = callPackage ../development/compilers/pakcs {};
+
   pal = callPackage ../tools/misc/pal { };
 
   pandoc = haskell.lib.overrideCabal haskellPackages.pandoc (drv: {
@@ -3787,6 +3791,8 @@ in
   textadept = callPackage ../applications/editors/textadept { };
 
   thc-hydra = callPackage ../tools/security/thc-hydra { };
+
+  thin-provisioning-tools = callPackage ../tools/misc/thin-provisioning-tools {  };
 
   tiled = qt5.callPackage ../applications/editors/tiled { };
 
@@ -7088,6 +7094,8 @@ in
   gpgme = callPackage ../development/libraries/gpgme {
     gnupg1 = gnupg1orig;
   };
+
+  pgpdump = callPackage ../tools/security/pgpdump { };
 
   gpgstats = callPackage ../tools/security/gpgstats { };
 
@@ -15297,7 +15305,6 @@ in
   crack_attack = callPackage ../games/crack-attack { };
 
   crafty = callPackage ../games/crafty { };
-  craftyFull = appendToName "full" (crafty.override { fullVariant = true; });
 
   crawlTiles = crawl.override {
     tileMode = true;
