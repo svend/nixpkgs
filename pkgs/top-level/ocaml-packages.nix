@@ -58,9 +58,7 @@ let
     camlidl = callPackage ../development/tools/ocaml/camlidl { };
 
     camlp4 =
-      if lib.versionOlder "4.03" ocaml.version
-      then callPackage ../development/tools/ocaml/camlp4/4_03.nix { }
-      else if lib.versionOlder "4.02" ocaml.version
+      if lib.versionOlder "4.02" ocaml.version
       then callPackage ../development/tools/ocaml/camlp4 { }
       else null;
 
@@ -693,6 +691,9 @@ let
     in lib.fix' (lib.extends overrides packageSet);
 in rec
 {
+
+  inherit mkOcamlPackages;
+
   ocamlPackages_3_08_0 = mkOcamlPackages (callPackage ../development/compilers/ocaml/3.08.0.nix { }) (self: super: { lablgtk = self.lablgtk_2_14; });
 
   ocamlPackages_3_10_0 = mkOcamlPackages (callPackage ../development/compilers/ocaml/3.10.0.nix { }) (self: super: { lablgtk = self.lablgtk_2_14; });
@@ -707,7 +708,7 @@ in rec
 
   ocamlPackages_4_02 = mkOcamlPackages (callPackage ../development/compilers/ocaml/4.02.nix { }) (self: super: { });
 
-  ocamlPackages_4_03 = mkOcamlPackages (callPackage ../development/compilers/ocaml/4.02.nix { }) (self: super: { });
+  ocamlPackages_4_03 = mkOcamlPackages (callPackage ../development/compilers/ocaml/4.03.nix { }) (self: super: { });
 
   ocamlPackages_latest = ocamlPackages_4_03;
 

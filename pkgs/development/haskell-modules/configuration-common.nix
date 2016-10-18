@@ -43,7 +43,7 @@ self: super: {
     src = pkgs.fetchFromGitHub {
       owner = "joeyh";
       repo = "git-annex";
-      sha256 = "11xgnryvwh3a1dcd5bczrh6wwf23xa74p31cqvnhf2s6q8cb0aai";
+      sha256 = "1j29ydbw86j3qd4qb4l348pcnjd24irgdra9ss2afi6w2pn60yjn";
       rev = drv.version;
     };
     doCheck = false;  # version 6.20160907 has a test suite failure; reported upstream
@@ -269,6 +269,7 @@ self: super: {
   snowball = dontCheck super.snowball;
   sophia = dontCheck super.sophia;
   test-sandbox = dontCheck super.test-sandbox;
+  texrunner = dontCheck super.texrunner;
   users-postgresql-simple = dontCheck super.users-postgresql-simple;
   wai-middleware-hmac = dontCheck super.wai-middleware-hmac;
   xkbcommon = dontCheck super.xkbcommon;
@@ -641,6 +642,11 @@ self: super: {
       done
     '';
   }));
+
+  # Requires optparse-applicative 0.13.0.0
+  diagrams-pgf = super.diagrams-pgf.overrideScope (self: super: {
+    optparse-applicative = self.optparse-applicative_0_13_0_0;
+  });
 
   # Patch to consider NIX_GHC just like xmonad does
   dyre = appendPatch super.dyre ./patches/dyre-nix.patch;
