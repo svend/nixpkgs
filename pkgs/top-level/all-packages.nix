@@ -2275,6 +2275,8 @@ in
 
   k2pdfopt = callPackage ../applications/misc/k2pdfopt { };
 
+  kargo = callPackage ../tools/misc/kargo { };
+
   kazam = callPackage ../applications/video/kazam { };
 
   kalibrate-rtl = callPackage ../tools/misc/kalibrate-rtl { };
@@ -4518,7 +4520,7 @@ in
 
   #Use this instead of stdenv to build with clang
   clangStdenv = if stdenv.isDarwin then stdenv else lowPrio llvmPackages.stdenv;
-  libcxxStdenv = stdenvAdapters.overrideCC stdenv (clangWrapSelf llvmPackages.clang-unwrapped);
+  libcxxStdenv = lowPrio llvmPackages.libcxxStdenv;
 
   clean = callPackage ../development/compilers/clean { };
 
@@ -5245,7 +5247,9 @@ in
     inherit libc extraBuildCommands;
   };
 
-  wrapCC = wrapCCWith (callPackage ../build-support/cc-wrapper) stdenv.cc.libc "";
+  ccWrapperFun = callPackage ../build-support/cc-wrapper;
+
+  wrapCC = wrapCCWith ccWrapperFun stdenv.cc.libc "";
   # legacy version, used for gnat bootstrapping
   wrapGCC-old = baseGCC: callPackage ../build-support/gcc-wrapper-old {
     nativeTools = stdenv.cc.nativeTools or false;
@@ -10858,20 +10862,6 @@ in
       ];
   };
 
-  linux_4_7 = callPackage ../os-specific/linux/kernel/linux-4.7.nix {
-    kernelPatches =
-      [ kernelPatches.bridge_stp_helper
-        # See pkgs/os-specific/linux/kernel/cpu-cgroup-v2-patches/README.md
-        # when adding a new linux version
-        kernelPatches.cpu-cgroup-v2."4.7"
-      ]
-      ++ lib.optionals ((platform.kernelArch or null) == "mips")
-      [ kernelPatches.mips_fpureg_emu
-        kernelPatches.mips_fpu_sigill
-        kernelPatches.mips_ext3_n32
-      ];
-  };
-
   linux_4_8 = callPackage ../os-specific/linux/kernel/linux-4.8.nix {
     kernelPatches =
       [ kernelPatches.bridge_stp_helper
@@ -11060,7 +11050,6 @@ in
   linuxPackages_3_18 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_3_18);
   linuxPackages_4_1 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_1);
   linuxPackages_4_4 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_4);
-  linuxPackages_4_7 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_7);
   linuxPackages_4_8 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_8);
   # Don't forget to update linuxPackages_latest!
 

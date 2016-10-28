@@ -877,6 +877,7 @@ in modules // {
 
     propagatedBuildInputs = with self; [
       pycrypto paramiko jinja2 pyyaml httplib2 boto six
+      netaddr dns
     ] ++ optional windowsSupport pywinrm;
 
     meta = {
@@ -913,6 +914,7 @@ in modules // {
 
     propagatedBuildInputs = with self; [
       pycrypto paramiko jinja2 pyyaml httplib2 boto six readline
+      netaddr dns
     ] ++ optional windowsSupport pywinrm;
 
     meta = with stdenv.lib; {
@@ -1033,11 +1035,11 @@ in modules // {
   } else null;
 
   funcsigs = buildPythonPackage rec {
-    name = "funcsigs-0.4";
+    name = "funcsigs-1.0.2";
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/f/funcsigs/${name}.tar.gz";
-      sha256 = "d83ce6df0b0ea6618700fe1db353526391a8a3ada1b7aba52fed7a61da772033";
+      sha256 = "0l4g5818ffyfmfs1a924811azhjj8ax9xd1cffr1mzd3ycn0zfx7";
     };
 
     buildInputs = with self; [
@@ -2673,11 +2675,11 @@ in modules // {
 
   blaze = buildPythonPackage rec {
     name = "blaze-${version}";
-    version = "0.10.2";
+    version = "0.11.0";
 
     src = pkgs.fetchurl {
-      url = "mirror://pypi/b/blaze/${name}.tar.gz";
-      sha256 = "16m1nzs5gzwa62pwybjsxgbdpd9jy10rhs3c3niacyf6aa6hr9jh";
+      url = "https://github.com/blaze/blaze/archive/${version}.tar.gz";
+      sha256 = "07zrrxkmdqk84xvdmp29859zcfzlpx5pz6g62l28nqp6n6a7yq9a";
     };
 
     buildInputs = with self; [ pytest ];
@@ -2848,11 +2850,11 @@ in modules // {
 
   bokeh = buildPythonPackage rec {
     name = "bokeh-${version}";
-    version = "0.12.1";
+    version = "0.12.3";
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/b/bokeh/${name}.tar.gz";
-      sha256 = "06d3ed14308f550376d5b0c7e9f2bacb3ff5bbcceefd7f6369d070de71dfa563";
+      sha256 = "e138941b62f59bc48bc5b8d249e90c03fed31c1d5abe47ab2ce9e4c83202f73c";
     };
 
     disabled = isPyPy;
@@ -2869,7 +2871,6 @@ in modules // {
       werkzeug
       itsdangerous
       dateutil
-      futures
       requests2
       six
       pygments
@@ -2880,6 +2881,7 @@ in modules // {
       tornado
       colorama
       ]
+      ++ optionals ( !isPy3k ) [ futures ]
       ++ optionals ( isPy26 ) [ argparse ]
       ++ optionals ( !isPy3k && !isPyPy ) [ websocket_client ]
       ++ optionals ( !isPyPy ) [ numpy pandas greenlet ];
@@ -12312,6 +12314,32 @@ in modules // {
 
   icdiff = callPackage ../tools/text/icdiff {};
 
+  imageio = buildPythonPackage rec {
+    name = "imageio-${version}";
+    version = "1.6";
+
+    src = pkgs.fetchurl {
+      url = "https://github.com/imageio/imageio/archive/v${version}.tar.gz";
+      sha256 = "195snkk3fsbjqd5g1cfsd9alzs5q45gdbi2ka9ph4yxqb31ijrbv";
+    };
+
+    buildInputs = with self; [ pytest ];
+    propagatedBuildInputs = with self; [ numpy ];
+
+    checkPhase = ''
+      py.test
+    '';
+
+    # Tries to write in /var/tmp/.imageio
+    doCheck = false;
+
+    meta = {
+      description = "Library for reading and writing a wide range of image, video, scientific, and volumetric data formats";
+      homepage = http://imageio.github.io/;
+      license = licenses.bsd2;
+    };
+  };
+
   importlib = buildPythonPackage rec {
     name = "importlib-1.0.2";
 
@@ -13924,6 +13952,26 @@ in modules // {
     };
   };
 
+  moviepy = buildPythonPackage rec {
+    name = "moviepy-${version}";
+    version = "0.2.2.11";
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/m/moviepy/${name}.tar.gz";
+      sha256 = "d937d817e534efc54eaee2fc4c0e70b48fcd81e1528cd6425f22178704681dc3";
+    };
+
+    # No tests
+    doCheck = false;
+    propagatedBuildInputs = with self; [ numpy decorator imageio tqdm ];
+
+    meta = {
+      description = "Video editing with Python";
+      homepage = http://zulko.github.io/moviepy/;
+      license = licenses.mit;
+    };
+  };
+
   munch = buildPythonPackage rec {
     name = "munch-${version}";
     version = "2.0.4";
@@ -14085,11 +14133,11 @@ in modules // {
   };
 
   mock = buildPythonPackage (rec {
-    name = "mock-1.3.0";
+    name = "mock-2.0.0";
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/m/mock/${name}.tar.gz";
-      sha256 = "1xm0xkaz8d8d26kdk09f2n9vn543ssd03vmpkqlmgq3crjz7s90y";
+      sha256 = "1flbpksir5sqrvq2z0dp8sl4bzbadg21sj4d42w3klpdfvgvcn5i";
     };
 
     buildInputs = with self; [ unittest2 ];
@@ -30087,6 +30135,41 @@ in modules // {
       description = "TensorFlow helps the tensors flow (no gpu support)";
       homepage = http://tensorflow.org;
       license = licenses.asl20;
+    };
+  };
+
+  tensorflowCuDNN = buildPythonPackage rec {
+    name = "tensorflow";
+    version = "0.11.0rc0";
+    format = "wheel";
+
+    src = pkgs.fetchurl {
+      url = "https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow-${version}-cp27-none-linux_x86_64.whl";
+      sha256 = "1r8zlz95sw7bnjzg5zdbpa9dj8wmp8cvvgyl9sv3amsscagnnfj5";
+    };
+
+    buildInputs = with self; [ pkgs.swig ];
+    propagatedBuildInputs = with self; [ numpy six protobuf3_0 pkgs.cudatoolkit75 pkgs.cudnn5_cudatoolkit75 pkgs.gcc49 self.mock ];
+
+    # Note that we need to run *after* the fixup phase because the
+    # libraries are loaded at runtime. If we run in preFixup then
+    # patchelf --shrink-rpath will remove the cuda libraries.
+    postFixup = let rpath = stdenv.lib.makeLibraryPath [
+      pkgs.gcc49.cc.lib
+      pkgs.zlib pkgs.cudatoolkit75
+      pkgs.cudnn5_cudatoolkit75
+      pkgs.linuxPackages.nvidia_x11
+    ]; in ''
+      find $out -name '*.so' -exec patchelf --set-rpath "${rpath}" {} \;
+    '';
+
+    doCheck = false;
+
+    meta = {
+      description = "TensorFlow helps the tensors flow (no gpu support)";
+      homepage = http://tensorflow.org;
+      license = licenses.asl20;
+      platforms   = platforms.linux;
     };
   };
 
