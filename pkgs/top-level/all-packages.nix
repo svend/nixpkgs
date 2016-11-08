@@ -2382,6 +2382,8 @@ in
 
   most = callPackage ../tools/misc/most { };
 
+  motion = callPackage ../applications/video/motion { };
+
   mkcast = callPackage ../applications/video/mkcast { };
 
   multitail = callPackage ../tools/misc/multitail { };
@@ -5228,7 +5230,7 @@ in
 
   tinycc = callPackage ../development/compilers/tinycc { };
 
-  inherit (ocaml-ng.ocamlPackages_4_01_0) trv;
+  inherit (ocaml-ng.ocamlPackages_4_02) trv;
 
   bupc = callPackage ../development/compilers/bupc { };
 
@@ -10829,7 +10831,6 @@ in
   linux_mptcp = callPackage ../os-specific/linux/kernel/linux-mptcp.nix {
     kernelPatches =
       [ kernelPatches.bridge_stp_helper
-        kernelPatches.hiddev_CVE_2016_5829
       ]
       ++ lib.optionals ((platform.kernelArch or null) == "mips")
       [ kernelPatches.mips_fpureg_emu
@@ -11413,6 +11414,8 @@ in
   tcp_wrappers = callPackage ../os-specific/linux/tcp-wrappers { };
 
   tiptop = callPackage ../os-specific/linux/tiptop { };
+
+  tpacpi-bat = callPackage ../os-specific/linux/tpacpi-bat { };
 
   trinity = callPackage ../os-specific/linux/trinity { };
 
