@@ -461,6 +461,8 @@ in
 
   azure-cli = nodePackages.azure-cli;
 
+  azure-vhd-utils  = callPackage ../tools/misc/azure-vhd-utils { };
+
   ec2_api_tools = callPackage ../tools/virtualization/ec2-api-tools { };
 
   ec2_ami_tools = callPackage ../tools/virtualization/ec2-ami-tools { };
@@ -748,6 +750,8 @@ in
   cherrytree = callPackage ../applications/misc/cherrytree { };
 
   chntpw = callPackage ../tools/security/chntpw { };
+
+  clipster = callPackage ../tools/misc/clipster { };
 
   coprthr = callPackage ../development/libraries/coprthr {
     flex = flex_2_5_35;
@@ -2738,6 +2742,8 @@ in
 
   modsecurity_standalone = callPackage ../tools/security/modsecurity { };
 
+  molly-guard = callPackage ../os-specific/linux/molly-guard { };
+
   monit = callPackage ../tools/system/monit { };
 
   moreutils = callPackage ../tools/misc/moreutils {
@@ -2987,6 +2993,8 @@ in
   offlineimap = callPackage ../tools/networking/offlineimap { };
 
   oh-my-zsh = callPackage ../shells/oh-my-zsh { };
+
+  opencc = callPackage ../tools/text/opencc { };
 
   opencryptoki = callPackage ../tools/security/opencryptoki { };
 
@@ -6078,6 +6086,8 @@ in
   github-release = callPackage ../development/tools/github/github-release { };
 
   global = callPackage ../development/tools/misc/global { };
+
+  gn = callPackage ../development/tools/build-managers/gn { };
 
   gnome_doc_utils = callPackage ../development/tools/documentation/gnome-doc-utils {};
 
@@ -9598,7 +9608,6 @@ in
     static = true;
   }));
 
-  zeromq2 = callPackage ../development/libraries/zeromq/2.x.nix {};
   zeromq3 = callPackage ../development/libraries/zeromq/3.x.nix {};
   zeromq4 = callPackage ../development/libraries/zeromq/4.x.nix {};
   zeromq = zeromq4;
@@ -11237,6 +11246,8 @@ in
 
   godep = callPackage ../development/tools/godep { };
 
+  godef = callPackage ../development/tools/godef { };
+
   goimports = callPackage ../development/tools/goimports { };
 
   govers = callPackage ../development/tools/govers { };
@@ -12275,7 +12286,6 @@ in
     pulseSupport = config.pulseaudio or true;
     enablePepperFlash = config.chromium.enablePepperFlash or false;
     enableWideVine = config.chromium.enableWideVine or false;
-    hiDPISupport = config.chromium.hiDPISupport or false;
     gnome = gnome2;
   };
 
@@ -14257,6 +14267,8 @@ in
   quassel-webserver = callPackage ../applications/networking/irc/quassel-webserver { };
 
   quirc = callPackage ../tools/graphics/quirc {};
+
+  quiterss = qt5.callPackage ../applications/networking/newsreaders/quiterss {};
 
   quodlibet = callPackage ../applications/audio/quodlibet { };
 
@@ -17290,7 +17302,7 @@ in
 
   vimPlugins = recurseIntoAttrs (callPackage ../misc/vim-plugins {
     inherit (darwin.apple_sdk.frameworks) Cocoa;
-    llvmPackages = llvmPackages_38;
+    llvmPackages = llvmPackages_39;
   });
 
   vimprobable2-unwrapped = callPackage ../applications/networking/browsers/vimprobable2 {
