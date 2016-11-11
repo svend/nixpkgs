@@ -4091,12 +4091,14 @@ in {
 
     buildInputs = with self; [ requests2 six pytest ];
 
+    # No tests distributed. https://github.com/cablehead/python-consul/issues/133
+    doCheck = false;
+
     meta = {
       description = "Python client for Consul (http://www.consul.io/)";
       homepage = https://github.com/cablehead/python-consul;
       license = licenses.mit;
       maintainers = with maintainers; [ desiderius ];
-      broken = true;
     };
   });
 
@@ -30425,7 +30427,7 @@ in {
         "https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-${version}-cp27-none-linux_x86_64.whl";
       sha256 = if stdenv.isDarwin then
         "1gjybh3j3rn34bzhsxsfdbqgsr4jh50qyx2wqywvcb24fkvy40j9" else
-        "15v7iyry8bmp5wcc1rr4bkp80f3887rl99zqf8pys5bad4gldbkh";
+        "0g05pa4z6kdy0giz7hjgjgwf4zzr5l8cf1zh247ymixlikn3fnpx";
     };
 
     propagatedBuildInputs = with self; [ numpy six protobuf3_0_0b2 pkgs.swig mock];
