@@ -86,9 +86,9 @@ rec {
   };
 
   grsecurity_testing = grsecPatch
-    { kver   = "4.8.7";
-      grrev  = "201611102210";
-      sha256 = "1n7avhvzy4njf9wky38l99i18v1rr05bgspivnp440j8d6nh60nh";
+    { kver   = "4.8.8";
+      grrev  = "201611150756";
+      sha256 = "04sankbjlrji3hrhgwfvmgkrh5ypblb706i0hch4sn3vcc0dq87b";
     };
 
   # This patch relaxes grsec constraints on the location of usermode helpers,
@@ -97,6 +97,14 @@ rec {
     {
       name  = "grsecurity-nixos-kmod";
       patch = ./grsecurity-nixos-kmod.patch;
+    };
+
+  # A temporary work-around for execvp: arglist too long error during
+  # module_install.  Without this, no modules are installed into the
+  # resulting output.
+  grsecurity_modinst =
+    { name = "grsecurity-modinst";
+      patch = ./grsecurity-modinst.patch;
     };
 
   crc_regression =
