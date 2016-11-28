@@ -1,7 +1,7 @@
-{ lib, stdenv, fetchurl, pkgconfig, gtk, gtk3, pango, perl, python, zip, libIDL
+{ lib, stdenv, fetchurl, pkgconfig, gtk2, gtk3, pango, perl, python, zip, libIDL
 , libjpeg, zlib, dbus, dbus_glib, bzip2, xorg
 , freetype, fontconfig, file, alsaLib, nspr, nss, libnotify
-, yasm, mesa, sqlite, unzip, makeWrapper, pysqlite
+, yasm, mesa, sqlite, unzip, makeWrapper
 , hunspell, libevent, libstartup_notification, libvpx
 , cairo, gstreamer, gst_plugins_base, icu, libpng, jemalloc, libpulseaudio
 , autoconf213, which
@@ -30,11 +30,11 @@ common = { pname, version, sha512 }: stdenv.mkDerivation rec {
   };
 
   buildInputs =
-    [ pkgconfig gtk perl zip libIDL libjpeg zlib bzip2
+    [ pkgconfig gtk2 perl zip libIDL libjpeg zlib bzip2
       python dbus dbus_glib pango freetype fontconfig xorg.libXi
       xorg.libX11 xorg.libXrender xorg.libXft xorg.libXt file
       alsaLib nspr nss libnotify xorg.pixman yasm mesa
-      xorg.libXScrnSaver xorg.scrnsaverproto pysqlite
+      xorg.libXScrnSaver xorg.scrnsaverproto
       xorg.libXext xorg.xextproto sqlite unzip makeWrapper
       hunspell libevent libstartup_notification libvpx /* cairo */
       icu libpng jemalloc
@@ -70,6 +70,7 @@ common = { pname, version, sha512 }: stdenv.mkDerivation rec {
       "--enable-jemalloc"
       "--disable-gconf"
       "--enable-default-toolkit=cairo-gtk2"
+      "--with-google-api-keyfile=ga"
     ]
     ++ lib.optional enableGTK3 "--enable-default-toolkit=cairo-gtk3"
     ++ (if debugBuild then [ "--enable-debug" "--enable-profiling" ]
@@ -85,6 +86,11 @@ common = { pname, version, sha512 }: stdenv.mkDerivation rec {
       configureScript="$(realpath ./configure)"
       mkdir ../objdir
       cd ../objdir
+
+      # Google API key used by Chromium and Firefox.
+      # Note: These are for NixOS/nixpkgs use ONLY. For your own distribution,
+      # please get your own set of keys.
+      echo "AIzaSyDGi15Zwl11UNe6Y-5XW_upsfyw31qwZPI" >ga
     '';
 
   preInstall =
@@ -113,6 +119,14 @@ common = { pname, version, sha512 }: stdenv.mkDerivation rec {
       "$out/bin/firefox" --version
     '';
 
+  postFixup =
+    # Fix notifications. LibXUL uses dlopen for this, unfortunately; see #18712.
+    ''
+      patchelf --set-rpath "${lib.getLib libnotify
+        }/lib:$(patchelf --print-rpath "$out"/lib/firefox-*/libxul.so)" \
+          "$out"/lib/firefox-*/libxul.so
+    '';
+
   meta = {
     description = "A web browser" + lib.optionalString (pname == "firefox-esr") " (Extended Support Release)";
     homepage = http://www.mozilla.com/en-US/firefox/;
@@ -121,7 +135,8 @@ common = { pname, version, sha512 }: stdenv.mkDerivation rec {
   };
 
   passthru = {
-    inherit gtk nspr version;
+    inherit nspr version;
+    gtk = gtk2;
     isFirefox3Like = true;
     browserName = "firefox";
     ffmpegSupport = lib.versionAtLeast version "46.0";
@@ -132,14 +147,14 @@ in {
 
   firefox-unwrapped = common {
     pname = "firefox";
-    version = "48.0.2";
-    sha512 = "d5addb0cd01e2aeb0fd9387800e82e385f3986716887840322d261d772a442f6fdb1d910cd53f2373f0fb82ed0b2a45356ac83f3ef230e14a2b9db8999ad8a4e";
+    version = "50.0";
+    sha512 = "cc325515e238cc3b78cb2cffcc2d80c9f233c0adf750c10100f0dccbab2aec6794f737d7374e600d547d5306de966dd00a0bf40a2dd71ec9dfacb6b157300a76";
   };
 
   firefox-esr-unwrapped = common {
     pname = "firefox-esr";
-    version = "45.3.0esr";
-    sha512 = "ee618aec579625122c3e511a7ac83ac4db9718f5695b6fe6250717602178bae9bb7e5ebe8764f4d33ecf44d3db13abfed0d24c1ec71e64a1087fb6d5a579b0c0";
+    version = "45.5.0esr";
+    sha512 = "fadac65fcad4bd4701026c9f3d87ba7dec304205e3c375769db7f7de9e596877deed9b21d3e8c34c1ce8ae689dd2979b3627742dfbec9bc0cb16a5cb1ce7507d";
   };
 
 }

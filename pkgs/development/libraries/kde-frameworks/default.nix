@@ -24,7 +24,7 @@ let
       let
       in stdenv.mkDerivation (args // {
 
-        outputs = args.outputs or [ "dev" "out" ];
+        outputs = args.outputs or [ "out" "dev" ];
 
         propagatedUserEnvPkgs =
           builtins.map lib.getBin (args.propagatedBuildInputs or []);
@@ -36,7 +36,9 @@ let
 
       });
 
-    kdeFramework = args:
+    kdeFramework = let
+      broken = builtins.compareVersions self.qtbase.version "5.6.0" < 0;
+    in args:
       let
         inherit (args) name;
         inherit (srcs."${name}") src version;
@@ -50,27 +52,23 @@ let
           ];
           platforms = lib.platforms.linux;
           homepage = "http://www.kde.org";
+          inherit broken;
         } // (args.meta or {});
       });
 
-    kdeEnv = import ./kde-env.nix {
-      inherit (pkgs) stdenv lib;
-      inherit (pkgs.xorg) lndir;
-    };
-
     kdeWrapper = import ./kde-wrapper.nix {
       inherit (pkgs) stdenv lib makeWrapper;
-      inherit kdeEnv;
     };
 
     attica = callPackage ./attica.nix {};
     baloo = callPackage ./baloo.nix {};
     bluez-qt = callPackage ./bluez-qt.nix {};
     breeze-icons = callPackage ./breeze-icons.nix {};
+    # FIXME: this collides with the "ecm" package.
     ecm =
       let drv = { cmake, ecmNoHooks, pkgconfig, qtbase, qttools }:
             makeSetupHook
-            { deps = [ cmake ecmNoHooks pkgconfig qtbase qttools ]; }
+            { deps = lib.chooseDevOutputs [ cmake ecmNoHooks pkgconfig qtbase qttools ]; }
             ./setup-hook.sh;
       in callPackage drv {};
     ecmNoHooks = callPackage ./extra-cmake-modules {

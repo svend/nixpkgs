@@ -38,16 +38,6 @@ in
 
 rec {
 
-  link_lguest =
-    { name = "gcc5-link-lguest";
-      patch = ./gcc5-link-lguest.patch;
-    };
-
-  link_apm =
-    { name = "gcc5-link-apm";
-      patch = ./gcc5-link-apm.patch;
-    };
-
   bridge_stp_helper =
     { name = "bridge-stp-helper";
       patch = ./bridge-stp-helper.patch;
@@ -95,14 +85,10 @@ rec {
     sha256 = "00b1rqgd4yr206dxp4mcymr56ymbjcjfa4m82pxw73khj032qw3j";
   };
 
-  grsecurity_3_14 = throw "grsecurity stable is no longer supported";
-
-  grsecurity_4_4 = throw "grsecurity stable is no longer supported";
-
   grsecurity_testing = grsecPatch
-    { kver   = "4.7.2";
-      grrev  = "201608211829";
-      sha256 = "1a7pvmb57w7j9s4ww8xvzzijlpnr2i7nhm7jhgfz4n5w3jvxcny3";
+    { kver   = "4.8.10";
+      grrev  = "201611232213";
+      sha256 = "13v3h6cjd5qz57rf242kpxhz5rk094lg5kyf86a852fk58apk6b6";
     };
 
   # This patch relaxes grsec constraints on the location of usermode helpers,
@@ -111,6 +97,14 @@ rec {
     {
       name  = "grsecurity-nixos-kmod";
       patch = ./grsecurity-nixos-kmod.patch;
+    };
+
+  # A temporary work-around for execvp: arglist too long error during
+  # module_install.  Without this, no modules are installed into the
+  # resulting output.
+  grsecurity_modinst =
+    { name = "grsecurity-modinst";
+      patch = ./grsecurity-modinst.patch;
     };
 
   crc_regression =
@@ -153,4 +147,13 @@ rec {
     };
 
   cpu-cgroup-v2 = import ./cpu-cgroup-v2-patches;
+
+  lguest_entry-linkage =
+    { name = "lguest-asmlinkage.patch";
+      patch = fetchpatch {
+        url = "https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git"
+            + "/patch/drivers/lguest/x86/core.c?id=cdd77e87eae52";
+        sha256 = "04xlx6al10cw039av6jkby7gx64zayj8m1k9iza40sw0fydcfqhc";
+    };
+  };
 }

@@ -17,13 +17,13 @@ assert buildKernel -> kernel != null;
 stdenv.mkDerivation rec {
   name = "spl-${configFile}-${version}${optionalString buildKernel "-${kernel.version}"}";
 
-  version = "0.6.5.7";
+  version = "0.6.5.8";
 
   src = fetchFromGitHub {
     owner = "zfsonlinux";
     repo = "spl";
     rev = "spl-${version}";
-    sha256 = "0i9ak4wqn444i6362xq5xl0msvcck8qqypp0fynrxq8mddzypwps";
+    sha256 = "000yvaccqlkrq15sdz0734fp3lkmx58182cdcfpm4869i0q7rf0s";
   };
 
   patches = [ ./const.patch ./install_prefix.patch ];
@@ -59,7 +59,6 @@ stdenv.mkDerivation rec {
     homepage = http://zfsonlinux.org/;
     platforms = platforms.linux;
     license = licenses.gpl2Plus;
-    maintainers = with maintainers; [ jcumming wizeman wkennington ];
-    broken = (kernel.features.grsecurity or false);
+    maintainers = with maintainers; [ jcumming wizeman wkennington fpletz ];
   };
 }

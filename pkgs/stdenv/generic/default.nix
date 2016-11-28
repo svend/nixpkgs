@@ -44,7 +44,7 @@ let
       throw "whitelistedLicenses and blacklistedLicenses are not mutually exclusive.";
 
   hasLicense = attrs:
-    builtins.hasAttr "meta" attrs && builtins.hasAttr "license" attrs.meta;
+    attrs ? meta.license;
 
   hasWhitelistedLicense = assert areLicenseListsValid; attrs:
     hasLicense attrs && builtins.elem attrs.meta.license whitelist;
@@ -89,8 +89,16 @@ let
       cc
     ];
 
-  # Add a utility function to produce derivations that use this
-  # stdenv and its shell.
+  # `mkDerivation` wraps the builtin `derivation` function to
+  # produce derivations that use this stdenv and its shell.
+  #
+  # See also:
+  #
+  # * https://nixos.org/nixpkgs/manual/#sec-using-stdenv
+  #   Details on how to use this mkDerivation function
+  #
+  # * https://nixos.org/nix/manual/#ssec-derivation
+  #   Explanation about derivations in general
   mkDerivation =
     { buildInputs ? []
     , nativeBuildInputs ? []
@@ -120,8 +128,7 @@ let
       throwEvalHelp = { reason, errormsg }:
         # uppercase the first character of string s
         let up = s: with lib;
-          let cs = lib.stringToCharacters s;
-          in concatStrings (singleton (toUpper (head cs)) ++ tail cs);
+          (toUpper (substring 0 1 s)) + (substring 1 (stringLength s) s);
         in
         assert builtins.elem reason ["unfree" "broken" "blacklisted"];
 
@@ -132,7 +139,7 @@ let
             { nixpkgs.config.allow${up reason} = true; }
           in configuration.nix to override this.
 
-          b) For `nix-env`, `nix-build` or any other Nix command you can add
+          b) For `nix-env`, `nix-build`, `nix-shell` or any other Nix command you can add
             { allow${up reason} = true; }
           to ~/.nixpkgs/config.nix.
         ''));
@@ -158,8 +165,12 @@ let
         outputs ++
         (if separateDebugInfo then assert result.isLinux; [ "debug" ] else []);
 
-      buildInputs' = buildInputs ++
+      buildInputs' = lib.chooseDevOutputs buildInputs ++
         (if separateDebugInfo then [ ../../build-support/setup-hooks/separate-debug-info.sh ] else []);
+
+      nativeBuildInputs' = lib.chooseDevOutputs nativeBuildInputs;
+      propagatedBuildInputs' = lib.chooseDevOutputs propagatedBuildInputs;
+      propagatedNativeBuildInputs' = lib.chooseDevOutputs propagatedNativeBuildInputs;
 
     in
 
@@ -176,13 +187,13 @@ let
            "sandboxProfile" "propagatedSandboxProfile"])
         // (let
           computedSandboxProfile =
-            lib.concatMap (input: input.__propagatedSandboxProfile or []) (extraBuildInputs ++ buildInputs ++ nativeBuildInputs);
+            lib.concatMap (input: input.__propagatedSandboxProfile or []) (extraBuildInputs ++ buildInputs' ++ nativeBuildInputs');
           computedPropagatedSandboxProfile =
-            lib.concatMap (input: input.__propagatedSandboxProfile or []) (propagatedBuildInputs ++ propagatedNativeBuildInputs);
+            lib.concatMap (input: input.__propagatedSandboxProfile or []) (propagatedBuildInputs' ++ propagatedNativeBuildInputs');
           computedImpureHostDeps =
-            lib.unique (lib.concatMap (input: input.__propagatedImpureHostDeps or []) (extraBuildInputs ++ buildInputs ++ nativeBuildInputs));
+            lib.unique (lib.concatMap (input: input.__propagatedImpureHostDeps or []) (extraBuildInputs ++ buildInputs' ++ nativeBuildInputs'));
           computedPropagatedImpureHostDeps =
-            lib.unique (lib.concatMap (input: input.__propagatedImpureHostDeps or []) (propagatedBuildInputs ++ propagatedNativeBuildInputs));
+            lib.unique (lib.concatMap (input: input.__propagatedImpureHostDeps or []) (propagatedBuildInputs' ++ propagatedNativeBuildInputs'));
         in
         {
           builder = attrs.realBuilder or shell;
@@ -194,17 +205,17 @@ let
 
           # Inputs built by the cross compiler.
           buildInputs = if crossConfig != null then buildInputs' else [];
-          propagatedBuildInputs = if crossConfig != null then propagatedBuildInputs else [];
+          propagatedBuildInputs = if crossConfig != null then propagatedBuildInputs' else [];
           # Inputs built by the usual native compiler.
-          nativeBuildInputs = nativeBuildInputs
+          nativeBuildInputs = nativeBuildInputs'
             ++ lib.optionals (crossConfig == null) buildInputs'
             ++ lib.optional
                 (result.isCygwin
                   || (crossConfig != null && lib.hasSuffix "mingw32" crossConfig))
                 ../../build-support/setup-hooks/win-dll-link.sh
             ;
-          propagatedNativeBuildInputs = propagatedNativeBuildInputs ++
-            (if crossConfig == null then propagatedBuildInputs else []);
+          propagatedNativeBuildInputs = propagatedNativeBuildInputs' ++
+            (if crossConfig == null then propagatedBuildInputs' else []);
         } // ifDarwin {
           # TODO: remove lib.unique once nix has a list canonicalization primitive
           __sandboxProfile =
@@ -223,6 +234,7 @@ let
           outputs = outputs';
         } else { })))) (
       {
+        overrideAttrs = f: mkDerivation (attrs // (f attrs));
         # The meta attribute is passed in the resulting attribute set,
         # but it's not part of the actual derivation, i.e., it's not
         # passed to the builder and is not a dependency.  But since we

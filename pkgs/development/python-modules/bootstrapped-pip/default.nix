@@ -6,20 +6,20 @@ let
     sha256 = "ea8033fc9905804e652f75474d33410a07404c1a78dd3c949a66863bd1050ebd";
   };
   setuptools_source = fetchurl {
-    url = "https://pypi.python.org/packages/3.5/s/setuptools/setuptools-19.4-py2.py3-none-any.whl";
-    sha256 = "0801e6d862ca4ce24d918420d62f07ee2fe736dc016e3afa99d2103e7a02e9a6";
+    url = "https://files.pythonhosted.org/packages/3b/7e/293d19ccd106119e35db4bf3e111b1895098f618b455b758aa636496cf03/setuptools-28.8.0-py2.py3-none-any.whl";
+    sha256 = "2e59d06ac798efce29c567ee0e0687514efca529a665b8f364cf497cd10d21b2";
   };
   argparse_source = fetchurl {
     url = "https://pypi.python.org/packages/2.7/a/argparse/argparse-1.4.0-py2.py3-none-any.whl";
     sha256 = "0533cr5w14da8wdb2q4py6aizvbvsdbk3sj7m1jx9lwznvnlf5n3";
   };
 in stdenv.mkDerivation rec {
-  name = "python-${python.version}-bootstrapped-pip-${version}";
-  version = "8.1.2";
+  name = "${python.libPrefix}-bootstrapped-pip-${version}";
+  version = "9.0.1";
 
   src = fetchurl {
-    url = "https://pypi.python.org/packages/9c/32/004ce0852e0a127f07f358b715015763273799bd798956fa930814b60f39/pip-${version}-py2.py3-none-any.whl";
-    sha256 = "18cjrd66mn4a0gwa99zzs89lrb0xn4xmajdzya6zqd7v16cdsr34";
+    url = "https://files.pythonhosted.org/packages/b6/ac/7015eb97dc749283ffdec1c3a88ddb8ae03b8fad0f0e611408f196358da3/pip-9.0.1-py2.py3-none-any.whl";
+    sha256 = "690b762c0a8460c303c089d5d0be034fb15a5ea2b75bdf565f40421f542fefb0";
   };
 
   unpackPhase = ''

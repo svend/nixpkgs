@@ -18,9 +18,13 @@ let
 
     ${cfg.config}
 
-    ${optionalString (cfg.httpConfig == "" && cfg.config == "") ''
-    events {}
+    ${optionalString (cfg.eventsConfig != "" || cfg.config == "") ''
+    events {
+      ${cfg.eventsConfig}
+    }
+    ''}
 
+    ${optionalString (cfg.httpConfig == "" && cfg.config == "") ''
     http {
       include ${cfg.package}/conf/mime.types;
       include ${cfg.package}/conf/fastcgi.conf;
@@ -98,7 +102,6 @@ let
     }''}
 
     ${optionalString (cfg.httpConfig != "") ''
-    events {}
     http {
       include ${cfg.package}/conf/mime.types;
       include ${cfg.package}/conf/fastcgi.conf;
@@ -114,17 +117,18 @@ let
         port = if vhost.port != null then vhost.port else (if ssl then 443 else 80);
         listenString = toString port + optionalString ssl " ssl http2"
           + optionalString vhost.default " default";
-        acmeLocation = optionalString vhost.enableACME ''
+        acmeLocation = optionalString vhost.enableACME (''
           location /.well-known/acme-challenge {
-            try_files $uri @acme-fallback;
+            ${optionalString (vhost.acmeFallbackHost != null) "try_files $uri @acme-fallback;"}
             root ${vhost.acmeRoot};
             auth_basic off;
           }
+        '' + (optionalString (vhost.acmeFallbackHost != null) ''
           location @acme-fallback {
             auth_basic off;
             proxy_pass http://${vhost.acmeFallbackHost};
           }
-        '';
+        ''));
       in ''
         ${optionalString vhost.forceSSL ''
           server {
@@ -134,7 +138,7 @@ let
             server_name ${serverName} ${concatStringsSep " " vhost.serverAliases};
             ${acmeLocation}
             location / {
-              return 301 https://$host${optionalString (port != 443) ":${port}"}$request_uri;
+              return 301 https://$host${optionalString (port != 443) ":${toString port}"}$request_uri;
             }
           }
         ''}
@@ -271,12 +275,20 @@ in
         ";
       };
 
+      eventsConfig = mkOption {
+        type = types.lines;
+        default = "";
+        description = ''
+          Configuration lines to be set inside the events block.
+        '';
+      };
+
       appendHttpConfig = mkOption {
         type = types.lines;
         default = "";
         description = "
           Configuration lines to be appended to the generated http block.
-          This is mutually exclusive with using config and httpConfig for 
+          This is mutually exclusive with using config and httpConfig for
           specifying the whole http block verbatim.
         ";
       };
@@ -380,8 +392,13 @@ in
     security.acme.certs = filterAttrs (n: v: v != {}) (
       mapAttrs (vhostName: vhostConfig:
         optionalAttrs vhostConfig.enableACME {
+          user = cfg.user;
+          group = cfg.group;
           webroot = vhostConfig.acmeRoot;
           extraDomains = genAttrs vhostConfig.serverAliases (alias: null);
+          postRun = ''
+            systemctl reload nginx
+          '';
         }
       ) virtualHosts
     );

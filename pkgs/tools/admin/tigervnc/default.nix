@@ -7,20 +7,19 @@
 with stdenv.lib;
 
 stdenv.mkDerivation rec {
-  version = "1.6.0";
+  version = "1.7.0";
   name = "tigervnc-${version}";
 
   src = fetchgit {
     url = "https://github.com/TigerVNC/tigervnc/";
-    sha256 = "1plljv1cxsax88kv52g02n8c1hzwgp6j1p8z1aqhskw36shg4pij";
-    rev = "5a727f25990d05c9a1f85457b45d6aed66409cb3";
+    sha256 = "1b6n2gq6078x8dwz471a68jrkgpcxmbiivmlsakr42vrndm7niz3";
+    rev = "e25272fc74ef09987ccaa33b9bf1736397c76fdf";
   };
 
   inherit fontDirectories;
 
   patchPhase = ''
     sed -i -e 's,$(includedir)/pixman-1,${if stdenv ? cross then pixman.crossDrv else pixman}/include/pixman-1,' unix/xserver/hw/vnc/Makefile.am
-    sed -i -e '/^$pidFile/a$ENV{XKB_BINDIR}="${if stdenv ? cross then xorg.xkbcomp.crossDrv else xorg.xkbcomp}/bin";' unix/vncserver
     sed -i -e '/^\$cmd \.= " -pn";/a$cmd .= " -xkbdir ${if stdenv ? cross then xkeyboard_config.crossDrv else xkeyboard_config}/etc/X11/xkb";' unix/vncserver
     fontPath=
     for i in $fontDirectories; do

@@ -82,7 +82,7 @@ stdenv.mkDerivation ({
       "--enable-add-ons"
       "--enable-obsolete-rpc"
       "--sysconfdir=/etc"
-      "libc_cv_ssp=no"
+      "--enable-stackguard-randomization"
       (if linuxHeaders != null
        then "--with-headers=${linuxHeaders}/include"
        else "--without-headers")
@@ -110,7 +110,7 @@ stdenv.mkDerivation ({
 
   installFlags = [ "sysconfdir=$(out)/etc" ];
 
-  outputs = [ "dev" "out" "bin" "static" ];
+  outputs = [ "out" "bin" "dev" "static" ];
 
   buildInputs = lib.optionals (cross != null) [ gccCross ]
     ++ lib.optionals withGd [ gd libpng ];

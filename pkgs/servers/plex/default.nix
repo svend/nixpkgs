@@ -4,14 +4,11 @@
 }:
 
 let
-  plexpkg = if enablePlexPass then {
-    version = "1.0.1.2396";
-    vsnHash = "c094d0d";
-    sha256 = "0bhbpaj88989zn1q590mkcqshcpir87yiac9x1dl0afzpxj09lcz";
-  } else {
-    version = "1.0.0.2261";
-    vsnHash = "a17e99e";
-    sha256 = "14li33ni6aaa1qwvc02a066k52s1qwhpv55prvlmq3m5jm3iv0lr";
+  plexPass = throw "Plex pass has been removed at upstream's request; please unset nixpkgs.config.plex.pass";
+  plexpkg = if enablePlexPass then plexPass else {
+    version = "1.2.7.2987";
+    vsnHash = "1bef33a";
+    sha256 = "17d1yisbikcp25mgn71rf8w76zhy015f33hxjj93swfm1qrq55hq";
   };
 
 in stdenv.mkDerivation rec {
@@ -39,7 +36,7 @@ in stdenv.mkDerivation rec {
 
     # Now we need to patch up the executables and libraries to work on Nix.
     # Side note: PLEASE don't put spaces in your binary names. This is stupid.
-    for bin in "Plex Media Server" "Plex DLNA Server" "Plex Media Scanner"; do
+    for bin in "Plex Media Server" "Plex DLNA Server" "Plex Media Scanner" "Plex Script Host" "Plex Transcoder" "Plex Relay"; do
       patchelf --set-interpreter "${glibc.out}/lib/ld-linux-x86-64.so.2" "$out/usr/lib/plexmediaserver/$bin"
       patchelf --set-rpath "$out/usr/lib/plexmediaserver" "$out/usr/lib/plexmediaserver/$bin"
     done

@@ -3,24 +3,26 @@
 import ./make-test.nix ({ pkgs, ...} : {
   name = "docker-registry";
   meta = with pkgs.stdenv.lib.maintainers; {
-    maintainers = [ offline ];
+    maintainers = [ globin ];
   };
 
   nodes = {
     registry = { config, pkgs, ... }: {
       services.dockerRegistry.enable = true;
       services.dockerRegistry.port = 8080;
-      services.dockerRegistry.host = "0.0.0.0";
+      services.dockerRegistry.listenAddress = "0.0.0.0";
       networking.firewall.allowedTCPPorts = [ 8080 ];
     };
 
     client1 = { config, pkgs, ...}: {
       virtualisation.docker.enable = true;
+      virtualisation.docker.socketActivation = false;
       virtualisation.docker.extraOptions = "--insecure-registry registry:8080";
     };
 
     client2 = { config, pkgs, ...}: {
       virtualisation.docker.enable = true;
+      virtualisation.docker.socketActivation = false;
       virtualisation.docker.extraOptions = "--insecure-registry registry:8080";
     };
   };

@@ -48,7 +48,7 @@ in stdenv.mkDerivation rec {
     mkdir -p vendor/cache
     ${stdenv.lib.concatStrings (map (gem: "ln -s ${gem} vendor/cache/${gem.name};") gemspec)}
 
-    bundle config build.nokogiri --use-system-libraries --with-iconv-dir="${libiconv}" --with-xslt-dir="${libxslt.dev}" --with-xml2-dir="${libxml2}"
+    bundle config build.nokogiri --use-system-libraries --with-iconv-dir="${libiconv}" --with-xslt-dir="${libxslt.dev}" --with-xml2-dir="${libxml2.dev}"
 
     bundle install --verbose --local --deployment
 
@@ -67,5 +67,8 @@ in stdenv.mkDerivation rec {
     platforms = platforms.linux;
     maintainers = [ maintainers.garbas ];
     license = licenses.gpl2;
+    # Marked as broken due to needing an update for security issues.
+    # See: https://github.com/NixOS/nixpkgs/issues/18856
+    broken = true;
   };
 }

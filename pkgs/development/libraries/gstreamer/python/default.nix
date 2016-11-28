@@ -1,22 +1,24 @@
-{ fetchurl, stdenv, pkgconfig, python
-, gst-plugins-base, pygobject3
+{ fetchurl, stdenv, pkgconfig, pythonPackages
+, gst-plugins-base
 , ncurses
 }:
 
-stdenv.mkDerivation rec {
-  name = "gst-python-1.8.2";
+let
+  inherit (pythonPackages) python pygobject3;
+in stdenv.mkDerivation rec {
+  name = "gst-python-1.10.1";
 
   src = fetchurl {
     urls = [
       "${meta.homepage}/src/gst-python/${name}.tar.xz"
       "mirror://gentoo/distfiles/${name}.tar.xz"
       ];
-    sha256 = "15sdfa6lq5pswvi09vk51cs30yf8wr2rlm9myhb4q0c2jhiial2g";
+    sha256 = "04xhh0z0c0s6aq7kvmfs4r6yl1pjnqz0krp05pbjy62ayx5b61ak";
   };
 
   patches = [ ./different-path-with-pygobject.patch ];
 
-  outputs = [ "dev" "out" ];
+  outputs = [ "out" "dev" ];
 
   nativeBuildInputs = [ pkgconfig python ];
 

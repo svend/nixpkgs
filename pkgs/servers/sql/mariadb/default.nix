@@ -14,13 +14,12 @@ mariadb = everything // {
   lib = client; # compat. with the old mariadb split
 };
 
-
 common = rec { # attributes common to both builds
-  version = "10.1.16";
+  version = "10.1.19";
 
   src = fetchurl {
     url    = "https://downloads.mariadb.org/interstitial/mariadb-${version}/source/mariadb-${version}.tar.gz";
-    sha256 = "14s3wq1c25n62n75hkixl8n7cni4m73w055nsx4czm655k33bjv7";
+    sha256 = "108s4mimdbmgmmn5pcr9a405j70cyny9adzv49s75lg22krp74sv";
   };
 
   prePatch = ''
@@ -87,7 +86,7 @@ common = rec { # attributes common to both builds
 client = stdenv.mkDerivation (common // {
   name = "mariadb-client-${common.version}";
 
-  outputs = [ "dev" "out" "bin" ];
+  outputs = [ "bin" "dev" "out" ];
 
   propagatedBuildInputs = [ openssl zlib ]; # required from mariadb.pc
 
@@ -155,6 +154,9 @@ everything = stdenv.mkDerivation (common // {
   postInstall = common.postInstall + ''
     rm -r "$out"/{mysql-test,sql-bench,data} # Don't need testing data
     rm "$out"/share/man/man1/mysql-test-run.pl.1
+
+    # Don't install mysqlbug to prevent a dependency on gcc.
+    rm $out/bin/mysqlbug
   '';
 });
 

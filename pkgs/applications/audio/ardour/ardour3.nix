@@ -1,9 +1,9 @@
 { stdenv, fetchgit, alsaLib, aubio, boost, cairomm, curl, doxygen, dbus, fftw
-, fftwSinglePrec, flac, glibc, glibmm, graphviz, gtk, gtkmm, libjack2
+, fftwSinglePrec, flac, glibc, glibmm, graphviz, gtkmm2, libjack2
 , libgnomecanvas, libgnomecanvasmm, liblo, libmad, libogg, librdf
 , librdf_raptor, librdf_rasqal, libsamplerate, libsigcxx, libsndfile
 , libusb, libuuid, libxml2, libxslt, lilv-svn, lv2, makeWrapper, pango
-, perl, pkgconfig, python, rubberband, serd, sord-svn, sratom, suil, taglib, vampSDK }:
+, perl, pkgconfig, python2, rubberband, serd, sord-svn, sratom, suil, taglib, vampSDK }:
 
 let
 
@@ -40,24 +40,24 @@ stdenv.mkDerivation rec {
 
   buildInputs = 
     [ alsaLib aubio boost cairomm curl doxygen dbus fftw fftwSinglePrec flac glibc
-      glibmm graphviz gtk gtkmm libjack2 libgnomecanvas libgnomecanvasmm liblo
+      glibmm graphviz gtkmm2 libjack2 libgnomecanvas libgnomecanvasmm liblo
       libmad libogg librdf librdf_raptor librdf_rasqal libsamplerate
       libsigcxx libsndfile libusb libuuid libxml2 libxslt lilv-svn lv2
-      makeWrapper pango perl pkgconfig python rubberband serd sord-svn sratom suil taglib vampSDK
+      makeWrapper pango perl pkgconfig python2 rubberband serd sord-svn sratom suil taglib vampSDK
     ];
 
   patchPhase = ''
     printf '#include "libs/ardour/ardour/revision.h"\nnamespace ARDOUR { const char* revision = \"${revision}\"; }\n' > libs/ardour/revision.cc
-    sed 's|/usr/include/libintl.h|${glibc}/include/libintl.h|' -i wscript
+    sed 's|/usr/include/libintl.h|${glibc.dev}/include/libintl.h|' -i wscript
     patchShebangs ./tools/
   '';
 
-  configurePhase = "python waf configure --optimize --docs --with-backends=jack,alsa --prefix=$out";
+  configurePhase = "${python2.interpreter} waf configure --optimize --docs --with-backends=jack,alsa --prefix=$out";
 
-  buildPhase = "python waf";
+  buildPhase = "${python2.interpreter} waf";
 
   installPhase = ''
-    python waf install
+    ${python2.interpreter} waf install
 
     # Install desktop file
     mkdir -p "$out/share/applications"

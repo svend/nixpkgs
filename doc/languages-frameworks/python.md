@@ -3,7 +3,7 @@
 ## User Guide
 
 Several versions of Python are available on Nix as well as a high amount of
-packages. The default interpreter is CPython 2.7.
+packages. The default interpreter is CPython 3.5.
 
 ### Using Python
 
@@ -409,35 +409,20 @@ and in this case the `python35` interpreter is automatically used.
 
 ### Interpreters
 
-Versions 2.6, 2.7, 3.3, 3.4 and 3.5 of the CPython interpreter are available on
-Nix and are available as `python26`, `python27`, `python33`, `python34` and
-`python35`. The PyPy interpreter is also available as `pypy`. Currently, the
-aliases `python` and `python3` correspond to respectively `python27` and
-`python35`. The Nix expressions for the interpreters can be found in
+Versions 2.6, 2.7, 3.3, 3.4 and 3.5 of the CPython interpreter are as respectively
+`python26`, `python27`, `python33`, `python34` and `python35`. The PyPy interpreter
+is available as `pypy`. The aliases `python2` and `python3` correspond to respectively `python27` and
+`python35`. The default interpreter, `python`, maps to `python3`.
+The Nix expressions for the interpreters can be found in
 `pkgs/development/interpreters/python`.
-
-
-#### Missing modules standard library
-
-The interpreters `python26` and `python27` do not include modules that
-require external dependencies. This is done in order to reduce the closure size.
-The following modules need to be added as `buildInput` explicitly:
-
-* `python.modules.bsddb`
-* `python.modules.curses`
-* `python.modules.curses_panel`
-* `python.modules.crypt`
-* `python.modules.gdbm`
-* `python.modules.sqlite3`
-* `python.modules.tkinter`
-* `python.modules.readline`
-
-For convenience `python27Full` and `python26Full` are provided with all
-modules included.
 
 All packages depending on any Python interpreter get appended
 `out/{python.sitePackages}` to `$PYTHONPATH` if such directory
 exists.
+
+#### Missing `tkinter` module standard library
+
+To reduce closure size the `Tkinter`/`tkinter` is available as a separate package, `pythonPackages.tkinter`.
 
 #### Attributes on interpreters packages
 
@@ -448,7 +433,7 @@ Each interpreter has the following attributes:
 - `buildEnv`. Function to build python interpreter environments with extra packages bundled together. See section *python.buildEnv function* for usage and documentation.
 - `withPackages`. Simpler interface to `buildEnv`. See section *python.withPackages function* for usage and documentation.
 - `sitePackages`. Alias for `lib/${libPrefix}/site-packages`.
-- `executable`. Name of the interpreter executable, ie `python3.4`.
+- `executable`. Name of the interpreter executable, e.g. `python3.4`.
 
 ### Building packages and applications
 
@@ -475,13 +460,14 @@ sets are
 
 and the aliases
 
-* `pkgs.pythonPackages` pointing to `pkgs.python27Packages`
+* `pkgs.python2Packages` pointing to `pkgs.python27Packages`
 * `pkgs.python3Packages` pointing to `pkgs.python35Packages`
+* `pkgs.pythonPackages` pointing to `pkgs.python3Packages`
 
 #### `buildPythonPackage` function
 
 The `buildPythonPackage` function is implemented in
-`pkgs/development/python-modules/generic/default.nix`
+`pkgs/development/interpreters/python/build-python-package.nix`
 
 and can be used as:
 
@@ -536,6 +522,7 @@ All parameters from `mkDerivation` function are still supported.
 * `installFlags`: A list of strings. Arguments to be passed to `pip install`. To pass options to `python setup.py install`, use `--install-option`. E.g., `installFlags=["--install-option='--cpp_implementation'"].
 * `format`: Format of the source. Options are `setup` for when the source has a `setup.py` and `setuptools` is used to build a wheel, and `wheel` in case the source is already a binary wheel. The default value is `setup`.
 * `catchConflicts` If `true`, abort package build if a package name appears more than once in dependency tree. Default is `true`.
+* `checkInputs` Dependencies needed for running the `checkPhase`. These are added to `buildInputs` when `doCheck = true`.
 
 #### `buildPythonApplication` function
 
@@ -668,9 +655,8 @@ when you try to install a second environment.
 Create a file, e.g. `build.nix`, with the following expression
 ```nix
 with import <nixpkgs> {};
-with python35Packages;
 
-python.withPackages (ps: with ps; [ numpy ipython ])
+pkgs.python35.withPackages (ps: with ps; [ numpy ipython ])
 ```
 and install it in your profile with
 ```
@@ -682,14 +668,15 @@ Now you can use the Python interpreter, as well as the extra packages that you a
 
 If you prefer to, you could also add the environment as a package override to the Nixpkgs set.
 ```
-  packageOverrides = pkgs: with pkgs; with python35Packages; {
-    myEnv = python.withPackages (ps: with ps; [ numpy ipython ]);
+  packageOverrides = pkgs: with pkgs; {
+    myEnv = python35.withPackages (ps: with ps; [ numpy ipython ]);
   };
 ```
 and install it in your profile with
 ```
-nix-env -iA nixos.blogEnv
+nix-env -iA nixpkgs.myEnv
 ```
+We're installing using the attribute path and assume the channels is named `nixpkgs`.
 Note that I'm using the attribute path here.
 
 #### Environment defined in `/etc/nixos/configuration.nix`
@@ -698,7 +685,7 @@ For the sake of completeness, here's another example how to install the environm
 
 ```nix
 environment.systemPackages = with pkgs; [
-  (python35Packages.python.withPackages (ps: callPackage ../packages/common-python-packages.nix { pythonPackages = ps; }))
+  (python35.withPackages(ps: with ps; [ numpy ipython ]))
 ];
 ```
 

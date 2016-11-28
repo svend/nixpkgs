@@ -92,14 +92,13 @@ fi
 mkdir -m 0755 -p $mountPoint/dev $mountPoint/proc $mountPoint/sys $mountPoint/etc $mountPoint/run $mountPoint/home
 mkdir -m 01777 -p $mountPoint/tmp
 mkdir -m 0755 -p $mountPoint/tmp/root
-mkdir -m 0755 -p $mountPoint/var/setuid-wrappers
+mkdir -m 0755 -p $mountPoint/var
 mkdir -m 0700 -p $mountPoint/root
 mount --rbind /dev $mountPoint/dev
 mount --rbind /proc $mountPoint/proc
 mount --rbind /sys $mountPoint/sys
 mount --rbind / $mountPoint/tmp/root
 mount -t tmpfs -o "mode=0755" none $mountPoint/run
-mount -t tmpfs -o "mode=0755" none $mountPoint/var/setuid-wrappers
 rm -rf $mountPoint/var/run
 ln -s /run $mountPoint/var/run
 for f in /etc/resolv.conf /etc/hosts; do rm -f $mountPoint/$f; [ -f "$f" ] && cp -Lf $f $mountPoint/etc/; done
@@ -260,7 +259,7 @@ chroot $mountPoint /nix/var/nix/profiles/system/activate
 
 
 # Ask the user to set a root password.
-if [ -z "$noRootPasswd" ] && [ -x $mountPoint/var/setuid-wrappers/passwd ] && [ -t 0 ]; then
+if [ -z "$noRootPasswd" ] && chroot $mountPoint [ -x /var/setuid-wrappers/passwd ] && [ -t 0 ]; then
     echo "setting root password..."
     chroot $mountPoint /var/setuid-wrappers/passwd
 fi

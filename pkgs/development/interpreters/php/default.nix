@@ -2,7 +2,7 @@
 , mysql, libxml2, readline, zlib, curl, postgresql, gettext
 , openssl, pkgconfig, sqlite, config, libjpeg, libpng, freetype
 , libxslt, libmcrypt, bzip2, icu, openldap, cyrus_sasl, libmhash, freetds
-, uwimap, pam, gmp, apacheHttpd, libiconv }:
+, uwimap, pam, gmp, apacheHttpd, libiconv, systemd }:
 
 let
 
@@ -19,11 +19,13 @@ let
 
       enableParallelBuilding = true;
 
-      buildInputs = [ flex bison pkgconfig ];
+      buildInputs = [ flex bison pkgconfig ]
+        ++ lib.optional stdenv.isLinux systemd;
 
       configureFlags = [
         "EXTENSION_DIR=$(out)/lib/php/extensions"
-      ] ++ lib.optional stdenv.isDarwin "--with-iconv=${libiconv}";
+      ] ++ lib.optional stdenv.isDarwin "--with-iconv=${libiconv}"
+        ++ lib.optional stdenv.isLinux  "--with-fpm-systemd";
 
       flags = {
 
@@ -108,12 +110,12 @@ let
 
         mysql = {
           configureFlags = ["--with-mysql"];
-          buildInputs = [ mysql.lib ];
+          buildInputs = [ mysql.lib.dev ];
         };
 
         mysqli = {
-          configureFlags = ["--with-mysqli=${mysql.lib}/bin/mysql_config"];
-          buildInputs = [ mysql.lib ];
+          configureFlags = ["--with-mysqli=${mysql.lib.dev}/bin/mysql_config"];
+          buildInputs = [ mysql.lib.dev ];
         };
 
         mysqli_embedded = {
@@ -123,8 +125,8 @@ let
         };
 
         pdo_mysql = {
-          configureFlags = ["--with-pdo-mysql=${mysql.lib}"];
-          buildInputs = [ mysql.lib ];
+          configureFlags = ["--with-pdo-mysql=${mysql.lib.dev}"];
+          buildInputs = [ mysql.lib.dev ];
         };
 
         bcmath = {
@@ -270,7 +272,7 @@ let
         done
 
         [[ -z "$libxml2" ]] || export PATH=$PATH:$libxml2/bin
-        ./configure --with-config-file-scan-dir=/etc --with-config-file-path=$out/etc --prefix=$out $configureFlags
+        ./configure --with-config-file-scan-dir=/etc/php.d --with-config-file-path=$out/etc --prefix=$out $configureFlags
       '';
 
       postInstall = ''
@@ -300,12 +302,12 @@ let
 
 in {
   php56 = generic {
-    version = "5.6.25";
-    sha256 = "1pldn4z7pzcjm8li9xryrniz5cz542cbv4nlrr13wzzdmhr61kjq";
+    version = "5.6.28";
+    sha256 = "13sl8z5inwyzmi1d5z4g42nq3n8gjdl4876h65bbd86mmbsa6pn5";
   };
 
   php70 = generic {
-    version = "7.0.10";
-    sha256 = "1ppn17n5klhs1b2mcbbxxiqq4xvdbmv8p866q0qnk61nlzjvnmc0";
+    version = "7.0.13";
+    sha256 = "1hc8zry3mrggfh1yxvm255xal5h6bxf0p3wdq307w48j719bp46h";
   };
 }

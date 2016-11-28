@@ -13,11 +13,8 @@ stdenv.mkDerivation ({
     sha256 = "10cmkqigxh9f73y7q3p991q6j8pph0mrydgj11w1x6wlcp5ng37z";
   };
 
-  outputs = [ "dev" "out" ];
+  outputs = [ "out" "dev" ];
   outputBin = "dev";
-
-  makeFlags = stdenv.lib.optionalString stdenv.isDarwin
-    "CXXFLAGS=-headerpad_max_install_names";
 
   # FIXME: This fixes dylib references in the dylibs themselves, but
   # not in the programs in $out/bin.

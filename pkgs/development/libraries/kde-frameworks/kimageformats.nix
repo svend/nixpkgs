@@ -1,11 +1,14 @@
-{ kdeFramework, lib
-, ecm
-, ilmbase
+{
+  kdeFramework, lib,
+  ecm,
+  ilmbase, karchive
 }:
 
 kdeFramework {
   name = "kimageformats";
   meta = { maintainers = [ lib.maintainers.ttuegel ]; };
   nativeBuildInputs = [ ecm ];
-  NIX_CFLAGS_COMPILE = "-I${ilmbase}/include/OpenEXR";
+  buildInputs = [ ilmbase ];
+  propagatedBuildInputs = [ karchive ];
+  NIX_CFLAGS_COMPILE = "-I${ilmbase.dev}/include/OpenEXR";
 }

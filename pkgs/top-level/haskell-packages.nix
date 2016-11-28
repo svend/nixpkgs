@@ -1,4 +1,4 @@
-{ pkgs, callPackage, stdenv }:
+{ pkgs, callPackage, stdenv, crossSystem }:
 
 rec {
 
@@ -46,9 +46,15 @@ rec {
       bootPkgs = packages.ghc7103;
       inherit (bootPkgs) hscolour;
     };
+    ghc802 = callPackage ../development/compilers/ghc/8.0.2.nix rec {
+      bootPkgs = packages.ghc7103;
+      inherit (bootPkgs) hscolour;
+    };
     ghcHEAD = callPackage ../development/compilers/ghc/head.nix rec {
       bootPkgs = packages.ghc7103;
       inherit (bootPkgs) alex happy;
+      inherit crossSystem;
+      selfPkgs = packages.ghcHEAD;
     };
     ghcNokinds = callPackage ../development/compilers/ghc/nokinds.nix rec {
       bootPkgs = packages.ghc784;
@@ -57,6 +63,9 @@ rec {
 
     ghcjs = packages.ghc7103.callPackage ../development/compilers/ghcjs {
       bootPkgs = packages.ghc7103;
+    };
+    ghcjsHEAD = packages.ghc801.callPackage ../development/compilers/ghcjs/head.nix {
+      bootPkgs = packages.ghc801;
     };
 
     jhc = callPackage ../development/compilers/jhc {
@@ -114,8 +123,17 @@ rec {
       ghc = compiler.ghc801;
       compilerConfig = callPackage ../development/haskell-modules/configuration-ghc-8.0.x.nix { };
     };
+    ghc802 = callPackage ../development/haskell-modules {
+      ghc = compiler.ghc802;
+      compilerConfig = callPackage ../development/haskell-modules/configuration-ghc-8.0.x.nix { };
+    };
     ghcHEAD = callPackage ../development/haskell-modules {
       ghc = compiler.ghcHEAD;
+      compilerConfig = callPackage ../development/haskell-modules/configuration-ghc-head.nix { };
+    };
+    # TODO Support for multiple variants here
+    ghcCross = callPackage ../development/haskell-modules {
+      ghc = compiler.ghcHEAD.crossCompiler;
       compilerConfig = callPackage ../development/haskell-modules/configuration-ghc-head.nix { };
     };
     ghcNokinds = callPackage ../development/haskell-modules {
@@ -124,6 +142,10 @@ rec {
     };
     ghcjs = callPackage ../development/haskell-modules {
       ghc = compiler.ghcjs;
+      compilerConfig = callPackage ../development/haskell-modules/configuration-ghcjs.nix { };
+    };
+    ghcjsHEAD = callPackage ../development/haskell-modules {
+      ghc = compiler.ghcjsHEAD;
       compilerConfig = callPackage ../development/haskell-modules/configuration-ghcjs.nix { };
     };
 
@@ -238,11 +260,22 @@ rec {
     lts-6_4 = packages.ghc7103;
     lts-6_5 = packages.ghc7103;
     lts-6_6 = packages.ghc7103;
-    lts-6_7 = packages.ghc7103.override {
-      packageSetConfig = callPackage ../development/haskell-modules/configuration-lts.nix { };
-    };
-    lts-6 = packages.lts-6_7;
+    lts-6_7 = packages.ghc7103;
+    lts-6_8 = packages.ghc7103;
+    lts-6_9 = packages.ghc7103;
+    lts-6_10 = packages.ghc7103;
+    lts-6_11 = packages.ghc7103;
+    lts-6_12 = packages.ghc7103;
+    lts-6_13 = packages.ghc7103;
+    lts-6_14 = packages.ghc7103;
+    lts-6_15 = packages.ghc7103;
+    lts-6_16 = packages.ghc7103;
+    lts-6_17 = packages.ghc7103;
+    lts-6 = packages.lts-6_17;
 
-    lts = packages.lts-6;
+    lts-7_0 = packages.ghc801;
+    lts-7 = packages.lts-7_0;
+
+    lts = packages.lts-7;
   };
 }

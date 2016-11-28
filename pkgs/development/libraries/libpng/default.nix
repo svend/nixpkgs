@@ -3,11 +3,11 @@
 assert zlib != null;
 
 let
-  version = "1.6.23";
-  sha256 = "1wb2j8sba6g2h4vmv4pwsp93q74qw4gyqqs4b7vfjmpcv9xix4kd";
+  version = "1.6.26";
+  sha256 = "1ybkgcqqsd4iiiyv60pxjfi1csszb50bd2cxxsy3sv4q4sil6rr6";
   patch_src = fetchurl {
     url = "mirror://sourceforge/libpng-apng/libpng-${version}-apng.patch.gz";
-    sha256 = "1lvsn1kmarzpn269zgykjfmxq16zrdhpd1a75nzgclx97436x408";
+    sha256 = "0b6p2k4afvhk1svargpllcvhxb4g3p857wkqk85cks0yv42ckph1";
   };
   whenPatched = stdenv.lib.optionalString apngSupport;
 
@@ -20,7 +20,7 @@ in stdenv.mkDerivation rec {
   };
   postPatch = whenPatched "gunzip < ${patch_src} | patch -Np1";
 
-  outputs = [ "dev" "out" "man" ];
+  outputs = [ "out" "dev" "man" ];
   outputBin = "dev";
 
   propagatedBuildInputs = [ zlib ];
