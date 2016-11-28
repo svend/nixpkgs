@@ -27,6 +27,8 @@ with stdenv.lib;
     MODULE_COMPRESS_XZ y
   ''}
 
+  KERNEL_XZ y
+
   # Debugging.
   DEBUG_KERNEL y
   TIMER_STATS y
@@ -365,7 +367,9 @@ with stdenv.lib;
   ${optionalString (versionAtLeast version "3.15" && versionOlder version "4.8") ''
     MLX4_EN_VXLAN y
   ''}
-  MODVERSIONS y
+  ${optionalString (versionOlder version "4.9") ''
+    MODVERSIONS y
+  ''}
   MOUSE_PS2_ELANTECH y # Elantech PS/2 protocol extension
   MTRR_SANITIZER y
   NET_FC y # Fibre Channel driver support
