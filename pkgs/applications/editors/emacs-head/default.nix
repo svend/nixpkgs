@@ -1,12 +1,13 @@
-{ stdenv, lib, fetchgit, ncurses, xlibsWrapper, libXaw, libXpm, Xaw3d
+{ stdenv, lib, fetchgit, fetchurl, ncurses, xlibsWrapper, libXaw, libXpm, Xaw3d
 , pkgconfig, gettext, libXft, dbus, libpng, libjpeg, libungif
-, libtiff, librsvg, texinfo, gconf, libxml2, imagemagick, gnutls
+, libtiff, librsvg, gconf, libxml2, imagemagick, gnutls, libselinux
 , alsaLib, cairo, acl, gpm, AppKit, CoreWLAN, Kerberos, GSS, ImageIO
-, autoconf, automake
 , withX ? !stdenv.isDarwin
+, withGTK2 ? true, gtk2 ? null
 , withGTK3 ? false, gtk3 ? null
 , withXwidgets ? false, webkitgtk24x ? null, wrapGAppsHook ? null, glib_networking ? null
-, withGTK2 ? true, gtk2
+, withCsrc ? true
+, srcRepo ? false, autoconf ? null, automake ? null, texinfo ? null
 }:
 
 assert (libXft != null) -> libpng != null;      # probably a bug
@@ -19,20 +20,19 @@ assert withXwidgets -> withGTK3 && webkitgtk24x != null;
 
 let
   toolkit =
-    if withGTK3 then "gtk3"
-    else if withGTK2 then "gtk2"
+    if withGTK2 then "gtk2"
+    else if withGTK3 then "gtk3"
     else "lucid";
 in
-
 stdenv.mkDerivation rec {
+  name = "emacs-${version}${versionModifier}";
+  version = "25.1";
+  versionModifier = "-git-${srcDate}-${builtins.substring 0 7 srcRev}";
+
   # nix-prefetch-git --rev refs/heads/emacs-25 git://git.sv.gnu.org/emacs.git
   srcRev = "1229cc4ae640ea1fd9fafbb0bd64e72fc07994f8";
   srcSha = "19720kyni12pk4vbnngml35m59wx5z539qy3nvlajr24vjjirxzk";
   srcDate = "2016-09-17";
-
-  name = "emacs-25.0-git-${srcDate}-${builtins.substring 0 7 srcRev}";
-
-  builder = ./builder.sh;
 
   src = fetchgit {
     url = "git://git.sv.gnu.org/emacs.git";
@@ -40,58 +40,92 @@ stdenv.mkDerivation rec {
     sha256 = srcSha;
   };
 
-  patches = lib.optionals stdenv.isDarwin [
-    ./at-fdcwd.patch
+  patches = (lib.optional stdenv.isDarwin ./at-fdcwd.patch) ++ [
+    ## Fixes a segfault in emacs 25.1
+    ## http://lists.gnu.org/archive/html/emacs-devel/2016-10/msg00917.html
+    ## https://debbugs.gnu.org/cgi/bugreport.cgi?bug=24358
+    (fetchurl {
+      url = http://git.savannah.gnu.org/cgit/emacs.git/patch/?id=9afea93ed536fb9110ac62b413604cf4c4302199;
+      sha256 = "1iifyfqh7qfdfsrpqgz2l7z0l7alvma57jlklyq258qyjg0pc8n4"; })
+    (fetchurl {
+      url = http://git.savannah.gnu.org/cgit/emacs.git/patch/?id=71ca4f6a43bad06192cbc4bb8c7a2d69c179b7b0;
+      sha256 = "0vadqvcigca0j891yis1mhjn18rg4l9qj621q6vzip46ka6qig0d"; })
+    (fetchurl {
+      url = http://git.savannah.gnu.org/cgit/emacs.git/patch/?id=1047496722a58ef5b736dae64d32adeb58c5055c;
+      sha256 = "01lfa89qw7y0spcy57hm1ymijb57i6kvhb9z9impcxwza60lbi7b"; })
+    (fetchurl {
+      url = http://git.savannah.gnu.org/cgit/emacs.git/patch/?id=96ac0c3ebce825e60595794f99e703ec8302e240;
+      sha256 = "0bmkrm356fbwc8wsiqh2w706mq5r9q4ic4m8vzdj099ihnf121nn"; })
+    (fetchurl {
+      url = http://git.savannah.gnu.org/cgit/emacs.git/patch/?id=43986d16fb6ad78a627250e14570ea70bdb1f23a;
+      sha256 = "0kp8dgs7fjgvidhm2y84jrxad78mxi0c47jhyszj5644qqxm47cr";
+    })
   ];
 
-  postPatch = ''
-    sed -i 's|/usr/share/locale|${gettext}/share/locale|g' lisp/international/mule-cmds.el
-  '';
+  nativeBuildInputs = [ pkgconfig ]
+    ++ lib.optionals srcRepo [ autoconf automake texinfo ];
 
   buildInputs =
-    [ ncurses gconf libxml2 gnutls alsaLib pkgconfig texinfo acl gpm gettext
-      autoconf automake ]
-    ++ stdenv.lib.optional stdenv.isLinux dbus
-    ++ stdenv.lib.optionals stdenv.isDarwin
-       [ libpng libjpeg libungif libtiff librsvg imagemagick ]
-    ++ stdenv.lib.optionals withX
+    [ ncurses gconf libxml2 gnutls alsaLib acl gpm gettext ]
+    ++ lib.optionals stdenv.isLinux [ dbus libselinux ]
+    ++ lib.optionals withX
       [ xlibsWrapper libXaw Xaw3d libXpm libpng libjpeg libungif libtiff librsvg libXft
         imagemagick gconf ]
-    ++ stdenv.lib.optional (withX && withGTK2) gtk2
-    ++ stdenv.lib.optional (withX && withGTK3) gtk3
-    ++ stdenv.lib.optional (stdenv.isDarwin && withX) cairo
-    ++ stdenv.lib.optionals withXwidgets [webkitgtk24x wrapGAppsHook glib_networking];
+    ++ lib.optionals stdenv.isDarwin
+       [ libpng libjpeg libungif libtiff librsvg imagemagick ]
+    ++ lib.optional (withX && withGTK2) gtk2
+    ++ lib.optional (withX && withGTK3) gtk3
+    ++ lib.optional (stdenv.isDarwin && withX) cairo
+    ++ lib.optionals withXwidgets [ webkitgtk24x wrapGAppsHook glib_networking ];
 
-  propagatedBuildInputs = stdenv.lib.optionals stdenv.isDarwin [ AppKit GSS ImageIO ];
+  propagatedBuildInputs = lib.optionals stdenv.isDarwin [ AppKit GSS ImageIO ];
 
   hardeningDisable = [ "format" ];
 
-  configureFlags =
-    (if stdenv.isDarwin
+  configureFlags = [ "--with-modules" ] ++
+   (if stdenv.isDarwin
       then [ "--with-ns" "--disable-ns-self-contained" ]
     else if withX
       then [ "--with-x-toolkit=${toolkit}" "--with-xft" ]
       else [ "--with-x=no" "--with-xpm=no" "--with-jpeg=no" "--with-png=no"
              "--with-gif=no" "--with-tiff=no" ])
-    ++ stdenv.lib.optional withXwidgets "--with-xwidgets";
+    ++ lib.optional withXwidgets "--with-xwidgets";
 
-  NIX_CFLAGS_COMPILE = stdenv.lib.optionalString (stdenv.isDarwin && withX)
-    "-I${cairo.dev}/include/cairo";
+  preConfigure = lib.optionalString srcRepo ''
+    ./autogen.sh
+  '' + ''
+    substituteInPlace lisp/international/mule-cmds.el \
+      --replace /usr/share/locale ${gettext}/share/locale
 
-  preBuild = ''
-    find . -name '*.elc' -delete
+    for makefile_in in $(find . -name Makefile.in -print); do
+        substituteInPlace $makefile_in --replace /bin/pwd pwd
+    done
   '';
 
+  installTargets = "tags install";
+
   postInstall = ''
-    mkdir -p $out/share/emacs/site-lisp/
+    mkdir -p $out/share/emacs/site-lisp
     cp ${./site-start.el} $out/share/emacs/site-lisp/site-start.el
-  '' + stdenv.lib.optionalString stdenv.isDarwin ''
+    $out/bin/emacs --batch -f batch-byte-compile $out/share/emacs/site-lisp/site-start.el
+
+    rm -rf $out/var
+    rm -rf $out/share/emacs/${version}/site-lisp
+  '' + lib.optionalString withCsrc ''
+    for srcdir in src lisp lwlib ; do
+      dstdir=$out/share/emacs/${version}/$srcdir
+      mkdir -p $dstdir
+      find $srcdir -name "*.[chm]" -exec cp {} $dstdir \;
+      cp $srcdir/TAGS $dstdir
+      echo '((nil . ((tags-file-name . "TAGS"))))' > $dstdir/.dir-locals.el
+    done
+  '' + lib.optionalString stdenv.isDarwin ''
     mkdir -p $out/Applications
     mv nextstep/Emacs.app $out/Applications
   '';
 
   meta = with stdenv.lib; {
-    description = "GNU Emacs 25 (pre), the extensible, customizable text editor";
+    description = "The extensible, customizable GNU text editor";
     homepage    = http://www.gnu.org/software/emacs/;
     license     = licenses.gpl3Plus;
     maintainers = with maintainers; [ chaoflow lovek323 peti the-kenny jwiegley ];
