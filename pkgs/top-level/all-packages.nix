@@ -429,9 +429,7 @@ in
 
   arandr = callPackage ../tools/X11/arandr { };
 
-  arangodb = callPackage ../servers/nosql/arangodb {
-    inherit (pythonPackages) gyp;
-  };
+  arangodb = callPackage ../servers/nosql/arangodb { };
 
   arcanist = callPackage ../development/tools/misc/arcanist {};
 
@@ -475,9 +473,9 @@ in
 
   avfs = callPackage ../tools/filesystems/avfs { };
 
-  awscli = pythonPackages.awscli;
+  awscli = pythonPackages.awscli; # Should be moved out of python-packages.nix
 
-  aws_shell = pythonPackages.aws_shell;
+  aws_shell = python2Packages.aws_shell; # Should be moved out of python-packages.nix
 
   azure-cli = nodePackages.azure-cli;
 
@@ -516,6 +514,10 @@ in
   djmount = callPackage ../tools/filesystems/djmount { };
 
   elvish = callPackage ../shells/elvish { };
+
+  encryptr = callPackage ../tools/security/encryptr {
+    gconf = gnome2.GConf;
+ };
 
   enpass = callPackage ../tools/security/enpass { };
 
@@ -630,7 +632,7 @@ in
 
   bins = callPackage ../tools/graphics/bins { };
 
-  bitbucket-cli = pythonPackages.bitbucket-cli;
+  bitbucket-cli = python2Packages.bitbucket-cli;
 
   blink = callPackage ../applications/networking/instant-messengers/blink { };
 
@@ -1393,7 +1395,7 @@ in
 
   ddrescue = callPackage ../tools/system/ddrescue { };
 
-  deluge = pythonPackages.deluge;
+  deluge = python2Packages.deluge; # Package should be moved out of python-packages.nix
 
   desktop_file_utils = callPackage ../tools/misc/desktop-file-utils { };
 
@@ -1607,11 +1609,13 @@ in
 
   f2fs-tools = callPackage ../tools/filesystems/f2fs-tools { };
 
-  Fabric = pythonPackages.Fabric;
+  Fabric = python2Packages.Fabric;
 
   fail2ban = callPackage ../tools/security/fail2ban { };
 
   fakeroot = callPackage ../tools/system/fakeroot { };
+
+  fakeroute = callPackage ../tools/networking/fakeroute { };
 
   fakechroot = callPackage ../tools/system/fakechroot { };
 
@@ -3324,6 +3328,8 @@ in
 
   polkit_gnome = callPackage ../tools/security/polkit-gnome { };
 
+  polysh = callPackage ../tools/networking/polysh { };
+
   ponysay = callPackage ../tools/misc/ponysay { };
 
   popfile = callPackage ../tools/text/popfile { };
@@ -3677,6 +3683,8 @@ in
   sipsak = callPackage ../tools/networking/sipsak { };
 
   skippy-xd = callPackage ../tools/X11/skippy-xd {};
+
+  sks = callPackage ../servers/sks { };
 
   skydns = callPackage ../servers/skydns { };
 
@@ -5207,14 +5215,16 @@ in
   };
 
   rust = rustStable;
+  rustcNightlyBin = lowPrio (callPackage ../development/compilers/rust/nightlyBin.nix {});
   rustStable = callPackage ../development/compilers/rust {};
   rustBeta = callPackage ../development/compilers/rust/beta.nix {};
-  rustUnstable = callPackage ../development/compilers/rust/head.nix {
+  rustNightly = callPackage ../development/compilers/rust/nightly.nix {
     rustPlatform = recurseIntoAttrs (makeRustPlatform rustBeta);
   };
 
   cargo = rust.cargo;
   rustc = rust.rustc;
+
   rustPlatform = recurseIntoAttrs (makeRustPlatform rust);
 
   makeRustPlatform = rust: lib.fix (self:
@@ -5705,7 +5715,7 @@ in
     ruby_2_0_0
     ruby_2_1_10
     ruby_2_2_5
-    ruby_2_3_1;
+    ruby_2_3_3;
 
   # Ruby aliases
   ruby = ruby_2_3;
@@ -5713,7 +5723,7 @@ in
   ruby_2_0 = ruby_2_0_0;
   ruby_2_1 = ruby_2_1_10;
   ruby_2_2 = ruby_2_2_5;
-  ruby_2_3 = ruby_2_3_1;
+  ruby_2_3 = ruby_2_3_3;
 
   scsh = callPackage ../development/interpreters/scsh { };
 
@@ -10008,6 +10018,8 @@ in
 
   sabnzbd = callPackage ../servers/sabnzbd { };
 
+  bftpd = callPackage ../servers/ftp/bftpd {};
+
   bind = callPackage ../servers/dns/bind { };
   dnsutils = bind.dnsutils;
 
@@ -10262,7 +10274,7 @@ in
   riak = callPackage ../servers/nosql/riak/2.1.1.nix { };
 
   riak-cs = callPackage ../servers/nosql/riak-cs/2.1.1.nix {
-    erlang = erlang_basho_R16B03;  
+    erlang = erlang_basho_R16B03;
   };
 
   stanchion = callPackage ../servers/nosql/riak-cs/stanchion.nix {
@@ -10347,6 +10359,7 @@ in
   prom2json = callPackage ../servers/monitoring/prometheus/prom2json.nix { };
   prometheus = callPackage ../servers/monitoring/prometheus { };
   prometheus-alertmanager = callPackage ../servers/monitoring/prometheus/alertmanager.nix { };
+  prometheus-blackbox-exporter = callPackage ../servers/monitoring/prometheus/blackbox-exporter.nix { };
   prometheus-cli = callPackage ../servers/monitoring/prometheus/cli.nix { };
   prometheus-collectd-exporter = callPackage ../servers/monitoring/prometheus/collectd-exporter.nix { };
   prometheus-haproxy-exporter = callPackage ../servers/monitoring/prometheus/haproxy-exporter.nix { };
@@ -10767,7 +10780,7 @@ in
   fatrace = callPackage ../os-specific/linux/fatrace { };
 
   ffadoFull = callPackage ../os-specific/linux/ffado {
-    inherit (pythonPackages) python pyqt4 dbus-python;
+    inherit (python2Packages) python pyqt4 dbus-python;
   };
   libffado = ffadoFull.override { prefix = "lib"; };
 
@@ -11191,15 +11204,17 @@ in
   linux_grsec_nixos = callPackage ../build-support/grsecurity {
     inherit (lib) overrideDerivation;
     kernel = callPackage ../os-specific/linux/kernel/linux-grsecurity.nix {
-      kernelPatches = with self.kernelPatches; [ bridge_stp_helper ]
-        ++ lib.optionals ((platform.kernelArch or null) == "mips")
+      kernelPatches = with self.kernelPatches; [
+        bridge_stp_helper
+        modinst_arg_list_too_long
+      ] ++ lib.optionals ((platform.kernelArch or null) == "mips")
         [ kernelPatches.mips_fpureg_emu
           kernelPatches.mips_fpu_sigill
           kernelPatches.mips_ext3_n32
         ];
     };
     grsecPatch = self.kernelPatches.grsecurity_testing;
-    kernelPatches = with self.kernelPatches; [ grsecurity_nixos_kmod grsecurity_modinst ];
+    kernelPatches = [ self.kernelPatches.grsecurity_nixos_kmod ];
     extraConfig = callPackage ../os-specific/linux/kernel/grsecurity-nixos-config.nix { };
   };
 
@@ -11314,6 +11329,8 @@ in
   open-vm-tools = callPackage ../applications/virtualization/open-vm-tools {
     inherit (gnome2) gtk gtkmm;
   };
+
+  delve = callPackage ../development/tools/delve { };
 
   go-bindata = callPackage ../development/tools/go-bindata { };
 
@@ -11450,6 +11467,8 @@ in
     rcinit = "/etc/rc.d/rc.init";
     rcshutdown = "/etc/rc.d/rc.shutdown";
   };
+
+  skopeo = callPackage ../development/tools/skopeo { };
 
   smem = callPackage ../os-specific/linux/smem { };
 
@@ -12321,9 +12340,7 @@ in
 
   calcurse = callPackage ../applications/misc/calcurse { };
 
-  calibre = qt5.callPackage ../applications/misc/calibre {
-    inherit (pythonPackages) pyqt5 sip;
-  };
+  calibre = qt5.callPackage ../applications/misc/calibre { };
 
   camlistore = callPackage ../applications/misc/camlistore { };
 
@@ -14843,7 +14860,6 @@ in
 
   thunderbird = callPackage ../applications/networking/mailreaders/thunderbird {
     inherit (gnome2) libIDL;
-    inherit (pythonPackages) pysqlite;
     libpng = libpng_apng;
   };
 
