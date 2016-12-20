@@ -12,6 +12,11 @@
 attrs // {
   buildInputs = buildInputs ++ [ bootstrapped-pip ];
 
+  configurePhase = attrs.configurePhase or ''
+    runHook preConfigure
+    runHook postConfigure
+  '';
+
   installPhase = attrs.installPhase or ''
     runHook preInstall
 
@@ -19,7 +24,7 @@ attrs // {
     export PYTHONPATH="$out/${python.sitePackages}:$PYTHONPATH"
 
     pushd dist
-    ${bootstrapped-pip}/bin/pip install *.whl --no-index --prefix=$out --no-cache ${toString installFlags}
+    ${bootstrapped-pip}/bin/pip install *.whl --no-index --prefix=$out --no-cache ${toString installFlags} --build tmpbuild
     popd
 
     runHook postInstall
