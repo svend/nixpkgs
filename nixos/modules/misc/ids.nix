@@ -281,6 +281,7 @@
       riak-cs = 263;
       infinoted = 264;
       keystone = 265;
+      glance = 266;
 
       # When adding a uid, make sure it doesn't match an existing gid. And don't use uids above 399!
 
@@ -467,7 +468,7 @@
       ihaskell = 189;
       i2p = 190;
       lambdabot = 191;
-      #asterisk = 192; # unused
+      asterisk = 192;
       plex = 193;
       sabnzbd = 194;
       #grafana = 196; #unused
@@ -532,6 +533,7 @@
       riak-cs = 263;
       infinoted = 264;
       keystone = 265;
+      glance = 266;
 
       # When adding a gid, make sure it doesn't match an existing
       # uid. Users and groups with the same name should have equal
