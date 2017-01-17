@@ -175,10 +175,10 @@
       }) {};
     auctex = callPackage ({ elpaBuild, fetchurl, lib }: elpaBuild {
         pname = "auctex";
-        version = "11.89.8";
+        version = "11.90.0";
         src = fetchurl {
-          url = "https://elpa.gnu.org/packages/auctex-11.89.8.tar";
-          sha256 = "0rilldzb7sm7k22vfifdsnxz1an94jnn1bn8gfmqkac4g9cskl46";
+          url = "https://elpa.gnu.org/packages/auctex-11.90.0.tar";
+          sha256 = "04nsndwcf0dimgc2p1yzzrymc36amzdnjg0158nxplmjkzdp28gy";
         };
         packageRequires = [];
         meta = {
@@ -295,10 +295,10 @@
       }) {};
     cl-lib = callPackage ({ elpaBuild, fetchurl, lib }: elpaBuild {
         pname = "cl-lib";
-        version = "0.5";
+        version = "0.6.1";
         src = fetchurl {
-          url = "https://elpa.gnu.org/packages/cl-lib-0.5.el";
-          sha256 = "1z4ffcx7b95bxz52586lhvdrdm5vp473g3afky9h5my3jp5cd994";
+          url = "https://elpa.gnu.org/packages/cl-lib-0.6.1.el";
+          sha256 = "00w7bw6wkig13pngijh7ns45s1jn5kkbbjaqznsdh6jk5x089j9y";
         };
         packageRequires = [];
         meta = {
@@ -619,10 +619,10 @@
     el-search = callPackage ({ elpaBuild, emacs, fetchurl, lib, stream }:
     elpaBuild {
         pname = "el-search";
-        version = "1.2.1";
+        version = "1.2.3";
         src = fetchurl {
-          url = "https://elpa.gnu.org/packages/el-search-1.2.1.tar";
-          sha256 = "1a5gqcl9v0ppizz0c61rcpahym3vr52f8azp2pjvrxvkmx4sj8c1";
+          url = "https://elpa.gnu.org/packages/el-search-1.2.3.tar";
+          sha256 = "1d7iqr4fr0kr171fnjcm2n0bgcwzdh6jl585mwjf2zqnqszv13h0";
         };
         packageRequires = [ emacs stream ];
         meta = {
@@ -2103,10 +2103,10 @@
     ztree = callPackage ({ cl-lib ? null, elpaBuild, fetchurl, lib }:
     elpaBuild {
         pname = "ztree";
-        version = "1.0.4";
+        version = "1.0.5";
         src = fetchurl {
-          url = "https://elpa.gnu.org/packages/ztree-1.0.4.tar";
-          sha256 = "0xiiaa660s8z7901siwvmqkqz30agfzsy3zcyry2r017m3ghqjph";
+          url = "https://elpa.gnu.org/packages/ztree-1.0.5.tar";
+          sha256 = "14pbbsyav1dzz8m8waqdcmcx9bhw5g8m2kh1ahpxc3i2lfhdan1x";
         };
         packageRequires = [ cl-lib ];
         meta = {
