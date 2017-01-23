@@ -182,6 +182,8 @@ let
       inherit (pkgs) fontconfig;
     };
 
+    fpath = callPackage ../development/ocaml-modules/fpath { };
+
     functory = callPackage ../development/ocaml-modules/functory { };
 
     gen = callPackage ../development/ocaml-modules/gen { };
@@ -347,6 +349,8 @@ let
 
     ojquery = callPackage ../development/ocaml-modules/ojquery { };
 
+    omd = callPackage ../development/ocaml-modules/omd { };
+
     otfm = callPackage ../development/ocaml-modules/otfm { };
 
     otr = callPackage ../development/ocaml-modules/otr { };
@@ -413,6 +417,8 @@ let
     ocaml_extlib_maximal = callPackage ../development/ocaml-modules/extlib {
       minimal = false;
     };
+
+    ocb-stubblr = callPackage ../development/ocaml-modules/ocb-stubblr { };
 
     ocurl = callPackage ../development/ocaml-modules/ocurl { };
 

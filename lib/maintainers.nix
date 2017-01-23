@@ -27,6 +27,7 @@
   akaWolf = "Artjom Vejsel <akawolf0@gmail.com>";
   akc = "Anders Claesson <akc@akc.is>";
   algorith = "Dries Van Daele <dries_van_daele@telenet.be>";
+  alibabzo = "Alistair Bill <alistair.bill@gmail.com>";
   all = "Nix Committers <nix-commits@lists.science.uu.nl>";
   ambrop72 = "Ambroz Bizjak <ambrop7@gmail.com>";
   amiddelk = "Arie Middelkoop <amiddelk@gmail.com>";
@@ -102,6 +103,7 @@
   corngood = "David McFarland <corngood@gmail.com>";
   coroa = "Jonas Hörsch <jonas@chaoflow.net>";
   couchemar = "Andrey Pavlov <couchemar@yandex.ru>";
+  cpages = "Carles Pagès <page@ruiec.cat>";
   cransom = "Casey Ransom <cransom@hubns.net>";
   cryptix = "Henry Bubert <cryptix@riseup.net>";
   CrystalGamma = "Jona Stubbe <nixos@crystalgamma.de>";
@@ -333,6 +335,7 @@
   nicknovitski = "Nick Novitski <nixpkgs@nicknovitski.com>";
   nico202 = "Nicolò Balzarotti <anothersms@gmail.com>";
   NikolaMandic = "Ratko Mladic <nikola@mandic.email>";
+  nixy = "Andrew R. M. <andrewmiller237@gmail.com>";
   notthemessiah = "Brian Cohen <brian.cohen.88@gmail.com>";
   np = "Nicolas Pouillard <np.nix@nicolaspouillard.fr>";
   nslqqq = "Nikita Mikhailov <nslqqq@gmail.com>";
@@ -349,7 +352,6 @@
   osener = "Ozan Sener <ozan@ozansener.com>";
   otwieracz = "Slawomir Gonet <slawek@otwiera.cz>";
   oxij = "Jan Malakhovski <oxij@oxij.org>";
-  page = "Carles Pagès <page@cubata.homelinux.net>";
   paholg = "Paho Lurie-Gregg <paho@paholg.com>";
   pakhfn = "Fedor Pakhomov <pakhfn@gmail.com>";
   palo = "Ingolf Wanger <palipalo9@googlemail.com>";
