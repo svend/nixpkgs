@@ -206,7 +206,7 @@
       ripple-data-api = 186;
       mediatomb = 187;
       rdnssd = 188;
-      ihaskell = 189;
+      # ihaskell = 189; # unused
       i2p = 190;
       lambdabot = 191;
       asterisk = 192;
@@ -284,6 +284,8 @@
       glance = 266;
       couchpotato = 267;
       gogs = 268;
+      pdns-recursor = 269;
+      kresd = 270;
 
       # When adding a uid, make sure it doesn't match an existing gid. And don't use uids above 399!
 
@@ -467,7 +469,7 @@
       #ripple-data-api = 186; #unused
       mediatomb = 187;
       #rdnssd = 188; # unused
-      ihaskell = 189;
+      # ihaskell = 189; # unused
       i2p = 190;
       lambdabot = 191;
       asterisk = 192;
@@ -538,6 +540,7 @@
       glance = 266;
       couchpotato = 267;
       gogs = 268;
+      kresd = 270;
 
       # When adding a gid, make sure it doesn't match an existing
       # uid. Users and groups with the same name should have equal

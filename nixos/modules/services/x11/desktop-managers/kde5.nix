@@ -199,10 +199,7 @@ in
 
       environment.pathsToLink = [ "/share" ];
 
-      environment.etc = singleton {
-        source = "${pkgs.xkeyboard_config}/etc/X11/xkb";
-        target = "X11/xkb";
-      };
+      services.xserver.exportConfiguration = true;
 
       environment.variables =
         {
@@ -248,6 +245,11 @@ in
       };
 
       security.pam.services.kde = { allowNullPassword = true; };
+
+      # use kimpanel as the default IBus panel
+      i18n.inputMethod.ibus.panel =
+        lib.mkDefault
+        "${pkgs.kde5.plasma-desktop}/lib/libexec/kimpanel-ibus-panel";
 
     })
   ];
