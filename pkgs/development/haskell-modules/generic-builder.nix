@@ -9,10 +9,11 @@
 , src ? fetchurl { url = "mirror://hackage/${pname}-${version}.tar.gz"; inherit sha256; }
 , buildDepends ? [], setupHaskellDepends ? [], libraryHaskellDepends ? [], executableHaskellDepends ? []
 , buildTarget ? ""
-, buildTools ? [], libraryToolDepends ? [], executableToolDepends ? [], testToolDepends ? []
+, buildTools ? [], libraryToolDepends ? [], executableToolDepends ? [], testToolDepends ? [], benchToolDepends ? []
 , configureFlags ? []
 , description ? ""
 , doCheck ? !isCross && (stdenv.lib.versionOlder "7.4" ghc.version)
+, doBench ? false
 , doHoogle ? true
 , editedCabalFile ? null
 , enableLibraryProfiling ? false
@@ -20,7 +21,8 @@
 # TODO enable shared libs for cross-compiling
 , enableSharedExecutables ? !isCross && (((ghc.isGhcjs or false) || stdenv.lib.versionOlder "7.7" ghc.version))
 , enableSharedLibraries ? !isCross && (((ghc.isGhcjs or false) || stdenv.lib.versionOlder "7.7" ghc.version))
-, enableSplitObjs ? !stdenv.isDarwin # http://hackage.haskell.org/trac/ghc/ticket/4013
+, enableSplitObjs ? null # OBSOLETE, use enableDeadCodeElimination
+, enableDeadCodeElimination ? (!stdenv.isDarwin)  # TODO: use -dead_strip  for darwin
 , enableStaticLibraries ? true
 , extraLibraries ? [], librarySystemDepends ? [], executableSystemDepends ? []
 , homepage ? "http://hackage.haskell.org/package/${pname}"
@@ -31,11 +33,13 @@
 , jailbreak ? false
 , license
 , maintainers ? []
+, doCoverage ? false
 # TODO Do we care about haddock when cross-compiling?
 , doHaddock ? !isCross && (!stdenv.isDarwin || stdenv.lib.versionAtLeast ghc.version "7.8")
 , passthru ? {}
-, pkgconfigDepends ? [], libraryPkgconfigDepends ? [], executablePkgconfigDepends ? [], testPkgconfigDepends ? []
+, pkgconfigDepends ? [], libraryPkgconfigDepends ? [], executablePkgconfigDepends ? [], testPkgconfigDepends ? [], benchPkgconfigDepends ? []
 , testDepends ? [], testHaskellDepends ? [], testSystemDepends ? []
+, benchDepends ? [], benchHaskellDepends ? [], benchSystemDepends ? []
 , testTarget ? ""
 , broken ? false
 , preCompileBuildDriver ? "", postCompileBuildDriver ? ""
@@ -53,10 +57,12 @@
 } @ args:
 
 assert editedCabalFile != null -> revision != null;
+# OBSOLETE, use enableDeadCodeElimination
+assert enableSplitObjs == null;
 
 let
 
-  inherit (stdenv.lib) optional optionals optionalString versionOlder
+  inherit (stdenv.lib) optional optionals optionalString versionOlder versionAtLeast
                        concatStringsSep enableFeature optionalAttrs toUpper;
 
   isGhcjs = ghc.isGhcjs or false;
@@ -108,13 +114,16 @@ let
     (optionalString (enableSharedExecutables && stdenv.isDarwin) "--ghc-option=-optl=-Wl,-headerpad_max_install_names")
     (optionalString enableParallelBuilding "--ghc-option=-j$NIX_BUILD_CORES")
     (optionalString useCpphs "--with-cpphs=${cpphs}/bin/cpphs --ghc-options=-cpp --ghc-options=-pgmP${cpphs}/bin/cpphs --ghc-options=-optP--cpp")
-    (enableFeature enableSplitObjs "split-objs")
+    (enableFeature (enableDeadCodeElimination && (versionAtLeast "8.0.1" ghc.version)) "split-objs")
     (enableFeature enableLibraryProfiling "library-profiling")
     (enableFeature enableExecutableProfiling (if versionOlder ghc.version "8" then "executable-profiling" else "profiling"))
     (enableFeature enableSharedLibraries "shared")
+    (optionalString (versionAtLeast ghc.version "7.10") (enableFeature doCoverage "coverage"))
     (optionalString (isGhcjs || versionOlder "7" ghc.version) (enableFeature enableStaticLibraries "library-vanilla"))
     (optionalString (isGhcjs || versionOlder "7.4" ghc.version) (enableFeature enableSharedExecutables "executable-dynamic"))
     (optionalString (isGhcjs || versionOlder "7" ghc.version) (enableFeature doCheck "tests"))
+  ] ++ optionals (enableDeadCodeElimination && (stdenv.lib.versionOlder "8.0.1" ghc.version)) [
+     "--ghc-option=-split-sections"
   ] ++ optionals isGhcjs [
     "--with-hsc2hs=${nativeGhc}/bin/hsc2hs"
     "--ghcjs"
@@ -132,13 +141,14 @@ let
   isSystemPkg = x: !isHaskellPkg x;
 
   allPkgconfigDepends = pkgconfigDepends ++ libraryPkgconfigDepends ++ executablePkgconfigDepends ++
-                        optionals doCheck testPkgconfigDepends;
+                        optionals doCheck testPkgconfigDepends ++ optionals doBench benchPkgconfigDepends;
 
   propagatedBuildInputs = buildDepends ++ libraryHaskellDepends ++ executableHaskellDepends;
   otherBuildInputs = extraLibraries ++ librarySystemDepends ++ executableSystemDepends ++ setupHaskellDepends ++
                      buildTools ++ libraryToolDepends ++ executableToolDepends ++
                      optionals (allPkgconfigDepends != []) ([pkgconfig] ++ allPkgconfigDepends) ++
-                     optionals doCheck (testDepends ++ testHaskellDepends ++ testSystemDepends ++ testToolDepends);
+                     optionals doCheck (testDepends ++ testHaskellDepends ++ testSystemDepends ++ testToolDepends) ++
+                     optionals doBench (benchDepends ++ benchHaskellDepends ++ benchSystemDepends ++ benchToolDepends);
   allBuildInputs = propagatedBuildInputs ++ otherBuildInputs;
 
   haskellBuildInputs = stdenv.lib.filter isHaskellPkg allBuildInputs;
@@ -281,7 +291,7 @@ stdenv.mkDerivation ({
       local pkgId=$( ${gnused}/bin/sed -n -e 's|^id: ||p' $packageConfFile )
       mv $packageConfFile $packageConfDir/$pkgId.conf
     ''}
-
+    ${optionalString doCoverage "mkdir -p $out/share && cp -r dist/hpc $out/share"}
     ${optionalString (enableSharedExecutables && isExecutable && !isGhcjs && stdenv.isDarwin && stdenv.lib.versionOlder ghc.version "7.10") ''
       for exe in "$out/bin/"* ; do
         install_name_tool -add_rpath "$out/lib/ghc-${ghc.version}/${pname}-${version}" "$exe"
@@ -334,6 +344,7 @@ stdenv.mkDerivation ({
 // optionalAttrs (preBuild != "")       { inherit preBuild; }
 // optionalAttrs (postBuild != "")      { inherit postBuild; }
 // optionalAttrs (doCheck)              { inherit doCheck; }
+// optionalAttrs (doBench)              { inherit doBench; }
 // optionalAttrs (checkPhase != "")     { inherit checkPhase; }
 // optionalAttrs (preCheck != "")       { inherit preCheck; }
 // optionalAttrs (postCheck != "")      { inherit postCheck; }
