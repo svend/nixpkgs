@@ -1101,6 +1101,7 @@ with pkgs;
   davix = callPackage ../tools/networking/davix { };
 
   cantata = libsForQt5.callPackage ../applications/audio/cantata {
+    inherit vlc;
     ffmpeg = ffmpeg_2;
   };
 
@@ -8022,8 +8023,6 @@ with pkgs;
 
   libclxclient = callPackage ../development/libraries/libclxclient  { };
 
-  libcm = callPackage ../development/libraries/libcm { };
-
   libconfuse = callPackage ../development/libraries/libconfuse { };
 
   inherit (gnome3) libcroco;
@@ -8429,9 +8428,7 @@ with pkgs;
 
   libjreen = callPackage ../development/libraries/libjreen { };
 
-  libjson_rpc_cpp = callPackage ../development/libraries/libjson-rpc-cpp { };
-
-  libjson_rpc_cpp_0_2_1 = callPackage ../development/libraries/libjson-rpc-cpp/0.2.1 { };
+  libjson-rpc-cpp = callPackage ../development/libraries/libjson-rpc-cpp { };
 
   libkate = callPackage ../development/libraries/libkate { };
 
@@ -9140,7 +9137,7 @@ with pkgs;
   };
 
   opensubdiv = callPackage ../development/libraries/opensubdiv {
-    cudatoolkit = cudatoolkit8;
+    cmake = cmake_2_8;
   };
 
   openwsman = callPackage ../development/libraries/openwsman {};
@@ -10503,7 +10500,7 @@ with pkgs;
   hbase = callPackage ../servers/hbase {};
 
   hiawatha = callPackage ../servers/http/hiawatha {};
-  
+
   ircdHybrid = callPackage ../servers/irc/ircd-hybrid { };
 
   jboss = callPackage ../servers/http/jboss { };
@@ -12794,7 +12791,6 @@ with pkgs;
   bleachbit = callPackage ../applications/misc/bleachbit { };
 
   blender = callPackage  ../applications/misc/blender {
-    cudatoolkit = cudatoolkit8;
     python = python35;
   };
 
@@ -14521,10 +14517,6 @@ with pkgs;
 
   multimon-ng = callPackage ../applications/misc/multimon-ng { };
 
-  multisync = callPackage ../applications/misc/multisync {
-    inherit (gnome2) ORBit2 libbonobo libgnomeui GConf;
-  };
-
   inherit (callPackages ../applications/networking/mumble {
       avahi = avahi.override {
         withLibdnssdCompat = true;
@@ -14542,7 +14534,11 @@ with pkgs;
       else null;
   };
 
-  musescore = libsForQt55.callPackage ../applications/audio/musescore { };
+  musescore =
+    if stdenv.isDarwin then
+      callPackage ../applications/audio/musescore/darwin.nix { }
+    else
+      libsForQt55.callPackage ../applications/audio/musescore { };
 
   mutt = callPackage ../applications/networking/mailreaders/mutt { };
   mutt-with-sidebar = callPackage ../applications/networking/mailreaders/mutt {
@@ -15274,9 +15270,15 @@ with pkgs;
 
   slic3r = callPackage ../applications/misc/slic3r { };
 
-  curaengine = callPackage ../applications/misc/curaengine { };
+  curaengine_stable = callPackage ../applications/misc/curaengine/stable.nix { };
+  cura_stable = callPackage ../applications/misc/cura/stable.nix {
+    curaengine = curaengine_stable;
+  };
 
-  cura = callPackage ../applications/misc/cura { };
+  curaengine = callPackage ../applications/misc/curaengine {
+    inherit (python3.pkgs) libarcus;
+  };
+  cura = qt5.callPackage ../applications/misc/cura { };
 
   curaLulzbot = callPackage ../applications/misc/cura/lulzbot.nix { };
 
