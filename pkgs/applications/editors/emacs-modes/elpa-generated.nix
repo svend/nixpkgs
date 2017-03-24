@@ -645,10 +645,10 @@
     el-search = callPackage ({ elpaBuild, emacs, fetchurl, lib, stream }:
     elpaBuild {
         pname = "el-search";
-        version = "1.2.3";
+        version = "1.3";
         src = fetchurl {
-          url = "https://elpa.gnu.org/packages/el-search-1.2.3.tar";
-          sha256 = "1d7iqr4fr0kr171fnjcm2n0bgcwzdh6jl585mwjf2zqnqszv13h0";
+          url = "https://elpa.gnu.org/packages/el-search-1.3.tar";
+          sha256 = "0hg7jppdsaxy285bdaban1i096bjx21pqmczz7w9f3nr34n28pyn";
         };
         packageRequires = [ emacs stream ];
         meta = {
@@ -821,10 +821,10 @@
     gnorb = callPackage ({ cl-lib ? null, elpaBuild, fetchurl, lib }:
     elpaBuild {
         pname = "gnorb";
-        version = "1.1.2";
+        version = "1.1.5";
         src = fetchurl {
-          url = "https://elpa.gnu.org/packages/gnorb-1.1.2.tar";
-          sha256 = "18d5wdv33lcg96m3ljnv9zn98in27apm7bjycgq0asd2f31dvcvx";
+          url = "https://elpa.gnu.org/packages/gnorb-1.1.5.tar";
+          sha256 = "128ag8zkfxspf6szxfd7dcscm1zzzcibx7p9dpbpk036cr7m5i1p";
         };
         packageRequires = [ cl-lib ];
         meta = {
@@ -1058,27 +1058,29 @@
           license = lib.licenses.free;
         };
       }) {};
-    lmc = callPackage ({ elpaBuild, fetchurl, lib }: elpaBuild {
+    lmc = callPackage ({ cl-lib ? null, elpaBuild, emacs, fetchurl, lib }:
+    elpaBuild {
         pname = "lmc";
         version = "1.4";
         src = fetchurl {
           url = "https://elpa.gnu.org/packages/lmc-1.4.el";
           sha256 = "0fm4sclx9gg0d0615smz105x320sk45y4ivpjk3nbc67c5l0sh2h";
         };
-        packageRequires = [];
+        packageRequires = [ cl-lib emacs ];
         meta = {
           homepage = "https://elpa.gnu.org/packages/lmc.html";
           license = lib.licenses.free;
         };
       }) {};
-    load-dir = callPackage ({ elpaBuild, fetchurl, lib }: elpaBuild {
+    load-dir = callPackage ({ cl-lib ? null, elpaBuild, fetchurl, lib }:
+    elpaBuild {
         pname = "load-dir";
-        version = "0.0.3";
+        version = "0.0.5";
         src = fetchurl {
-          url = "https://elpa.gnu.org/packages/load-dir-0.0.3.el";
-          sha256 = "0w5rdc6gr7nm7r0d258mp5sc06n09mmz7kjg8bd3sqnki8iz7s32";
+          url = "https://elpa.gnu.org/packages/load-dir-0.0.5.el";
+          sha256 = "1575ipn155nzzb5yghblxc7v1vpq4i16w1ff7y56qw2498ligpc5";
         };
-        packageRequires = [];
+        packageRequires = [ cl-lib ];
         meta = {
           homepage = "https://elpa.gnu.org/packages/load-dir.html";
           license = lib.licenses.free;

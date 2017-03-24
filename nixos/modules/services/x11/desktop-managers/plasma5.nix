@@ -182,20 +182,15 @@ in
 
       environment.variables = {
         # Enable GTK applications to load SVG icons
-        GST_PLUGIN_SYSTEM_PATH_1_0 =
-          lib.makeSearchPath "/lib/gstreamer-1.0"
-          (builtins.map (pkg: pkg.out) (with pkgs.gst_all_1; [
-            gstreamer
-            gst-plugins-base
-            gst-plugins-good
-            gst-plugins-ugly
-            gst-plugins-bad
-            gst-libav # for mp3 playback
-          ]));
         GDK_PIXBUF_MODULE_FILE = "${pkgs.librsvg.out}/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache";
       };
 
       fonts.fonts = with pkgs; [ noto-fonts hack-font ];
+      fonts.fontconfig.defaultFonts = {
+        monospace = [ "Hack" "Noto Mono" ];
+        sansSerif = [ "Noto Sans" ];
+        serif = [ "Noto Serif" ];
+      };
 
       programs.ssh.askPassword = "${plasma5.ksshaskpass.out}/bin/ksshaskpass";
 
@@ -229,11 +224,6 @@ in
       security.pam.services.lightdm.enableKwallet = true;
       security.pam.services.sddm.enableKwallet = true;
       security.pam.services.slim.enableKwallet = true;
-
-      # use kimpanel as the default IBus panel
-      i18n.inputMethod.ibus.panel =
-        lib.mkDefault
-        "${plasma5.plasma-desktop}/lib/libexec/kimpanel-ibus-panel";
 
     })
   ];
