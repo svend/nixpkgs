@@ -14,6 +14,9 @@ my $su = "@su@";
 # Ensure a consistent umask.
 umask 0022;
 
+# Ensure $NIXOS_CONFIG is not set.
+$ENV{"NIXOS_CONFIG"} = "";
+
 # Parse the command line.
 
 sub showHelp {
@@ -79,7 +82,7 @@ if ($action eq "list") {
 }
 
 my $containerName = $ARGV[1] or die "$0: no container name specified\n";
-$containerName =~ /^[a-zA-Z0-9\-]+$/ or die "$0: invalid container name\n";
+$containerName =~ /^[a-zA-Z0-9_-]+$/ or die "$0: invalid container name\n";
 
 sub writeNixOSConfig {
     my ($nixosConfigFile) = @_;
@@ -267,7 +270,7 @@ if ($action eq "destroy") {
 
     safeRemoveTree($profileDir) if -e $profileDir;
     safeRemoveTree($gcRootsDir) if -e $gcRootsDir;
-    system("chattr", "-i", "$root/var/empty") if -e $root;
+    system("chattr", "-i", "$root/var/empty") if -e "$root/var/empty";
     safeRemoveTree($root) if -e $root;
     unlink($confFile) or die;
 }
