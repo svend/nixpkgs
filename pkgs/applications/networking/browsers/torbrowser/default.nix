@@ -34,6 +34,9 @@
 , gst-ffmpeg
 , gmp
 , ffmpeg
+
+# Pluggable transport dependencies
+, python27
 }:
 
 with stdenv.lib;
@@ -73,6 +76,9 @@ let
       gst-plugins-good
       gst-ffmpeg
     ];
+
+  # Library search path for the fte transport
+  fteLibPath = makeLibraryPath [ stdenv.cc.cc gmp ];
 
   # Upstream source
   version = "6.5.1";
@@ -129,6 +135,24 @@ stdenv.mkDerivation rec {
     # and torLibPath for accuracy, but this is more convenient ...
     libPath=${libPath}:$TBB_IN_STORE:$TBB_IN_STORE/TorBrowser/Tor
 
+    # Fixup paths to pluggable transports.
+    sed -i TorBrowser/Data/Tor/torrc-defaults \
+        -e "s,./TorBrowser,$TBB_IN_STORE/TorBrowser,g"
+
+    # Fixup obfs transport.  Work around patchelf failing to set
+    # interpreter for pre-compiled Go binaries by invoking the interpreter
+    # directly.
+    sed -i TorBrowser/Data/Tor/torrc-defaults \
+        -e "s|\(ClientTransportPlugin obfs2,obfs3,obfs4,scramblesuit\) exec|\1 exec $interp|" \
+
+    # Fixup fte transport
+    #
+    # Note: the script adds its dirname to search path automatically
+    sed -i TorBrowser/Tor/PluggableTransports/fteproxy.bin \
+        -e "s,/usr/bin/env python,${python27.interpreter},"
+
+    patchelf --set-rpath "${fteLibPath}" TorBrowser/Tor/PluggableTransports/fte/cDFA.so
+
     # Prepare for autoconfig.
     #
     # See https://developer.mozilla.org/en-US/Firefox/Enterprise_deployment
@@ -171,8 +195,10 @@ stdenv.mkDerivation rec {
     # having to synchronize between local state and store.
     mv TorBrowser/Data/Browser/profile.default/preferences/extension-overrides.js defaults/pref/torbrowser.js
 
-    # Hard-code paths to geoip data files, to prevent them from being
-    # copied into the local state directory.
+    # Hard-code paths to geoip data files.  TBB resolves the geoip files
+    # relative to torrc-defaults_path but if we do not hard-code them
+    # here, these paths end up being written to the torrc in the user's
+    # state dir.
     cat >>TorBrowser/Data/Tor/torrc-defaults <<EOF
     GeoIPFile $TBB_IN_STORE/TorBrowser/Data/Tor/geoip
     GeoIPv6File $TBB_IN_STORE/TorBrowser/Data/Tor/geoip6
@@ -273,6 +299,8 @@ stdenv.mkDerivation rec {
     # Install .desktop item
     mkdir -p $out/share/applications
     cp $desktopItem/share/applications"/"* $out/share/applications
+    sed -i $out/share/applications/torbrowser.desktop \
+        -e "s,Exec=.*,Exec=$out/bin/tor-browser,"
 
     # Install icons
     mkdir -p $out/share/pixmaps
