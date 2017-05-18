@@ -130,6 +130,7 @@
   ./security/wrappers/default.nix
   ./security/sudo.nix
   ./services/admin/salt/master.nix
+  ./services/admin/salt/minion.nix
   ./services/amqp/activemq/default.nix
   ./services/amqp/rabbitmq.nix
   ./services/audio/alsa.nix
@@ -255,6 +256,7 @@
   ./services/mail/spamassassin.nix
   ./services/mail/rspamd.nix
   ./services/mail/rmilter.nix
+  ./services/mail/nullmailer.nix
   ./services/misc/apache-kafka.nix
   ./services/misc/autofs.nix
   ./services/misc/autorandr.nix

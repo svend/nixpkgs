@@ -742,7 +742,9 @@ with pkgs;
       exe=$out/libexec/${drv.pname}-${drv.version}/${drv.pname}
       install -D $out/bin/${drv.pname} $exe
       rm -rf $out/{bin,lib,share}
-      makeWrapper $exe $out/bin/${drv.pname} --prefix PATH ":" "${nix-prefetch-scripts}/bin"
+      makeWrapper $exe $out/bin/${drv.pname} \
+        --prefix PATH ":" "${nix}/bin" \
+        --prefix PATH ":" "${nix-prefetch-scripts}/bin"
       mkdir -p $out/share/bash-completion/completions
       $exe --bash-completion-script $exe >$out/share/bash-completion/completions/${drv.pname}
     '';
@@ -1138,7 +1140,6 @@ with pkgs;
   };
 
   blueman = callPackage ../tools/bluetooth/blueman {
-    inherit (gnome3) dconf gsettings_desktop_schemas;
     withPulseAudio = config.pulseaudio or true;
   };
 
@@ -1850,7 +1851,10 @@ with pkgs;
 
   fdk_aac = callPackage ../development/libraries/fdk-aac { };
 
-  flameGraph = callPackage ../development/tools/flamegraph { };
+  flamegraph = callPackage ../development/tools/flamegraph { };
+
+  # Awkward historical capitalization for flamegraph. Remove eventually
+  flameGraph = flamegraph;
 
   flvtool2 = callPackage ../tools/video/flvtool2 { };
 
@@ -2574,6 +2578,8 @@ with pkgs;
 
   knockknock = callPackage ../tools/security/knockknock { };
 
+  partition-manager = libsForQt5.callPackage ../tools/misc/partition-manager { };
+
   kpcli = callPackage ../tools/security/kpcli { };
 
   krename = libsForQt5.callPackage ../applications/misc/krename { };
@@ -3074,7 +3080,8 @@ with pkgs;
 
   mscgen = callPackage ../tools/graphics/mscgen { };
 
-  msf = callPackage ../tools/security/metasploit { };
+  metasploit = callPackage ../tools/security/metasploit { };
+  msf = metasploit;
 
   ms-sys = callPackage ../tools/misc/ms-sys { };
 
@@ -3326,6 +3333,8 @@ with pkgs;
   openjade = callPackage ../tools/text/sgml/openjade { };
 
   openmvg = callPackage ../applications/science/misc/openmvg { };
+
+  openmvs = callPackage ../applications/science/misc/openmvs { };
 
   openntpd = callPackage ../tools/networking/openntpd { };
 
@@ -6324,7 +6333,13 @@ with pkgs;
 
   ### DEVELOPMENT / TOOLS
 
-  activator = callPackage ../development/tools/activator { };
+  activator = throw ''
+    Typesafe Activator was removed in 2017-05-08 as the actual package reaches end of life.
+
+    See https://github.com/NixOS/nixpkgs/pull/25616
+    and http://www.lightbend.com/community/core-tools/activator-and-sbt
+    for more information.
+  '';
 
   alloy = callPackage ../development/tools/alloy { };
 
@@ -9687,6 +9702,8 @@ with pkgs;
       libva = libva-full; # also wants libva-x11
     };
 
+    kpmcore = callPackage ../development/libraries/kpmcore { };
+
     mlt = callPackage ../development/libraries/mlt/qt-5.nix {
       ffmpeg = ffmpeg_2;
     };
@@ -11729,7 +11746,6 @@ with pkgs;
   linux_rpi = callPackage ../os-specific/linux/kernel/linux-rpi.nix {
     kernelPatches = with kernelPatches; [
       bridge_stp_helper
-      DCCP_double_free_vulnerability_CVE-2017-6074
     ];
   };
 
@@ -12609,6 +12625,7 @@ with pkgs;
   fira = callPackage ../data/fonts/fira { };
 
   fira-code = callPackage ../data/fonts/fira-code { };
+  fira-code-symbols = callPackage ../data/fonts/fira-code/symbols.nix { };
 
   fira-mono = callPackage ../data/fonts/fira-mono { };
 
@@ -12732,6 +12749,8 @@ with pkgs;
 
   inherit (callPackages ../data/fonts/noto-fonts {})
     noto-fonts noto-fonts-cjk noto-fonts-emoji;
+
+  nullmailer = callPackage ../servers/mail/nullmailer { };
 
   numix-icon-theme = callPackage ../data/icons/numix-icon-theme { };
 
@@ -13050,6 +13069,7 @@ with pkgs;
   go-ethereum = self.altcoins.go-ethereum;
   ethabi = self.altcoins.ethabi;
   ethrun = self.altcoins.ethrun;
+  seth = self.altcoins.seth;
 
   stellar-core = self.altcoins.stellar-core;
 
@@ -13410,10 +13430,10 @@ with pkgs;
 
   inherit (callPackage ../applications/virtualization/docker { })
     docker_17_03
-    docker_17_04;
+    docker_17_05;
 
   docker = docker_17_03;
-  docker-edge = docker_17_04;
+  docker-edge = docker_17_05;
 
   docker-proxy = callPackage ../applications/virtualization/docker/proxy.nix { };
 
@@ -14453,9 +14473,7 @@ with pkgs;
     boost = boost155;
   };
 
-  k3b-original = lowPrio (kde4.callPackage ../applications/misc/k3b { });
-
-  k3b = kde4.callPackage ../applications/misc/k3b/wrapper.nix { };
+  k3b = kdeApplications.k3b;
 
   k9copy = libsForQt5.callPackage ../applications/video/k9copy {};
 
@@ -14540,7 +14558,7 @@ with pkgs;
     openjpeg = openjpeg_1;
   };
 
-  krusader = kde4.callPackage ../applications/misc/krusader { };
+  krusader = libsForQt5.callPackage ../applications/misc/krusader { };
 
   ksuperkey = callPackage ../tools/X11/ksuperkey { };
 
@@ -14858,6 +14876,8 @@ with pkgs;
 
   clerk = callPackage ../applications/audio/clerk { };
 
+  nbstripout = callPackage ../applications/version-management/nbstripout { };
+
   ncmpc = callPackage ../applications/audio/ncmpc { };
 
   ncmpcpp = callPackage ../applications/audio/ncmpcpp { };
@@ -15120,7 +15140,7 @@ with pkgs;
 
   openbox-menu = callPackage ../applications/misc/openbox-menu { };
 
-  openbrf = callPackage ../applications/misc/openbrf { };
+  openbrf = libsForQt5.callPackage ../applications/misc/openbrf { };
 
   opencpn = callPackage ../applications/misc/opencpn { };
 
@@ -15381,8 +15401,8 @@ with pkgs;
     qt = qt4;
   };
 
-  # 0.5.7 segfaults when opening the main panel with qt 5.7 but qt 5.8 is OK
-  qsyncthingtray = libsForQt5.callPackage ../applications/misc/qsyncthingtray { };
+  # 0.5.7 segfaults when opening the main panel with qt 5.7 and fails to compile with qt 5.8
+  qsyncthingtray = libsForQt56.callPackage ../applications/misc/qsyncthingtray { };
 
   qsynth = callPackage ../applications/audio/qsynth { };
 
