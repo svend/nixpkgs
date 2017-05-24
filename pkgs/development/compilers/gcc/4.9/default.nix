@@ -145,6 +145,9 @@ let version = "4.9.4";
         withFpu +
         withFloat +
         withMode +
+        # Ensure that -print-prog-name is able to find the correct programs.
+        " --with-as=${binutils}/bin/${cross.config}-as" +
+        " --with-ld=${binutils}/bin/${cross.config}-ld" +
         (if crossMingw && crossStageStatic then
           " --with-headers=${libcCross}/include" +
           " --with-gcc" +
@@ -169,11 +172,6 @@ let version = "4.9.4";
           else
           (if crossDarwin then " --with-sysroot=${libcCross.out}/share/sysroot"
            else                " --with-headers=${libcCross.dev}/include") +
-          # Ensure that -print-prog-name is able to find the correct programs.
-          (stdenv.lib.optionalString (crossMingw || crossDarwin) (
-            " --with-as=${binutils}/bin/${cross.config}-as" +
-            " --with-ld=${binutils}/bin/${cross.config}-ld"
-          )) +
           " --enable-__cxa_atexit" +
           " --enable-long-long" +
           (if crossMingw then
@@ -232,7 +230,7 @@ stdenv.mkDerivation ({
   libc_dev = stdenv.cc.libc_dev;
 
   postPatch =
-    if (stdenv.isGNU
+    if (stdenv.isHurd
         || (libcCross != null                  # e.g., building `gcc.crossDrv'
             && libcCross ? crossConfig
             && libcCross.crossConfig == "i586-pc-gnu")

@@ -64,9 +64,10 @@ self: super: {
   # https://git-annex.branchable.com/bugs/bash_completion_file_is_missing_in_the_6.20160527_tarball_on_hackage/
   git-annex = ((overrideCabal super.git-annex (drv: {
     src = pkgs.fetchgit {
+      name = "git-annex-${drv.version}-src";
       url = "git://git-annex.branchable.com/";
       rev = "refs/tags/" + drv.version;
-      sha256 = "0i08zxk68kbg6k0d9af97r9nr5vidsy63hx22fdp7c5jp64f967q";
+      sha256 = "1iwqxjvga0wam0dg1alwawvnz13hm7d7c9rfph0w6adrdgfmhnzc";
     };
   }))).override {
     dbus = if pkgs.stdenv.isLinux then self.dbus else null;
@@ -687,9 +688,6 @@ self: super: {
 
   # It makes no sense to have intero-nix-shim in Hackage, so we publish it here only.
   intero-nix-shim = self.callPackage ../tools/haskell/intero-nix-shim {};
-
-  # The latest Hoogle needs versions not yet in LTS Haskell 7.x.
-  hoogle = super.hoogle.override { haskell-src-exts = self.haskell-src-exts_1_19_1; };
 
   # https://github.com/Philonous/hs-stun/pull/1
   # Remove if a version > 0.1.0.1 ever gets released.
