@@ -216,6 +216,8 @@ in {
     hdf5 = pkgs.hdf5-mpi;
   };
 
+  intelhex = callPackage ../development/python-modules/intelhex { };
+
   mpi4py = callPackage ../development/python-modules/mpi4py {
     mpi = pkgs.openmpi;
   };
@@ -1184,6 +1186,15 @@ in {
     };
   };
 
+  arelle = callPackage ../development/python-modules/arelle {
+    gui = true;
+  };
+
+  arelle-headless = callPackage ../development/python-modules/arelle {
+    gui = false;
+  };
+
+
   arrow = buildPythonPackage rec {
     name = "arrow-${version}";
     version = "0.7.0";
@@ -1500,12 +1511,12 @@ in {
   in buildPythonPackage rec {
     name = "${pname}-${version}";
     pname = "awscli";
-    version = "1.11.95";
+    version = "1.11.108";
     namePrefix = "";
 
     src = fetchPypi {
       inherit pname version;
-      sha256 = "1f99cg5x5kw1p1awny64adp07rvva57srdfrbi81yl2kpw33ybjc";
+      sha256 = "1wz76hkljc25zzfa2l5jv0mbr5vx6d9ixq4sq0p3zf3l45ql6mdf";
     };
 
     # No tests included
@@ -1970,6 +1981,9 @@ in {
     };
 
     buildInputs = with self; [ docutils six ];
+
+    # Tests fail due to nix file timestamp normalization.
+    doCheck = false;
 
     meta = {
       homepage = https://github.com/botocore/bcdoc;
@@ -3039,11 +3053,11 @@ in {
   botocore = buildPythonPackage rec {
     name = "${pname}-${version}";
     pname = "botocore";
-    version = "1.5.58";
+    version = "1.5.71";
 
     src = fetchPypi {
       inherit pname version;
-      sha256 = "1kd9hngdqvpjm01amizsmsnc08h2a0dxiasdk0f4kg1pibpqdni5";
+      sha256 = "1fgg28halsy4g43wjpkbd6l0wqiwyzkd4zjrzbbyzw4dxbsf3xfm";
     };
 
     propagatedBuildInputs =
@@ -10945,6 +10959,7 @@ in {
     };
   };
 
+  flask-restplus = callPackage ../development/python-modules/flask-restplus/default.nix { };
   # Exactly 0.8.6 is required by flexget
   flask-restplus_0_8 = callPackage ../development/python-modules/flask-restplus/0.8.nix { };
 
@@ -11807,6 +11822,7 @@ in {
     };
   };
 
+  grammalecte = callPackage ../development/python-modules/grammalecte { };
 
   greenlet = buildPythonPackage rec {
     name = "greenlet-${version}";
@@ -14539,25 +14555,7 @@ in {
     };
   };
 
-  pygraphviz = buildPythonPackage rec {
-    name = "pygraphviz-${version}";
-    version = "1.4rc1";
-
-    src = pkgs.fetchurl {
-      url = "mirror://pypi/p/pygraphviz/${name}.tar.gz";
-      sha256 = "00ck696rddjnrwfnh1zw87b9xzqfm6sqjy6kqf6kmn1xwsi6f19a";
-    };
-
-    buildInputs = with self; [ doctest-ignore-unicode mock nose ];
-    propagatedBuildInputs = [ pkgs.graphviz pkgs.pkgconfig ];
-
-    meta = {
-      description = "Python interface to Graphviz graph drawing package";
-      homepage = https://github.com/pygraphviz/pygraphviz;
-      license = licenses.bsd3;
-      maintainers = with maintainers; [ matthiasbeyer ];
-    };
-  };
+  pygraphviz = callPackage ../development/python-modules/pygraphviz { };
 
   pympler = buildPythonPackage rec {
     pname = "Pympler";
@@ -20315,11 +20313,17 @@ in {
 
   pyopenssl = buildPythonPackage rec {
     name = "pyopenssl-${version}";
-    version = "16.2.0";
+    version = "17.0.0";
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/p/pyOpenSSL/pyOpenSSL-${version}.tar.gz";
-      sha256 = "0vji4yrfshs15xpczbhzhasnjrwcarsqg87n98ixnyafnyxs6ybp";
+      sha256 = "1pdg1gpmkzj8yasg6cmkhcivxcdp4c12nif88y4qvsxq5ffzxas8";
+    };
+
+    patches = pkgs.fetchpatch {
+      url = "https://github.com/pyca/pyopenssl/commit/"
+          + "a40898b5f1d472f9449a344f703fa7f90cddc21d.patch";
+      sha256 = "0bdfrhfvdfxhfknn46s4db23i3hww6ami2r1l5rfrri0pn8b8mh7";
     };
 
     preCheck = ''

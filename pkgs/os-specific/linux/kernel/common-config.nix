@@ -472,8 +472,10 @@ with stdenv.lib;
   SCHED_TRACER y
   STACK_TRACER y
 
-  ${optionalString (versionOlder version "4.11") ''
+  ${if versionOlder version "4.11" then ''
     UPROBE_EVENT? y
+  '' else ''
+    UPROBE_EVENTS? y
   ''}
 
   ${optionalString (versionAtLeast version "4.4") ''
@@ -591,7 +593,10 @@ with stdenv.lib;
   FW_LOADER_USER_HELPER_FALLBACK? n
 
   # Disable various self-test modules that have no use in a production system
-  ARM_KPROBES_TEST? n
+  ${optionalString (versionOlder version "4.9") ''
+    ARM_KPROBES_TEST? n
+  ''}
+
   ASYNC_RAID6_TEST? n
   ATOMIC64_SELFTEST? n
   BACKTRACE_SELF_TEST? n

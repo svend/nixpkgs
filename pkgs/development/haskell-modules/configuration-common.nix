@@ -37,6 +37,7 @@ self: super: {
   hasql-postgres = dontCheck super.hasql-postgres;
   hspec-expectations = dontCheck super.hspec-expectations;
   hspec = super.hspec.override { stringbuilder = dontCheck super.stringbuilder; };
+  hspec-core = super.hspec-core.override { silently = dontCheck super.silently; temporary = dontCheck super.temporary; };
   HTTP = dontCheck super.HTTP;
   nanospec = dontCheck super.nanospec;
   options = dontCheck super.options;
@@ -73,6 +74,7 @@ self: super: {
     dbus = if pkgs.stdenv.isLinux then self.dbus else null;
     fdo-notify = if pkgs.stdenv.isLinux then self.fdo-notify else null;
     hinotify = if pkgs.stdenv.isLinux then self.hinotify else self.fsnotify;
+    optparse-applicative = self.optparse-applicative_0_14_0_0;
   };
 
   # https://github.com/froozen/kademlia/issues/2
