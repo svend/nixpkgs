@@ -15,8 +15,6 @@ let
 
     buildOcaml = callPackage ../build-support/ocaml { };
 
-    acgtk = callPackage ../applications/science/logic/acgtk { };
-
     alcotest = callPackage ../development/ocaml-modules/alcotest {};
 
     angstrom = callPackage ../development/ocaml-modules/angstrom { };
@@ -113,6 +111,8 @@ let
       giflib = pkgs.giflib_4_1;
     };
     camlimages = camlimages_4_1;
+
+    benchmark = callPackage ../development/ocaml-modules/benchmark { };
 
     biniou = callPackage ../development/ocaml-modules/biniou { };
 
@@ -551,6 +551,8 @@ let
 
     ppx_tools_versioned = callPackage ../development/ocaml-modules/ppx_tools_versioned { };
 
+    ptmap = callPackage ../development/ocaml-modules/ptmap { };
+
     pycaml = callPackage ../development/ocaml-modules/pycaml { };
 
     qcheck = callPackage ../development/ocaml-modules/qcheck { };
@@ -560,6 +562,8 @@ let
     re = callPackage ../development/ocaml-modules/re { };
 
     reason = callPackage ../development/compilers/reason { };
+
+    rope = callPackage ../development/ocaml-modules/rope { };
 
     rresult = callPackage ../development/ocaml-modules/rresult { };
 

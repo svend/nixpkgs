@@ -3809,6 +3809,8 @@ in {
     };
   };
 
+  codecov = callPackage ../development/python-modules/codecov {};
+
   cogapp = buildPythonPackage rec {
     version = "2.3";
     name    = "cogapp-${version}";
@@ -7058,6 +7060,18 @@ in {
       homepage = https://github.com/gitpython-developers/GitPython;
       license = licenses.bsd3;
     };
+  };
+
+  google-compute-engine = buildPythonPackage rec {
+    version = "2.3.0";
+    name    = "google-compute-engine-${version}";
+
+    src = pkgs.fetchurl {
+      url    = "mirror://pypi/g/google-compute-engine/google-compute-engine-${version}.tar.gz";
+      sha256 = "1pjj95b3l61h8xz5kjfcgnql066cr8bq5wl480a6dxd2inw8mynf";
+    };
+
+    propagatedBuildInputs = with self; [ boto ];
   };
 
   googlecl = buildPythonPackage rec {
@@ -13407,6 +13421,8 @@ in {
     };
   };
 
+  markdownsuperscript = callPackage ../development/python-modules/markdownsuperscript {};
+
   markdown-macros = buildPythonPackage rec {
     name = "markdown-macros-${version}";
     version = "0.1.2";
@@ -13496,15 +13512,15 @@ in {
   mccabe = callPackage ../development/python-modules/mccabe { };
 
   mechanize = buildPythonPackage (rec {
-    name = "mechanize-0.2.5";
+    name = "mechanize-0.3.5";
     disabled = isPy3k;
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/m/mechanize/${name}.tar.gz";
-      sha256 = "0rj7r166i1dyrq0ihm5rijfmvhs8a04im28lv05c0c3v206v4rrf";
+      sha256 = "0rki9nl4y42q694parafcsdcdqvkdjckrbg6n0691302lfsrkyfl";
     };
 
-    propagatedBuildInputs = with self; [ clientform ];
+    propagatedBuildInputs = with self; [ clientform html5lib ];
 
     doCheck = false;
 
@@ -25153,30 +25169,7 @@ in {
     };
   };
 
-  virtualenv = buildPythonPackage rec {
-    name = "virtualenv-15.0.3";
-
-    src = pkgs.fetchurl {
-      url = "mirror://pypi/v/virtualenv/${name}.tar.gz";
-      sha256 = "6d9c760d3fc5fa0894b0f99b9de82a4647e1164f0b700a7f99055034bf548b1d";
-    };
-
-    pythonPath = [ self.recursivePthLoader ];
-
-    patches = [ ../development/python-modules/virtualenv-change-prefix.patch ];
-
-    propagatedBuildInputs = with self; [ ];
-
-    # Tarball doesn't contain tests
-    doCheck = false;
-
-    meta = {
-      description = "A tool to create isolated Python environments";
-      homepage = http://www.virtualenv.org;
-      license = licenses.mit;
-      maintainers = with maintainers; [ goibhniu ];
-    };
-  };
+  virtualenv = callPackage ../development/python-modules/virtualenv { };
 
   virtualenv-clone = buildPythonPackage rec {
     name = "virtualenv-clone-0.2.5";
@@ -30303,8 +30296,6 @@ EOF
   };
 
   uranium = callPackage ../development/python-modules/uranium { };
-
-  urlscan = callPackage ../applications/misc/urlscan { };
 
   vine = buildPythonPackage rec {
     name = "vine-${version}";

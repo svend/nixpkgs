@@ -10,7 +10,6 @@
 , zlib ? null, extraPackages ? [], extraBuildCommands ? ""
 , dyld ? null # TODO: should this be a setup-hook on dyld?
 , isGNU ? false, isClang ? cc.isClang or false, gnugrep ? null
-, hostPlatform, targetPlatform
 , runCommand ? null
 }:
 
@@ -22,12 +21,14 @@ assert !nativeTools ->
 assert !(nativeLibc && noLibc);
 assert (noLibc || nativeLibc) == (libc == null);
 
-assert targetPlatform != hostPlatform -> runCommand != null;
+assert stdenv.targetPlatform != stdenv.hostPlatform -> runCommand != null;
 
 # For ghdl (the vhdl language provider to gcc) we need zlib in the wrapper.
 assert cc.langVhdl or false -> zlib != null;
 
 let
+  inherit (stdenv) hostPlatform targetPlatform;
+
   # Prefix for binaries. Customarily ends with a dash separator.
   #
   # TODO(@Ericson2314) Make unconditional, or optional but always true by
@@ -359,7 +360,13 @@ stdenv.mkDerivation {
       if [[ "$($ldPath/${prefix}ld -z relro 2>&1 || true)" =~ un(recognized|known)\ option ]]; then
         hardening_unsupported_flags+=" relro"
       fi
+    ''
 
+    + optionalString hostPlatform.isCygwin ''
+      hardening_unsupported_flags+=" pic"
+    ''
+
+    + ''
       substituteAll ${preWrap ./add-flags.sh} $out/nix-support/add-flags.sh
       substituteAll ${preWrap ./add-hardening.sh} $out/nix-support/add-hardening.sh
       cp -p ${preWrap ./utils.sh} $out/nix-support/utils.sh
