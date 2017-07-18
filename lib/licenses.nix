@@ -45,6 +45,11 @@ lib.mapAttrs (n: v: v // { shortName = n; }) rec {
     fullName = "Apple Public Source License 2.0";
   };
 
+  arphicpl = {
+    fullName = "Arphic Public License";
+    url = https://www.freedesktop.org/wiki/Arphic_Public_License/;
+  };
+
   artistic1 = spdx {
     spdxId = "Artistic-1.0";
     fullName = "Artistic License 1.0";
@@ -189,6 +194,11 @@ lib.mapAttrs (n: v: v // { shortName = n; }) rec {
     fullName = "Seiko Epson Corporation Software License Agreement for Linux";
     url = https://download.ebz.epson.net/dsc/du/02/eula/global/LINUX_EN.html;
     free = false;
+  };
+
+  eupl11 = spdx {
+    spdxId = "EUPL-1.1";
+    fullname = "European Union Public License 1.1";
   };
 
   fdl12 = spdx {
@@ -352,6 +362,11 @@ lib.mapAttrs (n: v: v // { shortName = n; }) rec {
     fullName = "Lucent Public License v1.02";
   };
 
+  miros = {
+    fullname = "MirOS License";
+    url = https://opensource.org/licenses/MirOS;
+  };
+
   # spdx.org does not (yet) differentiate between the X11 and Expat versions
   # for details see http://en.wikipedia.org/wiki/MIT_License#Various_versions
   mit = spdx {
@@ -372,6 +387,11 @@ lib.mapAttrs (n: v: v // { shortName = n; }) rec {
   mpl20 = spdx {
     spdxId = "MPL-2.0";
     fullName = "Mozilla Public License 2.0";
+  };
+
+  mspl = spdx {
+    spdxId = "MS-PL";
+    fullName = "Microsoft Public License";
   };
 
   msrla = {
@@ -449,6 +469,12 @@ lib.mapAttrs (n: v: v // { shortName = n; }) rec {
     fullName = "Sleepycat License";
   };
 
+  smail = {
+    shortName = "smail";
+    fullName = "SMAIL General Public License";
+    url = http://metadata.ftp-master.debian.org/changelogs/main/d/debianutils/debianutils_4.8.1_copyright;
+  };
+
   tcltk = spdx {
     spdxId = "TCL";
     fullName = "TCL/TK License";
@@ -508,6 +534,11 @@ lib.mapAttrs (n: v: v // { shortName = n; }) rec {
   wtfpl = spdx {
     spdxId = "WTFPL";
     fullName = "Do What The F*ck You Want To Public License";
+  };
+
+  wxWindows = spdx {
+    spdxId = "WXwindows";
+    fullName = "wxWindows Library Licence, Version 3.1";
   };
 
   zlib = spdx {

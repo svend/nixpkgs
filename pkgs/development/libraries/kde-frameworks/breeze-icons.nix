@@ -1,10 +1,9 @@
-{ kdeFramework, lib, ecm, qtsvg }:
+{ mkDerivation, lib, extra-cmake-modules, qtsvg }:
 
-kdeFramework {
+mkDerivation {
   name = "breeze-icons";
   meta = { maintainers = [ lib.maintainers.ttuegel ]; };
-  outputs = [ "out" ];
-  nativeBuildInputs = [ ecm ];
+  nativeBuildInputs = [ extra-cmake-modules ];
   buildInputs = [ qtsvg ];
-  propagatedUserEnvPkgs = [ qtsvg.out ];
+  outputs = [ "out" ]; # only runtime outputs
 }

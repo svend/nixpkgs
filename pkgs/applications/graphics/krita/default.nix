@@ -1,44 +1,45 @@
-{ stdenv, lib, fetchurl, cmake, extra-cmake-modules, makeQtWrapper
+{ mkDerivation, lib, fetchurl, fetchpatch, cmake, extra-cmake-modules
 , karchive, kconfig, kwidgetsaddons, kcompletion, kcoreaddons
 , kguiaddons, ki18n, kitemmodels, kitemviews, kwindowsystem
 , kio, kcrash
 , boost, libraw, fftw, eigen, exiv2, lcms2, gsl, openexr
 , openjpeg, opencolorio, vc, poppler_qt5, curl, ilmbase
+, qtmultimedia, qtx11extras
 }:
 
-stdenv.mkDerivation rec {
+mkDerivation rec {
   name = "krita-${version}";
-  version = "3.0.1.1";
+  version = "3.1.4";
 
   src = fetchurl {
     url = "http://download.kde.org/stable/krita/${version}/${name}.tar.gz";
-    sha256 = "0v58p9am2gsrgn5nhynvdg1a7v8d9kcsswb1962r8ijszm3fav5k";
+    sha256 = "1al27v17s70hihk2mcmz3l2g6rl9qzpxaifapdfpkyias6q3f63l";
   };
 
-  nativeBuildInputs = [ cmake extra-cmake-modules makeQtWrapper ];
+  nativeBuildInputs = [ cmake extra-cmake-modules ];
 
   buildInputs = [
     karchive kconfig kwidgetsaddons kcompletion kcoreaddons kguiaddons
     ki18n kitemmodels kitemviews kwindowsystem kio kcrash
     boost libraw fftw eigen exiv2 lcms2 gsl openexr
     openjpeg opencolorio vc poppler_qt5 curl ilmbase
+    qtmultimedia qtx11extras
+  ];
+
+  patches = [
+    (fetchpatch {
+      url = "https://github.com/KDE/krita/commit/2f59d0d1.patch";
+      sha256 = "0sdlcjn6i3faln3c0aczw3pg4pvmccgszmy8n914mgsccrqrazlr";
+    })
   ];
 
   NIX_CFLAGS_COMPILE = [ "-I${ilmbase.dev}/include/OpenEXR" ];
 
-  enableParallelBuilding = true;
-
-  postInstall = ''
-    for i in $out/bin/*; do
-      wrapQtProgram "$i"
-    done
-  '';
-
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = "A free an open source painting application";
     homepage = "https://krita.org/";
     maintainers = with maintainers; [ abbradar ];
     platforms = platforms.linux;
-    licenses = licenses.gpl2;
+    license = licenses.gpl2;
   };
 }

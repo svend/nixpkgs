@@ -1,16 +1,21 @@
-{ stdenv, fetchurl, lzip }:
+{ stdenv
+, fetchurl, lzip
+, hostPlatform, buildPlatform
+}:
+
+let inherit (stdenv.lib) optionals; in
 
 stdenv.mkDerivation rec {
-  name = "ddrescue-1.21";
+  name = "ddrescue-1.22";
 
   src = fetchurl {
     url = "mirror://gnu/ddrescue/${name}.tar.lz";
-    sha256 = "1b71hb42lh33y9843nd1mxlwkk9qh9ajvnz6ivzd1jq9lav4x7ph";
+    sha256 = "19qhx9ggkkjl0g3a88g501wmybkj1y4n5lm5kp0km0blh0p7p189";
   };
 
   nativeBuildInputs = [ lzip ];
 
-  doCheck = true;
+  doCheck = hostPlatform == buildPlatform;
 
   meta = with stdenv.lib; {
     description = "GNU ddrescue, a data recovery tool";

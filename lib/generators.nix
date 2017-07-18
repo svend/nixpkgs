@@ -17,7 +17,29 @@ in
 
 rec {
 
-  /* Generates an INI-style config file from an
+  /* Generate a line of key k and value v, separated by
+   * character sep. If sep appears in k, it is escaped.
+   * Helper for synaxes with different separators.
+   *
+   * mkKeyValueDefault ":" "f:oo" "bar"
+   * > "f\:oo:bar"
+   */
+  mkKeyValueDefault = sep: k: v:
+    "${libStr.escape [sep] k}${sep}${toString v}";
+
+
+  /* Generate a key-value-style config file from an attrset.
+   *
+   * mkKeyValue is the same as in toINI.
+   */
+  toKeyValue = {
+    mkKeyValue ? mkKeyValueDefault "="
+  }: attrs:
+    let mkLine = k: v: mkKeyValue k v + "\n";
+    in libStr.concatStrings (libAttr.mapAttrsToList mkLine attrs);
+
+
+  /* Generate an INI-style config file from an
    * attrset of sections to an attrset of key-value pairs.
    *
    * generators.toINI {} {
@@ -41,17 +63,16 @@ rec {
     # apply transformations (e.g. escapes) to section names
     mkSectionName ? (name: libStr.escape [ "[" "]" ] name),
     # format a setting line from key and value
-    mkKeyValue    ? (k: v: "${libStr.escape ["="] k}=${toString v}")
+    mkKeyValue    ? mkKeyValueDefault "="
   }: attrsOfAttrs:
     let
         # map function to string for each key val
         mapAttrsToStringsSep = sep: mapFn: attrs:
           libStr.concatStringsSep sep
             (libAttr.mapAttrsToList mapFn attrs);
-        mkLine = k: v: mkKeyValue k v + "\n";
         mkSection = sectName: sectValues: ''
           [${mkSectionName sectName}]
-        '' + libStr.concatStrings (libAttr.mapAttrsToList mkLine sectValues);
+        '' + toKeyValue { inherit mkKeyValue; } sectValues;
     in
       # map input to ini sections
       mapAttrsToStringsSep "\n" mkSection attrsOfAttrs;
@@ -69,4 +90,41 @@ rec {
     * parsers as well.
     */
   toYAML = {}@args: toJSON args;
+
+  /* Pretty print a value, akin to `builtins.trace`.
+    * Should probably be a builtin as well.
+    */
+  toPretty = {
+    /* If this option is true, attrsets like { __pretty = fn; val = …; }
+       will use fn to convert val to a pretty printed representation.
+       (This means fn is type Val -> String.) */
+    allowPrettyValues ? false
+  }@args: v: with builtins;
+    if      isInt      v then toString v
+    else if isBool     v then (if v == true then "true" else "false")
+    else if isString   v then "\"" + v + "\""
+    else if null ==    v then "null"
+    else if isFunction v then
+      let fna = functionArgs v;
+          showFnas = concatStringsSep "," (libAttr.mapAttrsToList
+                       (name: hasDefVal: if hasDefVal then "(${name})" else name)
+                       fna);
+      in if fna == {}    then "<λ>"
+                         else "<λ:{${showFnas}}>"
+    else if isList     v then "[ "
+        + libStr.concatMapStringsSep " " (toPretty args) v
+      + " ]"
+    else if isAttrs    v then
+      # apply pretty values if allowed
+      if attrNames v == [ "__pretty" "val" ] && allowPrettyValues
+         then v.__pretty v.val
+      # TODO: there is probably a better representation?
+      else if v ? type && v.type == "derivation" then "<δ>"
+      else "{ "
+          + libStr.concatStringsSep " " (libAttr.mapAttrsToList
+              (name: value:
+                "${toPretty args name} = ${toPretty args value};") v)
+        + " }"
+    else "toPretty: should never happen (v = ${v})";
+
 }

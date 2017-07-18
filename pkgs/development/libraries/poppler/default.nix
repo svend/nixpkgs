@@ -1,15 +1,17 @@
 { stdenv, lib, fetchurl, fetchpatch, pkgconfig, libiconv, libintlOrEmpty
 , zlib, curl, cairo, freetype, fontconfig, lcms, libjpeg, openjpeg
-, withData ? false, poppler_data
+, withData ? true, poppler_data
 , qt4Support ? false, qt4 ? null
 , qt5Support ? false, qtbase ? null
+, introspectionSupport ? false, gobjectIntrospection ? null
 , utils ? false
 , minimal ? false, suffix ? "glib"
+, hostPlatform
 }:
 
 let # beware: updates often break cups-filters build
-  version = "0.47.0"; # even major numbers are stable
-  sha256 = "0hnjkcqqk87dw3hlda4gh4l7brkslniax9a79g772jn3iwiffwmq";
+  version = "0.50.0";
+  sha256 = "0dmwnh59m75vhii6dw63x8l0qa0ha733pb8bdqzr7lw9nwc37jf9";
 in
 stdenv.mkDerivation rec {
   name = "poppler-${suffix}-${version}";
@@ -28,7 +30,8 @@ stdenv.mkDerivation rec {
     [ zlib freetype fontconfig libjpeg openjpeg ]
     ++ optionals (!minimal) [ cairo lcms curl ]
     ++ optional qt4Support qt4
-    ++ optional qt5Support qtbase;
+    ++ optional qt5Support qtbase
+    ++ optional introspectionSupport gobjectIntrospection;
 
   nativeBuildInputs = [ pkgconfig ];
 
@@ -47,13 +50,14 @@ stdenv.mkDerivation rec {
       "--disable-poppler-glib" "--disable-poppler-cpp"
       "--disable-libcurl"
     ]
-    ++ optional (!utils) "--disable-utils" ;
+    ++ optional (!utils) "--disable-utils"
+    ++ optional introspectionSupport "--enable-introspection";
 
   enableParallelBuilding = true;
 
   crossAttrs.postPatch =
     # there are tests using `strXXX_s` functions that are missing apparently
-    stdenv.lib.optionalString (stdenv.cross.libc or null == "msvcrt")
+    stdenv.lib.optionalString (hostPlatform.libc or null == "msvcrt")
       "sed '/^SUBDIRS =/s/ test / /' -i Makefile.in";
 
   meta = with lib; {

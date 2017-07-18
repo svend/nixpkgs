@@ -1,4 +1,4 @@
-{ stdenv, fetchgit, perl, buildLinux, ncurses, ... } @ args:
+{ stdenv, hostPlatform, fetchgit, perl, buildLinux, ncurses, ... } @ args:
 
 # ChromiumOS requires a 64bit build host
 assert stdenv.is64bit;
@@ -16,9 +16,8 @@ import ./generic.nix (args // rec {
   features.iwlwifi = true;
   features.efiBootStub = true;
   features.needsCifsUtils = true;
-  features.canDisableNetfilterConntrackHelpers = true;
   features.netfilterRPFilter = true;
   features.chromiumos = true;
-  
+
   extraMeta.hydraPlatforms = [];
 } // (args.argsOverride or {}))

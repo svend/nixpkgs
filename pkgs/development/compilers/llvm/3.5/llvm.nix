@@ -53,7 +53,8 @@ in stdenv.mkDerivation rec {
     "-DCAN_TARGET_i386=false"
   ];
 
-  patches = [ ./fix-15974.patch ];
+  patches = [ ./fix-15974.patch ] ++
+    stdenv.lib.optionals (!stdenv.isDarwin) [../fix-llvm-config.patch ];
 
   postBuild = ''
     rm -fR $out
@@ -72,7 +73,7 @@ in stdenv.mkDerivation rec {
   meta = {
     description = "Collection of modular and reusable compiler and toolchain technologies";
     homepage    = http://llvm.org/;
-    license     = stdenv.lib.licenses.bsd3;
+    license     = stdenv.lib.licenses.ncsa;
     maintainers = with stdenv.lib.maintainers; [ lovek323 raskin viric ];
     platforms   = stdenv.lib.platforms.all;
   };

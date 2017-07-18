@@ -1,22 +1,30 @@
-{ stdenv, fetchurl, automoc4, cmake, gettext, perl, pkgconfig, shared_mime_info
-, libxslt, kdelibs, kdepimlibs, grantlee, qjson, qca2, libofx, sqlite, boost }:
+{ mkDerivation, lib, fetchurl,
+  cmake, extra-cmake-modules, qtwebkit, qtscript, grantlee,
+  kxmlgui, kwallet, kparts, kdoctools, kjobwidgets, kdesignerplugin,
+  kiconthemes, knewstuff, sqlcipher, qca-qt5, kactivities, karchive,
+  kguiaddons, knotifyconfig, krunner, kwindowsystem, libofx, shared_mime_info
+}:
 
-stdenv.mkDerivation rec {
-  name = "skrooge-1.12.5";
+mkDerivation rec {
+  name = "skrooge-${version}";
+  version = "2.8.1";
 
   src = fetchurl {
     url = "http://download.kde.org/stable/skrooge/${name}.tar.xz";
-    sha256 = "1mnkm0367knh0a65gifr20p42ql9zndw7d6kmbvfshvpfsmghl40";
+    sha256 = "0q34fh86yjd471jf6xa87vy4l8i1s3gqjzqrxbh0rnr79avns5lg";
   };
 
-  buildInputs = [ libxslt kdelibs kdepimlibs grantlee qjson qca2 libofx sqlite boost ];
+  nativeBuildInputs = [ cmake extra-cmake-modules shared_mime_info ];
 
-  nativeBuildInputs = [ automoc4 cmake gettext perl pkgconfig shared_mime_info ];
+  buildInputs = [ qtwebkit qtscript grantlee kxmlgui kwallet kparts kdoctools
+    kjobwidgets kdesignerplugin kiconthemes knewstuff sqlcipher qca-qt5
+    kactivities karchive kguiaddons knotifyconfig krunner kwindowsystem libofx
+  ];
 
-  meta = {
-    inherit (kdelibs.meta) platforms;
-    description = "A personal finance manager for KDE";
-    maintainers = [ stdenv.lib.maintainers.urkud ];
-    license = stdenv.lib.licenses.gpl3;
+  meta = with lib; {
+    description = "A personal finances manager, powered by KDE";
+    license = with licenses; [ gpl3 ];
+    maintainers = with maintainers; [ joko ];
+    homepage = https://skrooge.org/;
   };
 }

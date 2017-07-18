@@ -1,28 +1,37 @@
-{ stdenv, lib, fetchFromGitHub, go-md2man
+{ stdenv, lib, fetchFromGitHub, fetchpatch, removeReferencesTo, go-md2man
 , go, pkgconfig, libapparmor, apparmor-parser, libseccomp }:
 
 with lib;
 
 stdenv.mkDerivation rec {
   name = "runc-${version}";
-  version = "2016-06-15";
+  version = "1.0.0-rc3";
 
   src = fetchFromGitHub {
     owner = "opencontainers";
     repo = "runc";
-    rev = "cc29e3dded8e27ba8f65738f40d251c885030a28";
-    sha256 = "18fwb3kq10zhhx184yn3j396gpbppy3y4ypb8m2b2pdms39s6pyx";
+    rev = "v${version}";
+    sha256 = "14hdhnni0rz3g0bhcaq95zn2zrhyds0mq2pm2padbamg4bgq4r1c";
   };
 
   outputs = [ "out" "man" ];
 
   hardeningDisable = ["fortify"];
 
-  buildInputs = [ go-md2man go pkgconfig libseccomp libapparmor apparmor-parser ];
+  buildInputs = [ removeReferencesTo go-md2man go pkgconfig libseccomp libapparmor apparmor-parser ];
 
   makeFlags = ''BUILDTAGS+=seccomp BUILDTAGS+=apparmor'';
 
+  preConfigure = ''
+    # Extract the source
+    cd "$NIX_BUILD_TOP"
+    mkdir -p "go/src/github.com/opencontainers"
+    mv "$sourceRoot" "go/src/github.com/opencontainers/runc"
+    export GOPATH=$NIX_BUILD_TOP/go:$GOPATH
+  '';
+
   preBuild = ''
+    cd go/src/github.com/opencontainers/runc
     patchShebangs .
     substituteInPlace libcontainer/apparmor/apparmor.go \
       --replace /sbin/apparmor_parser ${apparmor-parser}/bin/apparmor_parser
@@ -46,10 +55,7 @@ stdenv.mkDerivation rec {
   '';
 
   preFixup = ''
-    # remove references to go compiler
-    while read file; do
-      sed -ri "s,${go},$(echo "${go}" | sed "s,$NIX_STORE/[^-]*,$NIX_STORE/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee,"),g" $file
-    done < <(find $out/bin -type f 2>/dev/null)
+    find $out/bin -type f -exec remove-references-to -t ${go} '{}' +
   '';
 
   meta = {

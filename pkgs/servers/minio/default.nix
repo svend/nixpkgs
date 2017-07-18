@@ -3,12 +3,12 @@
 stdenv.mkDerivation rec {
   name = "minio-${shortVersion}";
 
-  shortVersion = "20160821";
-  longVersion = "2016-08-21T02:44:47Z";
+  shortVersion = "20170613";
+  longVersion = "2017-06-13T19-01-01Z";
 
   src = fetchurl {
     url = "https://github.com/minio/minio/archive/RELEASE.${lib.replaceStrings [":"] ["-"] longVersion}.tar.gz";
-    sha256 = "159196bnb4b7f00jh9gll9kqqxq1ifxv1kg5bd6yjpqf5qca4pkn";
+    sha256 = "1rrlgn0nsvfn0lr9ffihjdb96n4znsvjlz1h7bwvz8nwhbn0lfsf";
   };
 
   buildInputs = [ go ];
@@ -33,7 +33,7 @@ stdenv.mkDerivation rec {
     homepage = https://www.minio.io/;
     description = "An S3-compatible object storage server";
     maintainers = [ lib.maintainers.eelco ];
-    platforms = lib.platforms.linux;
+    platforms = lib.platforms.x86_64;
     license = lib.licenses.asl20;
   };
 }

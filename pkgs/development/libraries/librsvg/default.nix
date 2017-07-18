@@ -1,16 +1,16 @@
 { lib, stdenv, fetchurl, pkgconfig, glib, gdk_pixbuf, pango, cairo, libxml2, libgsf
-, bzip2, libcroco, libintlOrEmpty
+, bzip2, libcroco, libintlOrEmpty, darwin
 , withGTK ? false, gtk3 ? null
 , gobjectIntrospection ? null, enableIntrospection ? false }:
 
 # no introspection by default, it's too big
 
 stdenv.mkDerivation rec {
-  name = "librsvg-2.40.16";
+  name = "librsvg-2.40.17";
 
   src = fetchurl {
     url    = "mirror://gnome/sources/librsvg/2.40/${name}.tar.xz";
-    sha256 = "0bpz6gsq8xi1pb5k9ax6vinph460v14znch3y5yz167s0dmwz2yl";
+    sha256 = "1k39gyf7f5m9x0jvpcxvfcqswdb04xhm1lbwbjabn1f4xk5wbxp6";
   };
 
   NIX_LDFLAGS = if stdenv.isDarwin then "-lintl" else null;
@@ -22,7 +22,10 @@ stdenv.mkDerivation rec {
 
   propagatedBuildInputs = [ glib gdk_pixbuf cairo ] ++ lib.optional withGTK gtk3;
 
-  nativeBuildInputs = [ pkgconfig ];
+  nativeBuildInputs = [ pkgconfig ]
+    ++ lib.optionals stdenv.isDarwin (with darwin.apple_sdk.frameworks; [
+      ApplicationServices
+    ]);
 
   configureFlags = [ "--enable-introspection=auto" ]
     ++ stdenv.lib.optional stdenv.isDarwin "--disable-Bsymbolic";

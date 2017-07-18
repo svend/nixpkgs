@@ -1,4 +1,6 @@
-{ stdenv, fetchurl, readline, compat ? false }:
+{ stdenv, fetchurl, readline, compat ? false
+, hostPlatform
+}:
 
 stdenv.mkDerivation rec {
   name = "lua-${version}";
@@ -7,7 +9,7 @@ stdenv.mkDerivation rec {
 
   src = fetchurl {
     url = "http://www.lua.org/ftp/${name}.tar.gz";
-    sha1 = "1c46d1c78c44039939e820126b86a6ae12dadfba";
+    sha256 = "00fv1p6dv4701pyjrlvkrr6ykzxqy9hy1qxzj6qmwlb0ssr5wjmf";
   };
 
   nativeBuildInputs = [ readline ];
@@ -54,21 +56,15 @@ stdenv.mkDerivation rec {
   '';
 
   crossAttrs = let
-    isMingw = stdenv.cross.libc == "msvcrt";
-    isDarwin = stdenv.cross.libc == "libSystem";
+    inherit (hostPlatform) isDarwin isMingw;
   in {
     configurePhase = ''
       makeFlagsArray=(
         INSTALL_TOP=$out
         INSTALL_MAN=$out/share/man/man1
-        CC=${stdenv.cross.config}-gcc
-        STRIP=:
-        RANLIB=${stdenv.cross.config}-ranlib
         V=${luaversion}
         R=${version}
         ${if isMingw then "mingw" else stdenv.lib.optionalString isDarwin ''
-        AR="${stdenv.cross.config}-ar rcu"
-        macosx
         ''}
       )
     '' + stdenv.lib.optionalString isMingw ''

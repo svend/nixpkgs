@@ -1,4 +1,6 @@
-{ stdenv, fetchurl, bc, dtc }:
+{ stdenv, fetchurl, bc, dtc, python2
+, hostPlatform
+}:
 
 let
   buildUBoot = { targetPlatforms
@@ -10,16 +12,20 @@ let
            stdenv.mkDerivation (rec {
 
     name = "uboot-${defconfig}-${version}";
-    version = "2016.11";
+    version = "2017.03";
 
     src = fetchurl {
       url = "ftp://ftp.denx.de/pub/u-boot/u-boot-${version}.tar.bz2";
-      sha256 = "1j6dkd9fqiibsdv0smq6q4x5zgyd4i1n4lk7prm47h6wcmjkx0a5";
+      sha256 = "0gqihplap05dlpwdb971wsqyv01nz2vabwq5g5649gr5jczsyjzm";
     };
 
-    nativeBuildInputs = [ bc dtc ];
+    nativeBuildInputs = [ bc dtc python2 ];
 
     hardeningDisable = [ "all" ];
+
+    postPatch = ''
+      patchShebangs tools
+    '';
 
     configurePhase = ''
       make ${defconfig}
@@ -34,12 +40,13 @@ let
       runHook postInstall
     '';
 
+    enableParallelBuilding = true;
     dontStrip = true;
 
     crossAttrs = {
       makeFlags = [
-        "ARCH=${stdenv.cross.platform.kernelArch}"
-        "CROSS_COMPILE=${stdenv.cross.config}-"
+        "ARCH=${hostPlatform.platform.kernelArch}"
+        "CROSS_COMPILE=${stdenv.cc.prefix}"
       ];
     };
 
@@ -64,6 +71,12 @@ in rec {
     filesToInstall = ["tools/dumpimage" "tools/mkenvimage" "tools/mkimage"];
   };
 
+  ubootA20OlinuxinoLime = buildUBoot rec {
+    defconfig = "A20-OLinuXino-Lime_defconfig";
+    targetPlatforms = ["armv7l-linux"];
+    filesToInstall = ["u-boot-sunxi-with-spl.bin"];
+  };
+
   ubootBananaPi = buildUBoot rec {
     defconfig = "Bananapi_defconfig";
     targetPlatforms = ["armv7l-linux"];
@@ -80,6 +93,12 @@ in rec {
     defconfig = "jetson-tk1_defconfig";
     targetPlatforms = ["armv7l-linux"];
     filesToInstall = ["u-boot" "u-boot.dtb" "u-boot-dtb-tegra.bin" "u-boot-nodtb-tegra.bin"];
+  };
+
+  ubootOdroidXU3 = buildUBoot rec {
+    defconfig = "odroid-xu3_defconfig";
+    targetPlatforms = ["armv7l-linux"];
+    filesToInstall = ["u-boot-dtb.bin"];
   };
 
   ubootPcduino3Nano = buildUBoot rec {
@@ -100,10 +119,30 @@ in rec {
     filesToInstall = ["u-boot.bin"];
   };
 
-  ubootRaspberryPi3 = buildUBoot rec {
+  ubootRaspberryPi3_32bit = buildUBoot rec {
     defconfig = "rpi_3_32b_defconfig";
     targetPlatforms = ["armv7l-linux"];
     filesToInstall = ["u-boot.bin"];
+  };
+
+  ubootRaspberryPi3_64bit = buildUBoot rec {
+    defconfig = "rpi_3_defconfig";
+    targetPlatforms = ["aarch64-linux"];
+    filesToInstall = ["u-boot.bin"];
+  };
+
+  ubootUtilite = buildUBoot rec {
+    defconfig = "cm_fx6_defconfig";
+    targetPlatforms = ["armv7l-linux"];
+    filesToInstall = ["u-boot-with-nand-spl.imx"];
+    buildFlags = "u-boot-with-nand-spl.imx";
+    postConfigure = ''
+      cat >> .config << EOF
+      CONFIG_CMD_SETEXPR=y
+      EOF
+    '';
+    # sata init; load sata 0 $loadaddr u-boot-with-nand-spl.imx
+    # sf probe; sf update $loadaddr 0 80000
   };
 
   ubootWandboard = buildUBoot rec {

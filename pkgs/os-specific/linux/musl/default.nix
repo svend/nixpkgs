@@ -1,12 +1,12 @@
-{ stdenv, fetchurl }:
+{ stdenv, fetchurl, fetchpatch }:
 
 stdenv.mkDerivation rec {
   name    = "musl-${version}";
-  version = "1.1.11";
+  version = "1.1.16";
 
   src = fetchurl {
     url    = "http://www.musl-libc.org/releases/${name}.tar.gz";
-    sha256 = "0grmmah3d9wajii26010plpinv3cbiq3kfqsblgn84kv3fjnv7mv";
+    sha256 = "048h0w4yjyza4h05bkc6dpwg3hq6l03na46g0q1ha8fpwnjqawck";
   };
 
   enableParallelBuilding = true;
@@ -23,6 +23,8 @@ stdenv.mkDerivation rec {
     "--enable-shared"
     "--enable-static"
   ];
+
+  patches = [];
 
   dontDisableStatic = true;
 

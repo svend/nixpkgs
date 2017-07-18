@@ -1,13 +1,13 @@
-{ stdenv, gn, ninja, which
+{ stdenv, ninja, which, nodejs
 
 # default dependencies
 , bzip2, flac, speex, libopus
 , libevent, expat, libjpeg, snappy
-, libpng, libxml2, libxslt, libcap
+, libpng, libcap
 , xdg_utils, yasm, minizip, libwebp
 , libusb1, pciutils, nss, re2, zlib, libvpx
 
-, python, pythonPackages, perl, pkgconfig
+, python2Packages, perl, pkgconfig
 , nspr, systemd, kerberos
 , utillinux, alsaLib
 , bison, gperf
@@ -20,7 +20,6 @@
 , libexif ? null # only needed for Chromium before version 51
 
 # package customization
-, enableSELinux ? false, libselinux ? null
 , enableNaCl ? false
 , enableHotwording ? false
 , enableWideVine ? false
@@ -58,7 +57,7 @@ let
     in attrs: concatStringsSep " " (attrValues (mapAttrs toFlag attrs));
 
   gnSystemLibraries = [
-    "flac" "libwebp" "libxml" "libxslt" "snappy" "yasm"
+    "flac" "libwebp" "snappy" "yasm"
   ];
 
   opusWithCustomModes = libopus.override {
@@ -68,7 +67,7 @@ let
   defaultDependencies = [
     bzip2 flac speex opusWithCustomModes
     libevent expat libjpeg snappy
-    libpng libxml2 libxslt libcap
+    libpng libcap
     xdg_utils yasm minizip libwebp
     libusb1 re2 zlib
   ];
@@ -86,7 +85,10 @@ let
 
     src = upstream-info.main;
 
-    nativeBuildInputs = [ gn which python perl pkgconfig ];
+    nativeBuildInputs = [
+      ninja which python2Packages.python perl pkgconfig
+      python2Packages.ply python2Packages.jinja2 nodejs
+    ];
 
     buildInputs = defaultDependencies ++ [
       nspr nss systemd
@@ -95,18 +97,19 @@ let
       glib gtk2 dbus_glib
       libXScrnSaver libXcursor libXtst mesa
       pciutils protobuf speechd libXdamage
-      pythonPackages.ply pythonPackages.jinja2
     ] ++ optional gnomeKeyringSupport libgnome_keyring3
       ++ optionals gnomeSupport [ gnome.GConf libgcrypt ]
-      ++ optional enableSELinux libselinux
       ++ optionals cupsSupport [ libgcrypt cups ]
       ++ optional pulseSupport libpulseaudio
       ++ optional (versionAtLeast version "56.0.0.0") gtk3;
 
     patches = [
-      ./patches/glibc-2.24.patch
       ./patches/nix_plugin_paths_52.patch
-    ] ++ optional enableWideVine ./patches/widevine.patch;
+      # To enable ChromeCast, go to chrome://flags and set "Load Media Router Component Extension" to Enabled
+      # Fixes Chromecast: https://bugs.chromium.org/p/chromium/issues/detail?id=734325
+      ./patches/fix_network_api_crash.patch
+    ] ++ optional (versionOlder version "57.0") ./patches/glibc-2.24.patch
+      ++ optional enableWideVine ./patches/widevine.patch;
 
     postPatch = ''
       # We want to be able to specify where the sandbox is via CHROME_DEVEL_SANDBOX
@@ -129,16 +132,19 @@ let
         :l; n; bl
       }' gpu/config/gpu_control_list.cc
 
+      # Allow to put extensions into the system-path.
+      sed -i -e 's,/usr,/run/current-system/sw,' chrome/common/chrome_paths.cc
+
       patchShebangs .
-    '' + optionalString (versionAtLeast version "52.0.0.0") ''
-      sed -i -re 's/([^:])\<(isnan *\()/\1std::\2/g' \
-        third_party/pdfium/xfa/fxbarcode/utils.h
+      # use our own nodejs
+      mkdir -p third_party/node/linux/node-linux-x64/bin
+      ln -s $(which node) third_party/node/linux/node-linux-x64/bin/node
     '';
 
     gnFlags = mkGnFlags ({
       linux_use_bundled_binutils = false;
-      linux_use_bundled_gold = false;
-      linux_use_gold_flags = true;
+      use_gold = true;
+      gold_path = "${stdenv.cc}/bin";
       is_debug = false;
 
       proprietary_codecs = false;
@@ -149,7 +155,6 @@ let
       enable_nacl = enableNaCl;
       enable_hotwording = enableHotwording;
       enable_widevine = enableWideVine;
-      selinux = enableSELinux;
       use_cups = cupsSupport;
     } // {
       treat_warnings_as_errors = false;
@@ -173,16 +178,24 @@ let
     } // (extraAttrs.gnFlags or {}));
 
     configurePhase = ''
+      runHook preConfigure
+
+      # Build gn
+      python tools/gn/bootstrap/bootstrap.py -v -s --no-clean
+      PATH="$PWD/out/Release:$PATH"
+
       # This is to ensure expansion of $out.
       libExecPath="${libExecPath}"
       python build/linux/unbundle/replace_gn_files.py \
         --system-libraries ${toString gnSystemLibraries}
       gn gen --args=${escapeShellArg gnFlags} out/Release
+
+      runHook postConfigure
     '';
 
     buildPhase = let
       buildCommand = target: ''
-        "${ninja}/bin/ninja" -C "${buildPath}"  \
+        ninja -C "${buildPath}"  \
           -j$NIX_BUILD_CORES -l$NIX_BUILD_CORES \
           "${target}"
       '' + optionalString (target == "mksnapshot" || target == "chrome") ''

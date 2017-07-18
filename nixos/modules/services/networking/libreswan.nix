@@ -11,7 +11,7 @@ let
 
   trim = chars: str: let
       nonchars = filter (x : !(elem x.value chars))
-                  (imap (i: v: {ind = (sub i 1); value = v;}) (stringToCharacters str));
+                  (imap0 (i: v: {ind = i; value = v;}) (stringToCharacters str));
     in
       if length nonchars == 0 then ""
       else substring (head nonchars).ind (add 1 (sub (last nonchars).ind (head nonchars).ind)) str;
@@ -102,7 +102,7 @@ in
       serviceConfig = {
         Type = "simple";
         Restart = "always";
-        EnvironmentFile = "${pkgs.libreswan}/etc/sysconfig/pluto";
+        EnvironmentFile = "-${pkgs.libreswan}/etc/sysconfig/pluto";
         ExecStartPre = [
           "${libexec}/addconn --config ${configFile} --checkconfig"
           "${libexec}/_stackmanager start"

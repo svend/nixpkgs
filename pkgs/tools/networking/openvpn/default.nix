@@ -7,16 +7,16 @@ assert pkcs11Support -> (pkcs11helper != null);
 with stdenv.lib;
 
 stdenv.mkDerivation rec {
-  name = "openvpn-2.3.12";
+  name = "openvpn-${version}";
+  version = "2.4.3";
 
   src = fetchurl {
-    url = "http://swupdate.openvpn.net/community/releases/${name}.tar.gz";
-    sha256 = "1zqwq19xg6yf90nv35yr8r0ljas5f42v4n9hjjmhlnzpan69plzm";
+    url = "http://swupdate.openvpn.net/community/releases/${name}.tar.xz";
+    sha256 = "0w85915nvdws1n1zsn8zcy9wg23jsx782nvrx1a3x4mqlmkn3a3s";
   };
 
-  patches = optional stdenv.isLinux ./systemd-notify.patch;
-
-  buildInputs = [ lzo openssl pkgconfig ]
+  nativeBuildInputs = [ pkgconfig ];
+  buildInputs = [ lzo openssl ]
                   ++ optionals stdenv.isLinux [ pam systemd iproute ]
                   ++ optional pkcs11Support pkcs11helper;
 
@@ -39,8 +39,10 @@ stdenv.mkDerivation rec {
   meta = {
     description = "A robust and highly flexible tunneling application";
     homepage = http://openvpn.net/;
+    downloadPage = "https://openvpn.net/index.php/open-source/downloads.html";
     license = stdenv.lib.licenses.gpl2;
     maintainers = [ stdenv.lib.maintainers.viric ];
     platforms = stdenv.lib.platforms.unix;
+    updateWalker = true;
   };
 }

@@ -1,19 +1,19 @@
 # This script was inspired by the ArchLinux User Repository package:
 #
 #   https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=oh-my-zsh-git
-
-
 { stdenv, fetchgit }:
 
 stdenv.mkDerivation rec {
+  version = "2017-06-22";
   name = "oh-my-zsh-${version}";
-  version = "2016-11-16";
 
   src = fetchgit {
     url = "https://github.com/robbyrussell/oh-my-zsh";
-    rev = "3477ff25274fa75bd9e6110f391f6ad98ca2af72";
-    sha256 = "07fvxg5jbw41j4nrs31hm0dfrwdh01gf5ik21gb4b4ddig2mjhc9";
+    rev = "d848c94804918138375041a9f800f401bec12068";
+    sha256 = "0mxmqkdpimwrskqjri3lp3haj1hzf583g7psnv34y3hyymzcx1h6";
   };
+
+  pathsToLink = [ "/share/oh-my-zsh" ];
 
   phases = "installPhase";
 
@@ -64,7 +64,7 @@ stdenv.mkDerivation rec {
   To copy the Oh My Zsh configuration file to your home directory, run
   the following command:
 
-    $ cp -v $(nix-env -q --out-path oh-my-zsh-git | cut -d' ' -f3)/share/oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc
+    $ cp -v $(nix-env -q --out-path oh-my-zsh | cut -d' ' -f3)/share/oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc
   '';
   homepage        = "http://ohmyz.sh/";
   license         = licenses.mit;

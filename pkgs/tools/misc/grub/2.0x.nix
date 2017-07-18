@@ -3,6 +3,7 @@
 , zfs ? null
 , efiSupport ? false
 , zfsSupport ? true
+, xenSupport ? false
 }:
 
 with stdenv.lib;
@@ -12,12 +13,21 @@ let
     "x86_64-linux".target = "i386";
   };
 
-  efiSystems = {
+  efiSystemsBuild = {
     "i686-linux".target = "i386";
     "x86_64-linux".target = "x86_64";
+    "aarch64-linux".target = "aarch64";
   };
 
-  canEfi = any (system: stdenv.system == system) (mapAttrsToList (name: _: name) efiSystems);
+  # For aarch64, we need to use '--target=aarch64-efi' when building,
+  # but '--target=arm64-efi' when installing. Insanity!
+  efiSystemsInstall = {
+    "i686-linux".target = "i386";
+    "x86_64-linux".target = "x86_64";
+    "aarch64-linux".target = "arm64";
+  };
+
+  canEfi = any (system: stdenv.system == system) (mapAttrsToList (name: _: name) efiSystemsBuild);
   inPCSystems = any (system: stdenv.system == system) (mapAttrsToList (name: _: name) pcSystems);
 
   version = "2.x-2015-11-16";
@@ -37,6 +47,7 @@ in (
 
 assert efiSupport -> canEfi;
 assert zfsSupport -> zfs != null;
+assert !(efiSupport && xenSupport);
 
 stdenv.mkDerivation rec {
   name = "grub-${version}";
@@ -53,6 +64,9 @@ stdenv.mkDerivation rec {
     ++ optional zfsSupport zfs;
 
   hardeningDisable = [ "all" ];
+
+  # Work around a bug in the generated flex lexer (upstream flex bug?)
+  NIX_CFLAGS_COMPILE = "-Wno-error";
 
   preConfigure =
     '' for i in "tests/util/"*.in
@@ -86,11 +100,12 @@ stdenv.mkDerivation rec {
   patches = [ ./fix-bash-completion.patch ];
 
   configureFlags = optional zfsSupport "--enable-libzfs"
-    ++ optionals efiSupport [ "--with-platform=efi" "--target=${efiSystems.${stdenv.system}.target}" "--program-prefix=" ];
+    ++ optionals efiSupport [ "--with-platform=efi" "--target=${efiSystemsBuild.${stdenv.system}.target}" "--program-prefix=" ]
+    ++ optionals xenSupport [ "--with-platform=xen" "--target=${efiSystemsBuild.${stdenv.system}.target}"];
 
   # save target that grub is compiled for
   grubTarget = if efiSupport
-               then "${efiSystems.${stdenv.system}.target}-efi"
+               then "${efiSystemsInstall.${stdenv.system}.target}-efi"
                else if inPCSystems
                     then "${pcSystems.${stdenv.system}.target}-pc"
                     else "";

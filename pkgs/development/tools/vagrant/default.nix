@@ -1,8 +1,8 @@
 { stdenv, fetchurl, fetchpatch, dpkg, curl, libarchive, openssl, ruby, buildRubyGem, libiconv
-, libxml2, libxslt, makeWrapper, p7zip, xar, gzip, cpio }:
+, libxml2, libxslt, libffi, makeWrapper, p7zip, xar, gzip, cpio }:
 
 let
-  version = "1.8.7";
+  version = "1.9.5";
   rake = buildRubyGem {
     inherit ruby;
     gemName = "rake";
@@ -13,16 +13,16 @@ let
   url = if stdenv.isLinux
     then "https://releases.hashicorp.com/vagrant/${version}/vagrant_${version}_${arch}.deb"
     else if stdenv.isDarwin
-      then "https://releases.hashicorp.com/vagrant/${version}/vagrant_${version}.dmg"
+      then "https://releases.hashicorp.com/vagrant/${version}/vagrant_${version}_${arch}.dmg"
       else "system ${stdenv.system} not supported";
 
   sha256 = {
-    "x86_64-linux"  = "10c77b643b73dd3ad7a45a89d8ab95b58b79dc10e0cf6e760fe24abc436b2fdb";
-    "i686-linux"    = "9d2a70f34ab65d8d2cb013917f221835432aa63cd4ef781c9fd1404cfcfe7898";
-    "x86_64-darwin" = "14d68f599a620cf421838ed037f0a1c4467e1b67475deeff62330a21fda4937b";
+    "x86_64-linux"  = "16ijzaacfbqrgh561bf51747d2rv8kydgs14dfdr572qi0f88baw";
+    "i686-linux"    = "0lvkb4k0a34a8hzlsi0apf056rhyprh5w0gn16d0n2ijnaf9j2yk";
+    "x86_64-darwin" = "070mrczsx1j0jl9sx6963l3hrk9anqa13r008wk1d22d25xj25mc";
   }."${stdenv.system}" or (throw "system ${stdenv.system} not supported");
 
-  arch = builtins.replaceStrings ["-linux"] [""] stdenv.system;
+  arch = builtins.replaceStrings ["-linux" "-darwin"] ["" ""] stdenv.system;
 
 in stdenv.mkDerivation rec {
   name = "vagrant-${version}";
@@ -96,8 +96,10 @@ in stdenv.mkDerivation rec {
     ln -s ${ruby}/bin/ruby opt/vagrant/embedded/bin
 
     # ruby libs
-    rm -rf opt/vagrant/embedded/lib
-    ln -s ${ruby}/lib opt/vagrant/embedded/lib
+    rm -rf opt/vagrant/embedded/lib/*
+    for lib in ${ruby}/lib/*; do
+      ln -s $lib opt/vagrant/embedded/lib/''${lib##*/}
+    done
 
     # libiconv: iconv
     rm opt/vagrant/embedded/bin/iconv
@@ -114,20 +116,22 @@ in stdenv.mkDerivation rec {
     ln -s ${libxslt.dev}/bin/xslt-config opt/vagrant/embedded/bin
     ln -s ${libxslt.bin}/bin/xsltproc opt/vagrant/embedded/bin
 
+    # libffi
+    ln -s ${libffi}/lib/libffi.so.6 opt/vagrant/embedded/lib/libffi.so.6
+
     mkdir -p "$out"
     cp -r opt "$out"
     cp -r usr/bin "$out"
-    wrapProgram "$out/bin/vagrant" --prefix LD_LIBRARY_PATH : "$out/opt/vagrant/embedded/lib"
+    wrapProgram "$out/bin/vagrant" --prefix LD_LIBRARY_PATH : "${stdenv.lib.makeLibraryPath [ libxml2 libxslt ]}" \
+                                   --prefix LD_LIBRARY_PATH : "$out/opt/vagrant/embedded/lib"
   '';
 
   preFixup = ''
     # 'hide' the template file from shebang-patching
-    chmod -x "$out/opt/vagrant/embedded/gems/gems/bundler-1.12.5/lib/bundler/templates/Executable"
     chmod -x "$out/opt/vagrant/embedded/gems/gems/vagrant-$version/plugins/provisioners/salt/bootstrap-salt.sh"
   '';
 
   postFixup = ''
-    chmod +x "$out/opt/vagrant/embedded/gems/gems/bundler-1.12.5/lib/bundler/templates/Executable"
     chmod +x "$out/opt/vagrant/embedded/gems/gems/vagrant-$version/plugins/provisioners/salt/bootstrap-salt.sh"
   '' +
   (stdenv.lib.optionalString stdenv.isDarwin ''

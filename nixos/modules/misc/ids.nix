@@ -58,14 +58,13 @@
       #utmp = 29; # unused
       ddclient = 30;
       davfs2 = 31;
-      privoxy = 32;
       #disnix = 33; # unused
       osgi = 34;
       tor = 35;
       cups = 36;
       foldingathome = 37;
       sabnzbd = 38;
-      kdm = 39;
+      #kdm = 39; # dropped in 17.03
       ghostone = 40;
       git = 41;
       fourstore = 42;
@@ -140,6 +139,7 @@
       btsync = 113;
       minecraft = 114;
       #monetdb = 115; # unused (not packaged), removed 2016-09-19
+      vault = 115;
       rippled = 116;
       murmur = 117;
       foundationdb = 118;
@@ -167,7 +167,7 @@
       dnsmasq = 141;
       uhub = 142;
       yandexdisk = 143;
-      collectd = 144;
+      #collectd = 144; #unused
       consul = 145;
       mailpile = 146;
       redmine = 147;
@@ -207,12 +207,11 @@
       ripple-data-api = 186;
       mediatomb = 187;
       rdnssd = 188;
-      ihaskell = 189;
+      # ihaskell = 189; # unused
       i2p = 190;
       lambdabot = 191;
       asterisk = 192;
       plex = 193;
-      bird = 195;
       grafana = 196;
       skydns = 197;
       ripple-rest = 198;
@@ -282,6 +281,22 @@
       stanchion = 262;
       riak-cs = 263;
       infinoted = 264;
+      keystone = 265;
+      glance = 266;
+      couchpotato = 267;
+      gogs = 268;
+      pdns-recursor = 269;
+      kresd = 270;
+      rpc = 271;
+      geoip = 272;
+      fcron = 273;
+      sonarr = 274;
+      radarr = 275;
+      jackett = 276;
+      aria2 = 277;
+      clickhouse = 278;
+      rslsync = 279;
+      minio = 280;
 
       # When adding a uid, make sure it doesn't match an existing gid. And don't use uids above 399!
 
@@ -322,14 +337,13 @@
       utmp = 29;
       #ddclient = 30; # unused
       davfs2 = 31;
-      privoxy = 32;
       disnix = 33;
       osgi = 34;
       tor = 35;
       #cups = 36; # unused
       #foldingathome = 37; # unused
       #sabnzd = 38; # unused
-      #kdm = 39; # unused
+      #kdm = 39; # unused, even before 17.03
       ghostone = 40;
       git = 41;
       fourstore = 42;
@@ -402,6 +416,7 @@
       btsync = 113;
       #minecraft = 114; # unused
       #monetdb = 115; # unused (not packaged), removed 2016-09-19
+      vault = 115;
       #ripped = 116; # unused
       #murmur = 117; # unused
       foundationdb = 118;
@@ -466,13 +481,12 @@
       #ripple-data-api = 186; #unused
       mediatomb = 187;
       #rdnssd = 188; # unused
-      ihaskell = 189;
+      # ihaskell = 189; # unused
       i2p = 190;
       lambdabot = 191;
-      #asterisk = 192; # unused
+      asterisk = 192;
       plex = 193;
       sabnzbd = 194;
-      bird = 195;
       #grafana = 196; #unused
       #skydns = 197; #unused
       #ripple-rest = 198; #unused
@@ -534,6 +548,21 @@
       stanchion = 262;
       riak-cs = 263;
       infinoted = 264;
+      keystone = 265;
+      glance = 266;
+      couchpotato = 267;
+      gogs = 268;
+      kresd = 270;
+      #rpc = 271; # unused
+      #geoip = 272; # unused
+      fcron = 273;
+      sonarr = 274;
+      radarr = 275;
+      jackett = 276;
+      aria2 = 277;
+      clickhouse = 278;
+      rslsync = 279;
+      minio = 280;
 
       # When adding a gid, make sure it doesn't match an existing
       # uid. Users and groups with the same name should have equal

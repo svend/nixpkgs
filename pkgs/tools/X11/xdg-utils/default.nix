@@ -10,8 +10,8 @@ let
   mimisrc = fetchFromGitHub {
     owner = "march-linux";
     repo = "mimi";
-    rev = "d85ea8256ed627e93b387cd42e4ab39bfab9504c";
-    sha256 = "1h9mb3glfvc6pa2f9g07xgmf8lrwxiyjxvl906xlysy4klybxvhg";
+    rev = "8e0070f17bcd3612ee83cb84e663e7c7fabcca3d";
+    sha256 = "15gw2nyrqmdsdin8gzxihpn77grhk9l97jp7s7pr7sl4n9ya2rpj";
   };
 in
 
@@ -29,15 +29,16 @@ stdenv.mkDerivation rec {
 
   postInstall = stdenv.lib.optionalString mimiSupport ''
     cp ${mimisrc}/xdg-open $out/bin/xdg-open
-  ''
-  + ''
-    for tool in "${coreutils}/bin/cut" "${gnused}/bin/sed" \
-      "${gnugrep}"/bin/{e,}grep "${file}/bin/file" \
-      ${stdenv.lib.optionalString mimiSupport
-        '' "${gawk}/bin/awk" "${coreutils}/bin/sort" ''} ;
-    do
-      sed "s# $(basename "$tool") # $tool #g" -i "$out"/bin/*
-    done
+  '' + ''
+    sed  '2s#.#\
+    cut()   { ${coreutils}/bin/cut  "$@"; }\
+    sed()   { ${gnused}/bin/sed     "$@"; }\
+    grep()  { ${gnugrep}/bin/grep   "$@"; }\
+    egrep() { ${gnugrep}/bin/egrep  "$@"; }\
+    file()  { ${file}/bin/file      "$@"; }\
+    awk()   { ${gawk}/bin/awk       "$@"; }\
+    sort()  { ${coreutils}/bin/sort "$@"; }\
+    &#' -i "$out"/bin/*
 
     substituteInPlace $out/bin/xdg-open \
       --replace "/usr/bin/printf" "${coreutils}/bin/printf"

@@ -1,13 +1,15 @@
-{ stdenv, fetchurl, mesa_glu, xlibsWrapper, libXmu, libXi }:
+{ stdenv, fetchurl, mesa_glu, xlibsWrapper, libXmu, libXi
+, buildPlatform, hostPlatform
+}:
 
 with stdenv.lib;
 
 stdenv.mkDerivation rec {
-  name = "glew-1.13.0";
+  name = "glew-2.0.0";
 
   src = fetchurl {
     url = "mirror://sourceforge/glew/${name}.tgz";
-    sha256 = "1iwb2a6wfhkzv6fa7zx2gz1lkwa0iwnd9ka1im5vdc44xm4dq9da";
+    sha256 = "0r37fg2s1f0jrvwh6c8cz5x6v4wqmhq42qm15cs9qs349q5c6wn5";
   };
 
   outputs = [ "bin" "out" "dev" "doc" ];
@@ -17,7 +19,7 @@ stdenv.mkDerivation rec {
 
   patchPhase = ''
     sed -i 's|lib64|lib|' config/Makefile.linux
-    ${optionalString (stdenv ? cross) ''
+    ${optionalString (hostPlatform != buildPlatform) ''
     sed -i -e 's/\(INSTALL.*\)-s/\1/' Makefile
     ''}
   '';
@@ -33,17 +35,13 @@ stdenv.mkDerivation rec {
     mkdir -pv $out/share/doc/glew
     mkdir -p $out/lib/pkgconfig
     cp glew*.pc $out/lib/pkgconfig
-    cp -r README.txt LICENSE.txt doc $out/share/doc/glew
+    cp -r README.md LICENSE.txt doc $out/share/doc/glew
     rm $out/lib/*.a
   '';
 
-  crossAttrs.makeFlags = [
-    "CC=${stdenv.cross.config}-gcc"
-    "LD=${stdenv.cross.config}-gcc"
-    "AR=${stdenv.cross.config}-ar"
-    "STRIP="
-  ] ++ optional (stdenv.cross.libc == "msvcrt") "SYSTEM=mingw"
-    ++ optional (stdenv.cross.libc == "libSystem") "SYSTEM=darwin";
+  makeFlags = [
+    "SYSTEM=${if hostPlatform.isMinGW then "mingw" else hostPlatform.parsed.kernel.name}"
+  ];
 
   meta = with stdenv.lib; {
     description = "An OpenGL extension loading library for C(++)";

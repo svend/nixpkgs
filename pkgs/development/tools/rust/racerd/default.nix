@@ -1,19 +1,20 @@
-{ stdenv, fetchgit, rustPlatform, makeWrapper }:
+{ stdenv, fetchFromGitHub, rustPlatform, makeWrapper }:
 
 with rustPlatform;
 
 buildRustPackage rec {
   name = "racerd-${version}";
-  version = "2016-08-23";
-  src = fetchgit {
-    url = "git://github.com/jwilm/racerd.git";
-    rev = "5d685ed26ba812a1afe892a8c0d12eb6abbeeb3d";
-    sha256 = "1ww96nc00l8p28rnln31n92x0mp2p5jnaqh2nwc8xi3r559p1y5i";
+  version = "2017-02-17";
+  src = fetchFromGitHub {
+    owner = "jwilm";
+    repo = "racerd";
+    rev = "e3f3ff010fce2c67195750d9a6a669ffb3c2ac5f";
+    sha256 = "125pmbkjnjh83xwikcwfbb8g150nldz7wh0ly1gv9kl1b521dydk";
   };
 
   doCheck = false;
 
-  depsSha256 = "13vkabr6bbl2nairxpn3lhqxcr3larasjk03r4hzrn7ff7sy40h2";
+  depsSha256 = "0db18m0vxzvg821gb5g8njhlnxw7im81m089i4982n8hmnhm1497";
 
   buildInputs = [ makeWrapper ];
 

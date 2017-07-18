@@ -10,7 +10,7 @@ let
     sha256 = "1vmbrw686f41n6xfjphfshn96vl07ynvnsyjdw9yfn9bfnldcjcq";
   };
 
-  srcRoot = "pfixtools-${pfixtoolsSrc.rev}-src";
+  srcRoot = pfixtoolsSrc.name;
 
   libCommonSrc = fetchFromGitHub {
     owner = "Fruneau";
@@ -25,6 +25,8 @@ stdenv.mkDerivation {
   name = "pfixtools-${version}";
 
   src = pfixtoolsSrc;
+
+  patches = [ ./0001-Fix-build-with-unbound-1.6.1.patch ];
 
   buildInputs = [git gperf pcre unbound libev tokyocabinet pkgconfig bash libsrs2];
 

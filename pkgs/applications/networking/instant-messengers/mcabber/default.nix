@@ -4,11 +4,11 @@
 
 stdenv.mkDerivation rec {
   name = "mcabber-${version}";
-  version = "1.0.3";
+  version = "1.1.0";
 
   src = fetchurl {
     url = "http://mcabber.com/files/mcabber-${version}.tar.bz2";
-    sha256 = "16hkb7v1sqp1gqj94darwwrv23alqaiqdhqjq8gjd6f3l05bprj4";
+    sha256 = "1ggh865p1rf10ffsnf4g6qv9i8bls36dxdb1nzs5r9vdqci2rz04";
   };
 
   buildInputs = [ openssl ncurses pkgconfig glib loudmouth libotr gpgme ];
@@ -16,7 +16,7 @@ stdenv.mkDerivation rec {
   configureFlags = "--with-openssl=${openssl.dev} --enable-modules --enable-otr";
 
   doCheck = true;
-  
+
   meta = with stdenv.lib; {
     homepage = http://mcabber.com/;
     description = "Small Jabber console client";

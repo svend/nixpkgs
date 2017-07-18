@@ -1,29 +1,29 @@
 { stdenv, fetchurl, fetchpatch, cmake, pcre, pkgconfig, python2
-, libX11, libXpm, libXft, libXext, zlib, lzma, gsl, Cocoa }:
+, libX11, libXpm, libXft, libXext, mesa, zlib, libxml2, lzma, gsl
+, Cocoa, OpenGL }:
 
 stdenv.mkDerivation rec {
   name = "root-${version}";
-  version = "6.04.18";
+  version = "6.10.00";
 
   src = fetchurl {
     url = "https://root.cern.ch/download/root_v${version}.source.tar.gz";
-    sha256 = "00f3v3l8nimfkcxpn9qpyh3h23na0mi4wkds2y5gwqh8wh3jryq9";
+    sha256 = "1rxqcpqf1b3sxig5xbh3mkvarhg9lgj2f0gv0j48klfw8kgfwlsp";
   };
 
-  buildInputs = [ cmake pcre pkgconfig python2 zlib lzma gsl ]
-    ++ stdenv.lib.optionals (!stdenv.isDarwin) [ libX11 libXpm libXft libXext ]
-    ++ stdenv.lib.optionals (stdenv.isDarwin) [ Cocoa ]
+  buildInputs = [ cmake pcre pkgconfig python2 zlib libxml2 lzma gsl ]
+    ++ stdenv.lib.optionals (!stdenv.isDarwin) [ libX11 libXpm libXft libXext mesa ]
+    ++ stdenv.lib.optionals (stdenv.isDarwin) [ Cocoa OpenGL ]
     ;
 
   patches = [
-    (fetchpatch {
-      url = "https://github.com/root-mirror/root/commit/ee9964210c56e7c1868618a4434c5340fef38fe4.patch";
-      sha256 = "186i7ni75yvjydy6lpmaplqxfb5z2019bgpbhff1n6zn2qlrff2r";
-    })
     ./sw_vers.patch
 
     # this prevents thisroot.sh from setting $p, which interferes with stdenv setup
     ./thisroot.patch
+
+    # https://sft.its.cern.ch/jira/browse/ROOT-8728
+    ./ROOT-8728-extra.patch
   ];
 
   preConfigure = ''
@@ -43,6 +43,7 @@ stdenv.mkDerivation rec {
     "-Dfftw3=OFF"
     "-Dfitsio=OFF"
     "-Dfortran=OFF"
+    "-Dimt=OFF"
     "-Dgfal=OFF"
     "-Dgviz=OFF"
     "-Dhdfs=OFF"
@@ -51,7 +52,7 @@ stdenv.mkDerivation rec {
     "-Dmonalisa=OFF"
     "-Dmysql=OFF"
     "-Dodbc=OFF"
-    "-Dopengl=OFF"
+    "-Dopengl=ON"
     "-Doracle=OFF"
     "-Dpgsql=OFF"
     "-Dpythia6=OFF"
@@ -59,10 +60,11 @@ stdenv.mkDerivation rec {
     "-Drfio=OFF"
     "-Dsqlite=OFF"
     "-Dssl=OFF"
-    "-Dxml=OFF"
+    "-Dxml=ON"
     "-Dxrootd=OFF"
   ]
-  ++ stdenv.lib.optional (stdenv.cc.libc != null) "-DC_INCLUDE_DIRS=${stdenv.lib.getDev stdenv.cc.libc}/include";
+  ++ stdenv.lib.optional (stdenv.cc.libc != null) "-DC_INCLUDE_DIRS=${stdenv.lib.getDev stdenv.cc.libc}/include"
+  ++ stdenv.lib.optional stdenv.isDarwin "-DOPENGL_INCLUDE_DIR=${OpenGL}/Library/Frameworks";
 
   enableParallelBuilding = true;
 

@@ -37,7 +37,8 @@ in stdenv.mkDerivation rec {
 
   # Fix a segfault in llc
   # See http://lists.llvm.org/pipermail/llvm-dev/2016-October/106500.html
-  patches = [ ./D17533-1.patch ];
+  patches = [ ./D17533-1.patch ] ++
+    stdenv.lib.optionals (!stdenv.isDarwin) [./fix-llvm-config.patch];
 
   # hacky fix: New LLVM releases require a newer OS X SDK than
   # 10.9. This is a temporary measure until nixpkgs darwin support is
@@ -85,7 +86,7 @@ in stdenv.mkDerivation rec {
   meta = {
     description = "Collection of modular and reusable compiler and toolchain technologies";
     homepage    = http://llvm.org/;
-    license     = stdenv.lib.licenses.bsd3;
+    license     = stdenv.lib.licenses.ncsa;
     maintainers = with stdenv.lib.maintainers; [ lovek323 raskin viric ];
     platforms   = stdenv.lib.platforms.all;
   };

@@ -1,5 +1,5 @@
 { stdenv, fetchFromGitHub, pkgconfig, python2Packages, makeWrapper
-, bash, libsamplerate, libsndfile, readline, gcc
+, bash, libsamplerate, libsndfile, readline, eigen, celt
 
 # Optional Dependencies
 , dbus ? null, libffado ? null, alsaLib ? null
@@ -24,29 +24,23 @@ let
 in
 stdenv.mkDerivation rec {
   name = "${prefix}jack2-${version}";
-  version = "1.9.10";
+  version = "1.9.11-RC1";
 
   src = fetchFromGitHub {
     owner = "jackaudio";
     repo = "jack2";
     rev = "v${version}";
-    sha256 = "1a2213l7x6sgqg2hq3yhnpvvvqyskhsmx8j3z0jgjsqwz9xa3wbr";
+    sha256 = "0i708ar3ll5p8yj0h7ffg84nrn49ap47l2yy75rxyw30cyywhxp4";
   };
 
   nativeBuildInputs = [ pkgconfig python makeWrapper ];
-  buildInputs = [ gcc
-    python
-
-    libsamplerate libsndfile readline
-
+  buildInputs = [ python libsamplerate libsndfile readline eigen celt
     optDbus optPythonDBus optLibffado optAlsaLib optLibopus
   ];
 
-  prePatch = ''
+  patchPhase = ''
     substituteInPlace svnversion_regenerate.sh --replace /bin/bash ${bash}/bin/bash
   '';
-
-  patches = [ ./jack-gcc5.patch ];
 
   configurePhase = ''
     python waf configure --prefix=$out \

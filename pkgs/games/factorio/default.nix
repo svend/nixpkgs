@@ -6,12 +6,11 @@
 , username ? "" , password ? ""
 }:
 
-assert releaseType == "alpha" || releaseType == "headless";
+assert releaseType == "alpha" || releaseType == "headless" || releaseType == "demo";
 
 with stdenv.lib;
 let
-  version = "0.13.20";
-  isHeadless = releaseType == "headless";
+  version = if releaseType != "demo" then "0.15.26" else "0.15.25";
 
   arch = if stdenv.system == "x86_64-linux" then {
     inUrl = "linux64";
@@ -25,14 +24,16 @@ let
 
   fetch = rec {
     url = "https://www.factorio.com/get-download/${version}/${releaseType}/${arch.inUrl}";
-    name = "factorio_${releaseType}_${arch.inTar}-${version}.tar.gz";
+    name = "factorio_${releaseType}_${arch.inTar}-${version}.tar.xz";
     x64 = {
-      headless = fetchurl        { inherit name url; sha256 = "0nf1sxcgnbx52iwx7jgkjxass10lzz1iyskvgk0gq3ky9cg4ixfb"; };
-      alpha = authenticatedFetch { inherit      url; sha256 = "0rgjdxdcqf9m3ghzr076q3xi1g01ix14jldjwn6jgnvggzqkph9l"; };
+      headless =           fetchurl { inherit name url; sha256 = "1nblfff1m5wgp177l508y94n61lga3palhzw4frp2vd98sdp7gqk"; };
+      alpha    = authenticatedFetch { inherit name url; sha256 = "0g7k58h15q4n9wxf96rx72w340xpdbj8k1faaxixrfrfx8bnmsls"; };
+      demo     =           fetchurl { inherit name url; sha256 = "1qz6g8mf221ic663zk92l6rs77ggfydaw2d8g2s7wy0j9097qbsl"; };
     };
     i386 = {
       headless = abort "Factorio 32-bit headless binaries are not available for download.";
-      alpha = authenticatedFetch { inherit      url; sha256 = "0hda2z1q22xanl328kic5q09ck59mr3aa5cy4dbjv86s4dx9kxfq"; };
+      alpha    = abort "Factorio 32-bit client is not available for this version.";
+      demo     = abort "Factorio 32-bit demo binaries are not available for download.";
     };
   };
 
@@ -95,55 +96,62 @@ let
       platforms = [ "i686-linux" "x86_64-linux" ];
     };
   };
-  headless = base;
-  alpha = base // {
 
-    buildInputs = [ makeWrapper ];
+  releases = rec {
+    headless = base;
+    demo = base // {
 
-    libPath = stdenv.lib.makeLibraryPath [
-      alsaLib
-      libX11
-      libXcursor
-      libXinerama
-      libXrandr
-      libXi
-      mesa_noglu
-    ];
+      buildInputs = [ makeWrapper ];
 
-    installPhase = base.installPhase + ''
-      wrapProgram $out/bin/factorio                                \
-        --prefix LD_LIBRARY_PATH : /run/opengl-driver/lib:$libPath \
-        --run "$out/share/factorio/update-config.sh"               \
-        --argv0 "" \
-        --add-flags "-c \$HOME/.factorio/config.cfg ${optionalString (mods != []) "--mod-directory=${modDir}"}"
+      libPath = stdenv.lib.makeLibraryPath [
+        alsaLib
+        libX11
+        libXcursor
+        libXinerama
+        libXrandr
+        libXi
+        mesa_noglu
+      ];
 
-        # TODO Currently, every time a mod is changed/added/removed using the
-        # modlist, a new derivation will take up the entire footprint of the
-        # client. The only way to avoid this is to remove the mods arg from the
-        # package function. The modsDir derivation will have to be built
-        # separately and have the user specify it in the .factorio config or
-        # right along side it using a symlink into the store I think i will
-        # just remove mods for the client derivation entirely. this is much
-        # cleaner and more useful for headless mode.
+      installPhase = base.installPhase + ''
+        wrapProgram $out/bin/factorio                                \
+          --prefix LD_LIBRARY_PATH : /run/opengl-driver/lib:$libPath \
+          --run "$out/share/factorio/update-config.sh"               \
+          --argv0 "" \
+          --add-flags "-c \$HOME/.factorio/config.cfg ${optionalString (mods != []) "--mod-directory=${modDir}"}"
 
-        # TODO: trying to toggle off a mod will result in read-only-fs-error.
-        # not much we can do about that except warn the user somewhere. In
-        # fact, no exit will be clean, since this error will happen on close
-        # regardless. just prints an ugly stacktrace but seems to be otherwise
-        # harmless, unless maybe the user forgets and tries to use the mod
-        # manager.
+          # TODO Currently, every time a mod is changed/added/removed using the
+          # modlist, a new derivation will take up the entire footprint of the
+          # client. The only way to avoid this is to remove the mods arg from the
+          # package function. The modsDir derivation will have to be built
+          # separately and have the user specify it in the .factorio config or
+          # right along side it using a symlink into the store I think i will
+          # just remove mods for the client derivation entirely. this is much
+          # cleaner and more useful for headless mode.
 
-      install -m0644 <(cat << EOF
-      ${configBaseCfg}
-      EOF
-      ) $out/share/factorio/config-base.cfg
+          # TODO: trying to toggle off a mod will result in read-only-fs-error.
+          # not much we can do about that except warn the user somewhere. In
+          # fact, no exit will be clean, since this error will happen on close
+          # regardless. just prints an ugly stacktrace but seems to be otherwise
+          # harmless, unless maybe the user forgets and tries to use the mod
+          # manager.
 
-      install -m0755 <(cat << EOF
-      ${updateConfigSh}
-      EOF
-      ) $out/share/factorio/update-config.sh
+        install -m0644 <(cat << EOF
+        ${configBaseCfg}
+        EOF
+        ) $out/share/factorio/config-base.cfg
 
-      cp -a doc-html $out/share/factorio
-    '';
+        install -m0755 <(cat << EOF
+        ${updateConfigSh}
+        EOF
+        ) $out/share/factorio/update-config.sh
+      '';
+    };
+    alpha = demo // {
+
+      installPhase = demo.installPhase + ''
+        cp -a doc-html $out/share/factorio
+      '';
+    };
   };
-in stdenv.mkDerivation (if isHeadless then headless else alpha)
+in stdenv.mkDerivation (releases.${releaseType})

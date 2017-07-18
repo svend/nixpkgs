@@ -56,69 +56,86 @@ rec {
 
   # Return a modified stdenv that adds a cross compiler to the
   # builds.
-  makeStdenvCross = stdenv: cross: binutilsCross: gccCross: stdenv //
-    { mkDerivation = {name ? "", buildInputs ? [], nativeBuildInputs ? [],
-            propagatedBuildInputs ? [], propagatedNativeBuildInputs ? [],
-            selfNativeBuildInput ? false, ...}@args: let
+  makeStdenvCross = { stdenv
+                    , cc
+                    , buildPlatform, hostPlatform, targetPlatform
+                    } @ overrideArgs: let
+    stdenv = overrideArgs.stdenv.override {
+      inherit
+        buildPlatform hostPlatform targetPlatform
+        cc;
 
-            # *BuildInputs exists temporarily as another name for
-            # *HostInputs.
+      allowedRequisites = null;
 
-            # In nixpkgs, sometimes 'null' gets in as a buildInputs element,
-            # and we handle that through isAttrs.
-            getNativeDrv = drv: drv.nativeDrv or drv;
-            getCrossDrv = drv: drv.crossDrv or drv;
-            nativeBuildInputsDrvs = map getNativeDrv nativeBuildInputs;
-            buildInputsDrvs = map getCrossDrv buildInputs;
-            propagatedBuildInputsDrvs = map getCrossDrv propagatedBuildInputs;
-            propagatedNativeBuildInputsDrvs = map getNativeDrv propagatedNativeBuildInputs;
-
-            # The base stdenv already knows that nativeBuildInputs and
-            # buildInputs should be built with the usual gcc-wrapper
-            # And the same for propagatedBuildInputs.
-            nativeDrv = stdenv.mkDerivation args;
-
-            # Temporary expression until the cross_renaming, to handle the
-            # case of pkgconfig given as buildInput, but to be used as
-            # nativeBuildInput.
-            hostAsNativeDrv = drv:
-                builtins.unsafeDiscardStringContext drv.nativeDrv.drvPath
-                == builtins.unsafeDiscardStringContext drv.crossDrv.drvPath;
-            buildInputsNotNull = stdenv.lib.filter
-                (drv: builtins.isAttrs drv && drv ? nativeDrv) buildInputs;
-            nativeInputsFromBuildInputs = stdenv.lib.filter hostAsNativeDrv buildInputsNotNull;
-
-            # We should overwrite the input attributes in crossDrv, to overwrite
-            # the defaults for only-native builds in the base stdenv
-            crossDrv = if cross == null then nativeDrv else
-                stdenv.mkDerivation (args // {
-                    name = name + "-" + cross.config;
-                    nativeBuildInputs = nativeBuildInputsDrvs
-                      ++ nativeInputsFromBuildInputs
-                      ++ [ gccCross binutilsCross ]
-                      ++ stdenv.lib.optional selfNativeBuildInput nativeDrv
-                        # without proper `file` command, libtool sometimes fails
-                        # to recognize 64-bit DLLs
-                      ++ stdenv.lib.optional (cross.config  == "x86_64-w64-mingw32") pkgs.file
-                      ;
-
-                    # Cross-linking dynamic libraries, every buildInput should
-                    # be propagated because ld needs the -rpath-link to find
-                    # any library needed to link the program dynamically at
-                    # loader time. ld(1) explains it.
-                    buildInputs = [];
-                    propagatedBuildInputs = propagatedBuildInputsDrvs ++ buildInputsDrvs;
-                    propagatedNativeBuildInputs = propagatedNativeBuildInputsDrvs;
-
-                    crossConfig = cross.config;
-                } // args.crossAttrs or {});
-        in nativeDrv // {
-          inherit crossDrv nativeDrv;
-        };
-    } // {
-      inherit cross gccCross binutilsCross;
-      ccCross = gccCross;
+      # Overrides are surely not valid as packages built with this run on a
+      # different platform.
+      overrides = _: _: {};
     };
+  in stdenv // {
+    mkDerivation =
+      { name ? "", buildInputs ? [], nativeBuildInputs ? []
+      , propagatedBuildInputs ? [], propagatedNativeBuildInputs ? []
+      , # Disabling the tests by default when cross compiling, as usually the
+        # tests rely on being able to run produced binaries.
+        doCheck ? false
+      , configureFlags ? []
+      , # Target is not included by default because most programs don't care.
+        # Including it then would cause needless massive rebuilds.
+        configurePlatforms   ? args.crossAttrs.configurePlatforms   or [ "build" "host" ]
+      , selfNativeBuildInput ? args.crossAttrs.selfNativeBuildInput or false
+      , ...
+      } @ args:
+
+      let
+        # *BuildInputs exists temporarily as another name for
+        # *HostInputs.
+
+        # The base stdenv already knows that nativeBuildInputs and
+        # buildInputs should be built with the usual gcc-wrapper
+        # And the same for propagatedBuildInputs.
+        nativeDrv = stdenv.mkDerivation args;
+
+        # Temporary expression until the cross_renaming, to handle the
+        # case of pkgconfig given as buildInput, but to be used as
+        # nativeBuildInput.
+        hostAsNativeDrv = drv:
+            builtins.unsafeDiscardStringContext drv.nativeDrv.drvPath
+            == builtins.unsafeDiscardStringContext drv.crossDrv.drvPath;
+        buildInputsNotNull = stdenv.lib.filter
+            (drv: builtins.isAttrs drv && drv ? nativeDrv) buildInputs;
+        nativeInputsFromBuildInputs = stdenv.lib.filter hostAsNativeDrv buildInputsNotNull;
+      in
+        stdenv.mkDerivation (args // {
+          name = name + "-" + hostPlatform.config;
+          nativeBuildInputs = nativeBuildInputs
+            ++ nativeInputsFromBuildInputs
+            ++ stdenv.lib.optional selfNativeBuildInput nativeDrv
+              # without proper `file` command, libtool sometimes fails
+              # to recognize 64-bit DLLs
+            ++ stdenv.lib.optional (hostPlatform.config == "x86_64-w64-mingw32") pkgs.file
+            ++ stdenv.lib.optional (hostPlatform.config == "aarch64-linux-gnu") pkgs.updateAutotoolsGnuConfigScriptsHook
+            ;
+
+          inherit doCheck;
+
+          # This parameter is sometimes a string and sometimes a list, yuck
+          configureFlags = let inherit (stdenv.lib) optional elem; in
+            (if stdenv.lib.isString configureFlags then [configureFlags] else configureFlags)
+            ++ optional (elem "build"  configurePlatforms) "--build=${buildPlatform.config}"
+            ++ optional (elem "host"   configurePlatforms) "--host=${hostPlatform.config}"
+            ++ optional (elem "target" configurePlatforms) "--target=${targetPlatform.config}";
+
+          # Cross-linking dynamic libraries, every buildInput should
+          # be propagated because ld needs the -rpath-link to find
+          # any library needed to link the program dynamically at
+          # loader time. ld(1) explains it.
+          buildInputs = [];
+          propagatedBuildInputs = propagatedBuildInputs ++ buildInputs;
+          propagatedNativeBuildInputs = propagatedNativeBuildInputs;
+
+          crossConfig = hostPlatform.config;
+        } // args.crossAttrs or {});
+  };
 
 
   /* Modify a stdenv so that the specified attributes are added to
@@ -192,7 +209,7 @@ rec {
 
      This adapter can be defined on the defaultStdenv definition.  You can
      use it by patching the all-packages.nix file or by using the override
-     feature of ~/.nixpkgs/config.nix .
+     feature of ~/.config/nixpkgs/config.nix .
   */
   validateLicenses = licensePred: stdenv: stdenv //
     { mkDerivation = args:

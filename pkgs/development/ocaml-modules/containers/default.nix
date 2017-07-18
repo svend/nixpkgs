@@ -6,7 +6,7 @@ let
   mkpath = p:
       "${p}/lib/ocaml/${ocaml.version}/site-lib";
 
-  version = "0.20";
+  version = "1.2";
 
 in
 
@@ -17,7 +17,7 @@ stdenv.mkDerivation {
     owner = "c-cube";
     repo = "ocaml-containers";
     rev = "${version}";
-    sha256 = "1gwflgdbvj293cwi434aafrsgpdgj2sv7r1ghm4l4k5xn17l0qzg";
+    sha256 = "0k1676bn12hhayjlpy8bxfc3sgq6wd7zkh0ca700zh8jxjrshjqk";
   };
 
   buildInputs = [ ocaml findlib ocamlbuild cppo gen sequence qtest ounit ocaml_oasis qcheck ];
@@ -39,9 +39,8 @@ EOF
   configureFlags = [
     "--enable-unix"
     "--enable-thread"
-    "--enable-bigarray"
-    "--enable-advanced"
     "--enable-tests"
+    "--enable-docs"
     "--disable-bench"
   ];
 

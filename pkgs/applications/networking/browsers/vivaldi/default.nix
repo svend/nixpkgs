@@ -3,32 +3,20 @@
 , alsaLib, dbus_libs, cups, libexif, ffmpeg, systemd
 , freetype, fontconfig, libXft, libXrender, libxcb, expat, libXau, libXdmcp
 , libuuid, xz
-, gstreamer, gst_plugins_base, libxml2
-, glib, gtk2, pango, gdk_pixbuf, cairo, atk, gnome3
+, gstreamer, gst-plugins-base, libxml2
+, glib, gtk3, pango, gdk_pixbuf, cairo, atk, gnome3
 , nss, nspr
 , patchelf
 }:
 
-let
-  version = "1.5";
-  build = "658.44-1";
-  fullVersion = "stable_${version}.${build}";
-
-  info = if stdenv.is64bit then {
-      arch = "amd64";
-      sha256 = "02zb9pw8h7gm0hlhk95bn8fz14x68ax2jz8g7bgzppyryq8xlg6l";
-    } else {
-      arch = "i386";
-      sha256 = "1cwpmdsv4rrr13d1x017rms7cjp5zh3vpz3b44ar49ip6zj6j0a8";
-    };
-
-in stdenv.mkDerivation rec {
-  product    = "vivaldi";
-  name       = "${product}-${version}";
+stdenv.mkDerivation rec {
+  name = "${product}-${version}";
+  product = "vivaldi";
+  version = "1.10.867.38-1";
 
   src = fetchurl {
-    inherit (info) sha256;
-    url = "https://downloads.vivaldi.com/stable/${product}-${fullVersion}_${info.arch}.deb";
+    url = "https://downloads.vivaldi.com/stable/${product}-stable_${version}_amd64.deb";
+    sha256 = "1h3iygzvw3rb5kmn0pam6gqy9baq6l630yllff1vnvychdg8d9vi";
   };
 
   unpackPhase = ''
@@ -36,18 +24,20 @@ in stdenv.mkDerivation rec {
     tar -xvf data.tar.xz
   '';
 
-  buildInputs =
-    [ stdenv.cc.cc stdenv.cc.libc zlib libX11 libXt libXext libSM libICE
-      libXi libXft libXcursor libXfixes libXScrnSaver libXcomposite libXdamage libXtst libXrandr
-      atk alsaLib dbus_libs cups gtk2 gdk_pixbuf libexif ffmpeg systemd
-      freetype fontconfig libXrender libuuid expat glib nss nspr
-      gstreamer libxml2 gst_plugins_base pango cairo gnome3.gconf
-      patchelf
-    ];
+  nativeBuildInputs = [ patchelf ];
+
+  buildInputs = [
+    stdenv.cc.cc stdenv.cc.libc zlib libX11 libXt libXext libSM libICE libxcb
+    libXi libXft libXcursor libXfixes libXScrnSaver libXcomposite libXdamage libXtst libXrandr
+    atk alsaLib dbus_libs cups gtk3 gdk_pixbuf libexif ffmpeg systemd
+    freetype fontconfig libXrender libuuid expat glib nss nspr
+    gstreamer libxml2 gst-plugins-base pango cairo gnome3.gconf
+  ];
 
   libPath = stdenv.lib.makeLibraryPath buildInputs
     + stdenv.lib.optionalString (stdenv.is64bit)
-      (":" + stdenv.lib.makeSearchPathOutput "lib" "lib64" buildInputs);
+      (":" + stdenv.lib.makeSearchPathOutput "lib" "lib64" buildInputs)
+    + ":$out/opt/vivaldi/lib";
 
   buildPhase = ''
     echo "Patching Vivaldi binaries"
@@ -84,6 +74,6 @@ in stdenv.mkDerivation rec {
     homepage    = "https://vivaldi.com";
     license     = licenses.unfree;
     maintainers = with maintainers; [ otwieracz nequissimus ];
-    platforms   = platforms.linux;
+    platforms   = [ "x86_64-linux" ];
   };
 }

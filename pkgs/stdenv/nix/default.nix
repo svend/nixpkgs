@@ -1,39 +1,56 @@
-{ stdenv, pkgs, config, lib }:
+{ lib
+, crossSystem, config
+, bootStages
+, ...
+}:
 
-import ../generic rec {
-  inherit config;
+assert crossSystem == null;
 
-  preHook =
-    ''
-      export NIX_ENFORCE_PURITY="''${NIX_ENFORCE_PURITY-1}"
-      export NIX_ENFORCE_NO_NATIVE="''${NIX_ENFORCE_NO_NATIVE-1}"
-      export NIX_IGNORE_LD_THROUGH_GCC=1
-    '';
+bootStages ++ [
+  (prevStage: let
+    inherit (prevStage) stdenv;
+  in {
+    inherit config overlays;
 
-  initialPath = (import ../common-path.nix) {pkgs = pkgs;};
+    stdenv = import ../generic rec {
+      buildPlatform = localSystem;
+      hostPlatform = localSystem;
+      targetPlatform = localSystem;
 
-  system = stdenv.system;
+      inherit config;
 
-  cc = import ../../build-support/cc-wrapper {
-    nativeTools = false;
-    nativePrefix = stdenv.lib.optionalString stdenv.isSunOS "/usr";
-    nativeLibc = true;
-    inherit stdenv;
-    inherit (pkgs) binutils coreutils gnugrep;
-    cc = pkgs.gcc.cc;
-    isGNU = true;
-    shell = pkgs.bash + "/bin/sh";
-  };
+      preHook = ''
+        export NIX_ENFORCE_PURITY="''${NIX_ENFORCE_PURITY-1}"
+        export NIX_ENFORCE_NO_NATIVE="''${NIX_ENFORCE_NO_NATIVE-1}"
+        export NIX_IGNORE_LD_THROUGH_GCC=1
+      '';
 
-  shell = pkgs.bash + "/bin/sh";
+      initialPath = (import ../common-path.nix) { pkgs = prevStage; };
 
-  fetchurlBoot = stdenv.fetchurlBoot;
+      inherit (prevStage.stdenv) hostPlatform targetPlatform;
 
-  overrides = pkgs_: {
-    inherit cc;
-    inherit (cc) binutils;
-    inherit (pkgs)
-      gzip bzip2 xz bash coreutils diffutils findutils gawk
-      gnumake gnused gnutar gnugrep gnupatch perl;
-  };
-}
+      cc = import ../../build-support/cc-wrapper {
+        nativeTools = false;
+        nativePrefix = stdenv.lib.optionalString hostPlatform.isSunOS "/usr";
+        nativeLibc = true;
+        inherit stdenv;
+        inherit (prevStage) binutils coreutils gnugrep;
+        cc = prevStage.gcc.cc;
+        isGNU = true;
+        shell = prevStage.bash + "/bin/sh";
+      };
+
+      shell = prevStage.bash + "/bin/sh";
+
+      fetchurlBoot = stdenv.fetchurlBoot;
+
+      overrides = self: super: {
+        inherit cc;
+        inherit (cc) binutils;
+        inherit (prevStage)
+          gzip bzip2 xz bash coreutils diffutils findutils gawk
+          gnumake gnused gnutar gnugrep gnupatch perl;
+      };
+    };
+  })
+]

@@ -71,7 +71,7 @@ rec {
       ''
         mkdir -p $out
         for i in $paths; do
-          ${lndir}/bin/lndir $i $out
+          ${lndir}/bin/lndir -silent $i $out
         done
         ${postBuild}
       '';
@@ -84,7 +84,7 @@ rec {
         mkdir -p $out/nix-support
         cp ${script} $out/nix-support/setup-hook
       '' + lib.optionalString (deps != []) ''
-        echo ${toString deps} > $out/nix-support/propagated-native-build-inputs
+        printLines ${toString deps} > $out/nix-support/propagated-native-build-inputs
       '' + lib.optionalString (substitutions != {}) ''
         substituteAll ${script} $out/nix-support/setup-hook
       '');
@@ -108,8 +108,9 @@ rec {
 
   # Quickly create a set of symlinks to derivations.
   # entries is a list of attribute sets like { name = "name" ; path = "/nix/store/..."; }
-  linkFarm = name: entries: runCommand name {} ("mkdir -p $out; cd $out; \n" +
-    (lib.concatMapStrings (x: "ln -s '${x.path}' '${x.name}';\n") entries));
+  linkFarm = name: entries: runCommand name { preferLocalBuild = true; }
+    ("mkdir -p $out; cd $out; \n" +
+      (lib.concatMapStrings (x: "ln -s '${x.path}' '${x.name}';\n") entries));
 
 
   # Print an error message if the file with the specified name and

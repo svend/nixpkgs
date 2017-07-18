@@ -5,11 +5,11 @@
 
 stdenv.mkDerivation rec {
   name = "powerdns-${version}";
-  version = "4.0.1";
+  version = "4.0.3";
 
   src = fetchurl {
     url = "http://downloads.powerdns.com/releases/pdns-${version}.tar.bz2";
-    sha256 = "1mzdj5077cn6cip51sxknz5hx0cyqlsrix39b7l30i36lvafx4fi";
+    sha256 = "10p2m2zbydbd5xjdgf8z4zgvl8diyb4k3bq1hzsl32r71daj3yk0";
   };
 
   buildInputs = [ boost libmysql postgresql lua openldap sqlite protobuf geoip libyamlcpp pkgconfig libsodium curl ];

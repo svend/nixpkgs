@@ -53,6 +53,11 @@ in stdenv.mkDerivation rec {
     ln -sv $PWD/lib $out
   '';
 
+  patches = stdenv.lib.optionals (!stdenv.isDarwin) [
+    # llvm-config --libfiles returns (non-existing) static libs
+    ../fix-llvm-config.patch
+  ];
+
   cmakeFlags = with stdenv; [
     "-DCMAKE_BUILD_TYPE=${if debugVersion then "Debug" else "Release"}"
     "-DLLVM_INSTALL_UTILS=ON"  # Needed by rustc
@@ -83,7 +88,7 @@ in stdenv.mkDerivation rec {
   meta = {
     description = "Collection of modular and reusable compiler and toolchain technologies";
     homepage    = http://llvm.org/;
-    license     = stdenv.lib.licenses.bsd3;
+    license     = stdenv.lib.licenses.ncsa;
     maintainers = with stdenv.lib.maintainers; [ lovek323 raskin viric ];
     platforms   = stdenv.lib.platforms.all;
   };

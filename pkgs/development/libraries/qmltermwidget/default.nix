@@ -1,4 +1,4 @@
-{ stdenv, fetchgit, qtbase, qtquick1, qmakeHook }:
+{ stdenv, fetchgit, qtbase, qtquick1, qmake, qtmultimedia }:
 
 stdenv.mkDerivation rec {
   version = "0.1.0";
@@ -10,12 +10,12 @@ stdenv.mkDerivation rec {
     sha256 = "0ca500mzcqglkj0i6km0z512y3a025dbm24605xyv18l6y0l2ny3";
   };
 
-  buildInputs = [ qtbase qtquick1 ];
-  nativeBuildInputs = [ qmakeHook ];
+  buildInputs = [ qtbase qtquick1 qtmultimedia ];
+  nativeBuildInputs = [ qmake ];
 
   patchPhase = ''
     substituteInPlace qmltermwidget.pro \
-      --replace '$$[QT_INSTALL_QML]' "/lib/qt5/qml/"
+      --replace '$$[QT_INSTALL_QML]' "/$qtQmlPrefix/"
   '';
 
   installFlags = [ "INSTALL_ROOT=$(out)" ];

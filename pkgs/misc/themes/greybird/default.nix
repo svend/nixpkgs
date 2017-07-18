@@ -2,14 +2,14 @@
 
 stdenv.mkDerivation rec {
   name = "${pname}-${version}";
-  pname = "Greybird";
-  version = "2016-11-15";
+  pname = "greybird";
+  version = "3.22.4";
 
   src = fetchFromGitHub {
     owner = "shimmerproject";
     repo = "${pname}";
-    rev = "0a0853fa1de7545392f32aff33d95a8a1f6dca9e";
-    sha256 = "0i9yvd265783pqij6rjh7pllw0l28v975mrahykcwvn9chq8rrqf";
+    rev = "v${version}";
+    sha256 = "1xh6vi4rmxmkrgy9qskcl8q6014qnsn19xjjwbmwf8n6yr07scl3";
   };
 
   nativeBuildInputs = [ autoreconfHook sass glib libxml2 gdk_pixbuf librsvg ];

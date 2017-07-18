@@ -1,11 +1,11 @@
 { fetchurl, fetchpatch, stdenv }:
 
 stdenv.mkDerivation rec {
-  name = "gsl-2.2";
+  name = "gsl-2.4";
 
   src = fetchurl {
     url = "mirror://gnu/gsl/${name}.tar.gz";
-    sha256 = "1pyq2c0j91z955746myn29c89jwkd435s2cbj8ks2hpag6d0mr2d";
+    sha256 = "16yfs5n444s03np1naj6yp1fsysd42kdscxzkg0k2yvfjixx0ijd";
   };
 
   patches = [

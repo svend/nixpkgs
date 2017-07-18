@@ -2,9 +2,9 @@
 , openssl
 , linkOpenssl? true
 , openldap
-, withLdap ? false
+, withLdap ? true
 , sqlite
-, withSqlite ? false
+, withSqlite ? true
 , libpcap
 , withPcap ? true
 , libcap
@@ -40,9 +40,16 @@ assert withCollectd -> collectd != null;
 with stdenv.lib;
 stdenv.mkDerivation rec {
   name = "freeradius-${version}";
-  version = "3.0.11";
+  version = "3.0.14";
 
-  buildInputs = [ autoreconfHook openssl talloc finger_bsd perl ]
+  src = fetchurl {
+    url = "ftp://ftp.freeradius.org/pub/freeradius/freeradius-server-${version}.tar.gz";
+    sha256 = "02ar0xn4dfrs95cmd4c798k95rmnzzvcryyyl2vjv53ak16igmpw";
+  };
+
+  nativeBuildInputs = [ autoreconfHook ];
+
+  buildInputs = [ openssl talloc finger_bsd perl ]
     ++ optional withLdap openldap
     ++ optional withSqlite sqlite
     ++ optional withPcap libpcap
@@ -53,8 +60,6 @@ stdenv.mkDerivation rec {
     ++ optional withJson json_c
     ++ optional withYubikey libyubikey
     ++ optional withCollectd collectd;
-
-  # NOTE: are the --with-{lib}-lib-dir and --with-{lib}-include-dir necessary with buildInputs ?
 
   configureFlags = [
      "--sysconfdir=/etc"
@@ -69,11 +74,6 @@ stdenv.mkDerivation rec {
     "sysconfdir=\${out}/etc"
     "localstatedir=\${TMPDIR}"
   ];
-
-  src = fetchurl {
-    url = "ftp://ftp.freeradius.org/pub/freeradius/freeradius-server-${version}.tar.gz";
-    sha256 = "0naxw9b060rbp4409904j6nr2zwl6wbjrbq1839xrwhmaf8p4yxr";
-  };
 
   meta = with stdenv.lib; {
     homepage = http://freeradius.org/;

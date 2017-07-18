@@ -31,11 +31,10 @@ with stdenv;
 with stdenv.lib;
 let
   inherit (python2Packages) python;
-  mkFlag = trueStr: falseStr: cond: name: val:
-    if cond == null then null else
-      "--${if cond != false then trueStr else falseStr}${name}"
-      + "${if val != null && cond != false then "=${val}" else ""}";
-
+  mkFlag = trueStr: falseStr: cond: name: val: "--"
+    + (if cond then trueStr else falseStr)
+    + name
+    + optionalString (val != null && cond != false) "=${val}";
   mkEnable = mkFlag "enable-" "disable-";
   mkWith = mkFlag "with-" "without-";
   mkOther = mkFlag "" "" true;
@@ -285,6 +284,9 @@ stdenv.mkDerivation {
     license = licenses.lgpl21;
     maintainers = with maintainers; [ ak wkennington ];
     platforms = platforms.unix;
+    # Broken because of https://lwn.net/Vulnerabilities/709844/
+    # and our version is quite out of date.
+    broken = true;
   };
 
   passthru.version = version;

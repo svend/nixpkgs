@@ -1,16 +1,24 @@
-{stdenv, fetchurl, fetchFromGitHub, cmake, luajit, kernel, zlib, ncurses, perl, jsoncpp, libb64, openssl, curl, jq, gcc}:
-let
-  inherit (stdenv.lib) optional optionalString;
-  baseName = "sysdig";
-  version = "0.12.0";
-in
-stdenv.mkDerivation {
-  name = "${baseName}-${version}";
+{stdenv, fetchurl, fetchFromGitHub, cmake, luajit, kernel, zlib, ncurses, perl, jsoncpp, libb64, openssl, curl, jq, gcc, fetchpatch}:
 
-  src = fetchurl {
-    url = "https://github.com/draios/sysdig/archive/${version}.tar.gz";
-    sha256 = "17nf2h5ajy333rwh91hzaw8zq2mnkb3lxy8fmbbs8qazgsvwz6c3";
+with stdenv.lib;
+stdenv.mkDerivation rec {
+  name = "sysdig-${version}";
+  version = "0.16.0";
+
+  src = fetchFromGitHub {
+    owner = "draios";
+    repo = "sysdig";
+    rev = version;
+    sha256 = "1h3f9nkc5fkvks6va0maq377m9qxnsf4q3f2dc14rdzfvnzidy06";
   };
+
+  patches = [
+    (fetchpatch {
+       # Sysdig fails to run on linux kernels with unified cgroups enabled
+       url = https://github.com/draios/sysdig/files/909689/0001-Fix-for-linux-kernels-with-cgroup-v2-API-enabled.patch.txt;
+       sha256 = "10nmisifa500hzpa3899rs837bcal72pnqidxmrnr1js187z8j84";
+    })
+  ];
 
   buildInputs = [
     cmake zlib luajit ncurses perl jsoncpp libb64 openssl curl jq gcc
@@ -18,14 +26,16 @@ stdenv.mkDerivation {
 
   hardeningDisable = [ "pic" ];
 
-  postPatch = ''
-    sed '1i#include <cmath>' -i userspace/libsinsp/{cursesspectro,filterchecks}.cpp
-  '';
-
   cmakeFlags = [
     "-DUSE_BUNDLED_DEPS=OFF"
     "-DSYSDIG_VERSION=${version}"
   ] ++ optional (kernel == null) "-DBUILD_DRIVER=OFF";
+
+  # needed since luajit-2.1.0-beta3
+  NIX_CFLAGS_COMPILE = [
+    "-DluaL_reg=luaL_Reg"
+    "-DluaL_getn(L,i)=((int)lua_objlen(L,i))"
+  ];
 
   preConfigure = ''
     export INSTALL_MOD_PATH="$out"
@@ -33,7 +43,7 @@ stdenv.mkDerivation {
     export KERNELDIR="${kernel.dev}/lib/modules/${kernel.modDirVersion}/build"
   '';
 
-  libPath = stdenv.lib.makeLibraryPath [
+  libPath = makeLibraryPath [
     zlib
     luajit
     ncurses
@@ -46,7 +56,7 @@ stdenv.mkDerivation {
     stdenv.cc.cc
   ];
 
-  postInstall = ''
+  postInstall = optionalString (!stdenv.isDarwin) ''
     patchelf --set-rpath "$libPath" "$out/bin/sysdig"
     patchelf --set-rpath "$libPath" "$out/bin/csysdig"
   '' + optionalString (kernel != null) ''
@@ -63,7 +73,7 @@ stdenv.mkDerivation {
     fi
   '';
 
-  meta = with stdenv.lib; {
+  meta = {
     description = "A tracepoint-based system tracing tool for Linux (with clients for other OSes)";
     license = licenses.gpl2;
     maintainers = [maintainers.raskin];

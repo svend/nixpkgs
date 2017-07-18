@@ -1,11 +1,11 @@
 { stdenv, fetchurl, openssl, cyrus_sasl, db, groff, libtool }:
 
 stdenv.mkDerivation rec {
-  name = "openldap-2.4.44";
+  name = "openldap-2.4.45";
 
   src = fetchurl {
     url = "http://www.openldap.org/software/download/OpenLDAP/openldap-release/${name}.tgz";
-    sha256 = "0044p20hx07fwgw2mbwj1fkx04615hhs1qyx4mawj2bhqvrnppnp";
+    sha256 = "091qvwk5dkcpp17ziabcnh3rg3m7qwzw2pihfcd1d5fdxgywzmnd";
   };
 
   # TODO: separate "out" and "bin"
@@ -19,9 +19,12 @@ stdenv.mkDerivation rec {
     [ "--enable-overlays"
       "--disable-dependency-tracking"   # speeds up one-time build
       "--enable-modules"
+      "--sysconfdir=/etc"
     ] ++ stdenv.lib.optional (openssl == null) "--without-tls"
       ++ stdenv.lib.optional (cyrus_sasl == null) "--without-cyrus-sasl"
       ++ stdenv.lib.optional stdenv.isFreeBSD "--with-pic";
+
+  installFlags = [ "sysconfdir=$(out)/etc" ];
 
   # 1. Fixup broken libtool
   # 2. Libraries left in the build location confuse `patchelf --shrink-rpath`

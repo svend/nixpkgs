@@ -4,7 +4,14 @@
 let
   version = virtualbox.version;
   xserverVListFunc = builtins.elemAt (stdenv.lib.splitString "." xorg.xorgserver.version);
-  xserverABI = xserverVListFunc 0 + xserverVListFunc 1;
+
+  # Forced to 1.18 in <nixpkgs/nixos/modules/services/x11/xserver.nix>
+  # as it even fails to build otherwise.  Still, override this even here,
+  # in case someone does just a standalone build
+  # (not via videoDrivers = ["vboxvideo"]).
+  # It's likely to work again in some future update.
+  xserverABI = let abi = xserverVListFunc 0 + xserverVListFunc 1;
+    in if abi == "119" then "118" else abi;
 in
 
 stdenv.mkDerivation {
@@ -12,7 +19,7 @@ stdenv.mkDerivation {
 
   src = fetchurl {
     url = "http://download.virtualbox.org/virtualbox/${version}/VBoxGuestAdditions_${version}.iso";
-    sha256 = (lib.importJSON ../upstream-info.json).guest;
+    sha256 = "54df14f234b6aa484b94939ab0f435b5dd859417612b65a399ecc34a62060380";
   };
 
   KERN_DIR = "${kernel.dev}/lib/modules/*/build";
@@ -55,6 +62,9 @@ stdenv.mkDerivation {
     for i in *
     do
         cd $i
+        # Files within the guest additions ISO are using DOS line endings
+        sed -re '/^(@@|---|\+\+\+)/!s/$/\r/' ${../linux-4.12.patch} \
+          | patch -d vboxguest -p4
         find . -type f | xargs sed 's/depmod -a/true/' -i
         make
         cd ..
@@ -90,7 +100,7 @@ stdenv.mkDerivation {
     sed -i -e "s|/usr/bin|$out/bin|" bin/VBoxClient-all
 
     # Install binaries
-    install -D -m 4755 lib/VBoxGuestAdditions/mount.vboxsf $out/bin/mount.vboxsf
+    install -D -m 755 lib/VBoxGuestAdditions/mount.vboxsf $out/bin/mount.vboxsf
     install -D -m 755 sbin/VBoxService $out/bin/VBoxService
 
     mkdir -p $out/bin
@@ -132,7 +142,7 @@ stdenv.mkDerivation {
 
   meta = {
     description = "Guest additions for VirtualBox";
-    longDescriptions = ''
+    longDescription = ''
       Various add-ons which makes NixOS work better as guest OS inside VirtualBox.
       This add-on provides support for dynamic resizing of the X Display, shared
       host/guest clipboard support and guest OpenGL support.

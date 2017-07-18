@@ -15,11 +15,12 @@ mariadb = everything // {
 };
 
 common = rec { # attributes common to both builds
-  version = "10.1.19";
+  version = "10.1.21";
 
   src = fetchurl {
-    url    = "https://downloads.mariadb.org/interstitial/mariadb-${version}/source/mariadb-${version}.tar.gz";
-    sha256 = "108s4mimdbmgmmn5pcr9a405j70cyny9adzv49s75lg22krp74sv";
+    url    = "https://downloads.mariadb.org/f/mariadb-${version}/source/mariadb-${version}.tar.gz/from/http%3A//ftp.hosteurope.de/mirror/archive.mariadb.org/?serve";
+    sha256 = "144lcm5awcf0k6a7saqfr4p2kg8r5wbdhdm4cmn2m8hyg1an70as";
+    name   = "mariadb-${version}.tar.gz";
   };
 
   prePatch = ''
@@ -161,4 +162,3 @@ everything = stdenv.mkDerivation (common // {
 });
 
 in mariadb
-

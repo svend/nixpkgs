@@ -21,12 +21,12 @@ let
 in
 
 stdenv.mkDerivation rec {
-  version = "1.6";
+  version = "1.9";
   name = "weechat-${version}";
 
   src = fetchurl {
     url = "http://weechat.org/files/src/weechat-${version}.tar.bz2";
-    sha256 = "0d1wcpsxx13clcf1ygcn5hsa1pjkck4xznbjbxphbdxd5whsbv3k";
+    sha256 = "0xfnhaxmvxdxs3ic0qs5lwq3yl4pi5ib99p0p5lv3v2vldqlm4lc";
   };
 
   outputs = [ "out" "doc" ];
