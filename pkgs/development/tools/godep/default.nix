@@ -1,7 +1,7 @@
 { stdenv, lib, go, fetchurl, fetchgit, fetchhg, fetchbzr, fetchFromGitHub }:
 
 stdenv.mkDerivation rec {
-  version = "73";
+  version = "79";
   name = "godep-${version}";
 
   src = import ./deps.nix {

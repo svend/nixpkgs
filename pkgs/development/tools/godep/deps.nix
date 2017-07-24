@@ -15,8 +15,8 @@ let
       root = "github.com/tools/godep";
       src = fetchgit {
         url = "https://github.com/tools/godep.git";
-        rev = "f4edf338389e6e2bde0e8307886718133dc0613e";
-        sha256 = "1jdza8kwnzdsh3layqjzy9dnr92xdg3kfhnzvqkq3p50vsdims9w";
+        rev = "f15f6db5da33a4ac48be83e20b9dd838e14f117b";
+        sha256 = "0wcgryhzm8v51kca802mix4zh7zxhirfif5ygfbhmx80h0b4mszx";
       };
     }
     {
