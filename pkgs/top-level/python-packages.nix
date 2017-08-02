@@ -106,6 +106,10 @@ in {
 
   astropy = callPackage ../development/python-modules/astropy {  };
 
+  augeas = callPackage ../development/python-modules/augeas {
+    inherit (pkgs) augeas;
+  };
+
   automat = callPackage ../development/python-modules/automat { };
 
   # packages defined elsewhere
@@ -189,6 +193,10 @@ in {
   pycrypto = callPackage ../development/python-modules/pycrypto { };
 
   pycryptodome = callPackage ../development/python-modules/pycryptodome { };
+
+  PyChromecast = callPackage ../development/python-modules/pychromecast {
+    protobuf = self.protobuf3_2;
+  };
 
   pyexiv2 = if (!isPy3k) then callPackage ../development/python-modules/pyexiv2 {} else throw "pyexiv2 not supported for interpreter ${python.executable}";
 
@@ -11339,6 +11347,8 @@ in {
     propagatedBuildInputs = with self; [ requests webob ];
   };
 
+  hmmlearn = callPackage ../development/python-modules/hmmlearn { };
+
   hcs_utils = buildPythonPackage rec {
     name = "hcs_utils-1.5";
 
@@ -21898,6 +21908,8 @@ in {
       license = licenses.mit;
     };
   };
+
+  sphfile = callPackage ../development/python-modules/sphfile { };
 
   sqlite3dbm = buildPythonPackage rec {
     name = "sqlite3dbm-0.1.4";
