@@ -1,4 +1,3 @@
-# https://github.com/rubygems/rubygems/pull/1683
 { fetchurl
 , version ? "2.6.10"
 , sha256 ? "364c0eee8e0c9e8ab4879c5035832e5a27f0c97292d2264af5ae0020585280f0"
