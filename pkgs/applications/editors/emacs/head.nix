@@ -27,12 +27,11 @@ in
 stdenv.mkDerivation rec {
   name = "emacs-${version}${versionModifier}";
   version = "26.0";
-  versionModifier = "-git-${srcDate}-${builtins.substring 0 7 srcRev}";
+  versionModifier = "-git-${builtins.substring 0 7 srcRev}";
 
   # nix-prefetch-git --rev refs/heads/emacs-25 git://git.sv.gnu.org/emacs.git
-  srcRev = "be79366410703a788c3c8ce7951e89bc9dfdac88";
+  srcRev = "44b06ac657e124d8f48002396bace6813b30de69";
   srcSha = "1a7j11jr68vhrgwl53z4sgifyijvwr8wb4nrri071cl05ls42n8w";
-  srcDate = "2016-09-17";
 
   src = fetchgit {
     url = "git://git.sv.gnu.org/emacs.git";
