@@ -11,7 +11,7 @@
 { nixpkgs ? { outPath = (import ../../lib).cleanSource ../..; revCount = 1234; shortRev = "abcdef"; }
 , officialRelease ? false
   # The platforms for which we build Nixpkgs.
-, supportedSystems ? [ "x86_64-linux" "x86_64-darwin" "aarchh64-linux" ]
+, supportedSystems ? [ "x86_64-linux" "x86_64-darwin" "aarch64-linux" ]
 , limitedSupportedSystems ? [ "i686-linux" ]
   # Strip most of attributes when evaluating to spare memory usage
 ,  scrubJobs ? true
@@ -78,26 +78,27 @@ let
               jobs.vim.x86_64-darwin
             ] ++ lib.collect lib.isDerivation jobs.stdenvBootstrapTools;
         };
-    } // (lib.optionalAttrs (builtins.elem "i686-linux" systemsWithAnySupport) {
-      stdenvBootstrapTools.i686-linux =
-        { inherit (import ../stdenv/linux/make-bootstrap-tools.nix { system = "i686-linux"; }) dist test; };
-    }) // (lib.optionalAttrs (builtins.elem "x86_64-linux" systemsWithAnySupport) {
-      stdenvBootstrapTools.x86_64-linux =
-        { inherit (import ../stdenv/linux/make-bootstrap-tools.nix { system = "x86_64-linux"; }) dist test; };
-    }) // (lib.optionalAttrs (builtins.elem "aarch64-linux" systemsWithAnySupport) {
-      stdenvBootstrapTools.aarch64-linux =
-        { inherit (import ../stdenv/linux/make-bootstrap-tools.nix { system = "aarch64-linux"; }) dist test; };
-    }) // (lib.optionalAttrs (builtins.elem "x86_64-darwin" systemsWithAnySupport) {
-      stdenvBootstrapTools.x86_64-darwin =
-        let
-          bootstrap = import ../stdenv/darwin/make-bootstrap-tools.nix { system = "x86_64-darwin"; };
-        in {
-          # Lightweight distribution and test
-          inherit (bootstrap) dist test;
-          # Test a full stdenv bootstrap from the bootstrap tools definition
-          inherit (bootstrap.test-pkgs) stdenv;
-        };
-    }) // (mapTestOn ((packagePlatforms pkgs) // rec {
+
+      stdenvBootstrapTools = with lib;
+        genAttrs systemsWithAnySupport
+          (system: {
+            inherit (import ../stdenv/linux/make-bootstrap-tools.nix { inherit system; })
+              dist test;
+          })
+        # darwin is special in this
+        // optionalAttrs (builtins.elem "x86_64-darwin" systemsWithAnySupport) {
+          x86_64-darwin =
+            let
+              bootstrap = import ../stdenv/darwin/make-bootstrap-tools.nix { system = "x86_64-darwin"; };
+            in {
+              # Lightweight distribution and test
+              inherit (bootstrap) dist test;
+              # Test a full stdenv bootstrap from the bootstrap tools definition
+              inherit (bootstrap.test-pkgs) stdenv;
+            };
+          };
+
+    } // (mapTestOn ((packagePlatforms pkgs) // rec {
       haskell.compiler = packagePlatforms pkgs.haskell.compiler;
       haskellPackages = packagePlatforms pkgs.haskellPackages;
 
@@ -107,27 +108,12 @@ let
       #rPackages = packagePlatforms pkgs.rPackages;
       ocamlPackages = { };
       perlPackages = { };
-      pythonPackages = {
-        blaze = unix;
-        pandas = unix;
-        scikitlearn = unix;
-      };
-      python2Packages = { };
-      python27Packages = { };
-      python3Packages = { };
-      python35Packages = {
-        blaze = unix;
-        pandas = unix;
-        scikitlearn = unix;
-      };
-      python36Packages = {
-        blaze = unix;
-        pandas = unix;
-        scikitlearn = unix;
-      };
 
-      # hack around broken eval of non-linux packages for now.
-      tests.macOSSierraShared = darwin;
+      darwin = packagePlatforms pkgs.darwin // {
+        cf-private = {};
+        osx_private_sdk = {};
+        xcode = {};
+      };
     } ));
 
 in jobs

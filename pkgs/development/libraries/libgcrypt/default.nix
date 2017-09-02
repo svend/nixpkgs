@@ -1,4 +1,4 @@
-{ lib, stdenv, fetchurl, libgpgerror, enableCapabilities ? false, libcap }:
+{ stdenv, fetchurl, fetchpatch, libgpgerror, enableCapabilities ? false, libcap }:
 
 assert enableCapabilities -> stdenv.isLinux;
 
@@ -14,9 +14,22 @@ stdenv.mkDerivation rec {
   outputs = [ "out" "dev" "info" ];
   outputBin = "dev";
 
-  buildInputs =
-    [ libgpgerror ]
-    ++ lib.optional enableCapabilities libcap;
+  # The CPU Jitter random number generator must not be compiled with
+  # optimizations and the optimize -O0 pragma only works for gcc.
+  # The build enables -O2 by default for everything else.
+  hardeningDisable = stdenv.lib.optional stdenv.cc.isClang "fortify";
+
+  buildInputs = [ libgpgerror ]
+    ++ stdenv.lib.optional enableCapabilities libcap;
+
+  # Shouldn't be needed after 1.8.1
+  patches = if stdenv.isArm && stdenv.system != "armv7l-linux"
+    then fetchpatch {
+        url = "https://git.gnupg.org/cgi-bin/gitweb.cgi?p=libgcrypt.git;a=patch;h=4a7aa30ae9f3ce798dd886c2f2d4164c43027748";
+        name = "arm.patch";
+        sha256 = "1dq9s0xwpbg7s5sghvssmwh4v88x733zm6c8ab3flllq8h7c8fq5";
+      }
+    else null;
 
   # Make sure libraries are correct for .pc and .la files
   # Also make sure includes are fixed for callers who don't use libgpgcrypt-config
