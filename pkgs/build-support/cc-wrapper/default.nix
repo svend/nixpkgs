@@ -133,6 +133,7 @@ stdenv.mkDerivation {
         chmod +x "$out/bin/$dst"
       }
     ''
+
     + (if nativeTools then ''
       echo ${if targetPlatform.isDarwin then cc else nativePrefix} > $out/nix-support/orig-cc
 
