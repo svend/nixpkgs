@@ -135,6 +135,8 @@ in {
     bap = pkgs.ocamlPackages_4_02.bap;
   };
 
+  bayespy = callPackage ../development/python-modules/bayespy { };
+
   bitcoin-price-api = callPackage ../development/python-modules/bitcoin-price-api { };
 
   blivet = callPackage ../development/python-modules/blivet { };
@@ -10473,14 +10475,14 @@ in {
 
   glances = buildPythonPackage rec {
     name = "glances-${version}";
-    version = "2.10";
+    version = "2.11";
     disabled = isPyPy;
 
     src = pkgs.fetchFromGitHub {
       owner = "nicolargo";
       repo = "glances";
       rev = "v${version}";
-      sha256 = "0hxs9bplxvj6grq9dqinr4f5ip6ray6mrw54scrcaqal8f3c8ah2";
+      sha256 = "01vnrr37jbpzrz6w670l3g3bv60xl50w41rn1dl99wp2fr460ndn";
     };
 
     doCheck = false;
@@ -10493,7 +10495,7 @@ in {
     '';
 
     meta = {
-      homepage = "http://nicolargo.github.io/glances/";
+      homepage = "https://nicolargo.github.io/glances/";
       description = "Cross-platform curses-based monitoring tool";
       license = licenses.lgpl3;
       maintainers = with maintainers; [ koral ];
@@ -27898,7 +27900,8 @@ EOF
     installPhase = ''
       mkdir -p $out/bin $out/libexec
       cp smugline.py $out/libexec
-      makeWrapper "${python.interpreter} $out/libexec/smugline.py" $out/bin/smugline \
+      makeWrapper ${python.interpreter} $out/bin/smugline \
+        --add-flags "$out/libexec/smugline.py" \
         --prefix PYTHONPATH : "$PYTHONPATH"
     '';
   };
