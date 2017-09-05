@@ -1468,6 +1468,11 @@ with pkgs;
     plugins = [ ];
   };
 
+  interception-tools = callPackage ../tools/inputmethods/interception-tools { };
+  interception-tools-plugins = {
+    caps2esc = callPackage ../tools/inputmethods/interception-tools/caps2esc.nix { };
+  };
+
   brotli = callPackage ../tools/compression/brotli { };
 
   brotliUnstable = callPackage ../tools/compression/brotli/unstable.nix { };
@@ -2726,6 +2731,8 @@ with pkgs;
   jq = callPackage ../development/tools/jq { };
 
   jo = callPackage ../development/tools/jo { };
+
+  jrnl = callPackage ../applications/misc/jrnl { };
 
   jscoverage = callPackage ../development/tools/misc/jscoverage { };
 
@@ -4611,6 +4618,8 @@ with pkgs;
 
   ttylog = callPackage ../tools/misc/ttylog { };
 
+  turses = callPackage ../applications/networking/instant-messengers/turses { };
+
   twitterBootstrap = callPackage ../development/web/twitter-bootstrap {};
   twitterBootstrap3 = callPackage ../development/web/twitter-bootstrap/v3.nix {};
 
@@ -5242,7 +5251,13 @@ with pkgs;
   clang_38 = llvmPackages_38.clang;
   clang_37 = llvmPackages_37.clang;
   clang_35 = wrapCC llvmPackages_35.clang;
-  clang_34 = wrapCC llvmPackages_34.clang;
+  clang_34 = (wrapCC llvmPackages_34.clang).override {
+    # Default cc-wrapper's hardening flags don't work with clang-3.4,
+    # so just remove it entirely for this wrapper.
+    extraBuildCommands = ''
+    :> $out/nix-support/add-hardening.sh
+    '';
+  };
 
   clang-tools = callPackage ../development/tools/clang-tools { };
 
@@ -9451,6 +9466,23 @@ with pkgs;
   libyaml = callPackage ../development/libraries/libyaml { };
 
   libyamlcpp = callPackage ../development/libraries/libyaml-cpp { };
+
+  # interception-tools needs this. This should be removed when there is a new
+  # release of libyamlcpp, i.e. when the version of libyamlcpp is newer than
+  # 0.5.3.
+  libyamlcppWithoutBoost = libyamlcpp.overrideAttrs (oldAttrs: rec {
+    name = "libyaml-cpp-${version}";
+    version = "2017-08-25";
+
+    src = fetchFromGitHub {
+      owner = "jbeder";
+      repo = "yaml-cpp";
+      rev = "beb44b872c07c74556314e730c6f20a00b32e8e5";
+      sha256 = "1qkr3i5lin6m36w5rbimc7pjx3nx686xnjb6lw00xf67iqrl4h4m";
+    };
+
+    buildInputs = [ cmake ];
+  });
 
   libykneomgr = callPackage ../development/libraries/libykneomgr { };
 
@@ -18375,7 +18407,6 @@ with pkgs;
   };
 
   z3 = callPackage ../applications/science/logic/z3 {};
-  z3_opt = callPackage ../applications/science/logic/z3_opt {};
 
   boolector = callPackage ../applications/science/logic/boolector {};
 
