@@ -44,6 +44,7 @@ let
       isLibrary = false;
       doHaddock = false;
       hyperlinkSource = false;      # Avoid depending on hscolour for this build.
+      enableSeparateEtcOutput = false; # The flag to support this is missing in old versions of cabal.
       postFixup = "rm -rf $out/lib $out/share $out/nix-support";
     });
     cpphs = overrideCabal (self.cpphs.overrideScope (self: super: {
@@ -91,7 +92,7 @@ let
       };
     in stdenv.lib.makeOverridable drvScope (auto // manualArgs);
 
-  mkScope = scope: pkgs // pkgs.xorg // pkgs.gnome2 // scope;
+  mkScope = scope: pkgs // pkgs.xorg // pkgs.gnome2 // { inherit stdenv; } // scope;
   defaultScope = mkScope self;
   callPackage = drv: args: callPackageWithScope defaultScope drv args;
 
