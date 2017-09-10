@@ -3,7 +3,7 @@ libXi }:
 
 let
   baseName = "xcape";
-  version = "1.2";
+  version = "1.2-dev";
 in
 
 stdenv.mkDerivation rec {
@@ -12,8 +12,8 @@ stdenv.mkDerivation rec {
   src = fetchFromGitHub {
     owner = "alols";
     repo = baseName;
-    rev = "v${version}";
-    sha256 = "09a05cxgrip6nqy1qmwblamp2bhknqnqmxn7i2a1rgxa0nba95dm";
+    rev = "6ded5b453b50642197044a170402664cbf6d2c96";
+    sha256 = "193dz9n3y5jchxnpzm2yyyhx30ncn2s8rfr3hhr18aldi0cv548k";
   };
 
   nativeBuildInputs = [ pkgconfig ];
