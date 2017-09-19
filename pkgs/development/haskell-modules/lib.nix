@@ -117,7 +117,9 @@ rec {
     '';
   });
 
-  buildStrictly = pkg: buildFromSdist (appendConfigureFlag pkg "--ghc-option=-Wall --ghc-option=-Werror");
+  buildStrictly = pkg: buildFromSdist (failOnAllWarnings pkg);
+
+  failOnAllWarnings = drv: appendConfigureFlag drv "--ghc-option=-Wall --ghc-option=-Werror";
 
   checkUnusedPackages =
     { ignoreEmptyImports ? false
@@ -142,8 +144,4 @@ rec {
   overrideSrc = drv: { src, version ? drv.version }:
     overrideCabal drv (_: { inherit src version; editedCabalFile = null; });
 
-  hasNoBinOutput = drv: overrideCabal drv (drv: { enableSeparateBinOutput = false; });
-
-  installOutputs = drv: outputs: overrideCabal drv
-    (drv: { outputsToInstall = outputs; });
 }

@@ -15,6 +15,13 @@ with haskellLib;
 
 self: super: {
 
+  attoparsec-time_1 = super.attoparsec-time_1.override {
+    doctest = super.doctest_0_13_0;
+  };
+  attoparsec-data = super.attoparsec-data.override {
+    attoparsec-time = self.attoparsec-time_1;
+  };
+
   # This used to be a core package provided by GHC, but then the compiler
   # dropped it. We define the name here to make sure that old packages which
   # depend on this library still evaluate (even though they won't compile
@@ -56,6 +63,13 @@ self: super: {
   # segfault due to missing return: https://github.com/haskell/c2hs/pull/184
   c2hs = dontCheck super.c2hs;
 
+  # https://github.com/gilith/hol/pull/1
+  hol = appendPatch (doJailbreak super.hol) (pkgs.fetchpatch {
+    name = "hol.patch";
+    url = "https://github.com/gilith/hol/commit/a5171bdcacdbe93c46c9f82ec5a38f2a2b69e632.patch";
+    sha256 = "0xkgbhc4in38hspxgz2wcvk56pjalw43gig7lzkjfhgavwxv3jyj";
+  });
+
   # This test keeps being aborted because it runs too quietly for too long
   Lazy-Pbkdf2 = if pkgs.stdenv.isi686 then dontCheck super.Lazy-Pbkdf2 else super.Lazy-Pbkdf2;
 
@@ -90,10 +104,22 @@ self: super: {
   # Fix test trying to access /home directory
   shell-conduit = (overrideCabal super.shell-conduit (drv: {
     postPatch = "sed -i s/home/tmp/ test/Spec.hs";
+
+    # the tests for shell-conduit on Darwin illegitimatey assume non-GNU echo
+    # see: https://github.com/psibi/shell-conduit/issues/12
+    doCheck = !pkgs.stdenv.hostPlatform.isDarwin;
   }));
 
   # https://github.com/froozen/kademlia/issues/2
   kademlia = dontCheck super.kademlia;
+
+  # https://github.com/haskell-works/hw-xml/issues/23
+  # Disable building the hw-xml-example executable:
+  hw-xml = (overrideCabal super.hw-xml (drv: {
+    postPatch = "sed -i 's/  hs-source-dirs:       app/" +
+                          "  hs-source-dirs:       app\\n" +
+                          "  buildable:            false/' hw-xml.cabal";
+  }));
 
   hzk = dontCheck super.hzk;
   haskakafka = dontCheck super.haskakafka;
@@ -123,6 +149,8 @@ self: super: {
     '';
     extraLibraries = [ pkgs.openblasCompat ];
   });
+
+  LambdaHack = super.LambdaHack.override { sdl2-ttf = super.sdl2-ttf_2_0_1; };
 
   # The Haddock phase fails for one reason or another.
   acme-one = dontHaddock super.acme-one;
@@ -376,6 +404,12 @@ self: super: {
   th-printf = dontCheck super.th-printf;
   thumbnail-plus = dontCheck super.thumbnail-plus;
   tickle = dontCheck super.tickle;
+  tldr = super.tldr.override {
+    # shell-conduit determines what commands are available at compile-time, so
+    # that tldr will not compile unless the shell-conduit it uses is compiled
+    # with git in its environment.
+    shell-conduit = addBuildTool self.shell-conduit pkgs.git;
+  };
   tpdb = dontCheck super.tpdb;
   translatable-intset = dontCheck super.translatable-intset;
   ua-parser = dontCheck super.ua-parser;
@@ -862,7 +896,6 @@ self: super: {
   # Don't install internal mkReadme tool.
   hastache = overrideCabal super.hastache (drv: {
     doCheck = false;
-    enableSeparateBinOutput = false;
     postInstall = "rm $out/bin/mkReadme && rmdir $out/bin";
   });
 
@@ -900,8 +933,25 @@ self: super: {
     sha256 = "1vss7b99zrhw3r29krl1b60r4qk0m2mpwmrz8q8zdxrh33hb8pd7";
   });
 
-  # Has extra data files which are referred to from the binary output,
-  # creating a store reference cycle. Putting data in separate output
-  # solves the problem.
-  happy = overrideCabal super.happy (drv: { enableSeparateDataOutput = true; });
+  # happy 1.19.6+ broke the Agda build. Sticking with the previous version
+  # avoided that issue, but now the build fails with a segmentation fault
+  # during the install phase for no apparent reason:
+  # https://hydra.nixos.org/build/60678124
+  Agda = markBroken (super.Agda.override { happy = self.happy_1_19_5; });
+
+  # cryptol-2.5.0 doesn't want happy 1.19.6+.
+  cryptol = super.cryptol.override { happy = self.happy_1_19_5; };
+
+  # https://github.com/jtdaugherty/text-zipper/issues/11
+  text-zipper = dontCheck super.text-zipper;
+
+  # https://github.com/graknlabs/grakn-haskell/pull/1
+  grakn = dontCheck (doJailbreak super.grakn);
+
+  # cryptonite == 0.24.x, protolude == 0.2.x
+  wai-secure-cookies = super.wai-secure-cookies.override {
+    cryptonite = super.cryptonite_0_24;
+    protolude = super.protolude_0_2;
+  };
+
 }
