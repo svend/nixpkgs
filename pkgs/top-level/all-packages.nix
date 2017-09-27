@@ -2301,11 +2301,11 @@ with pkgs;
 
   google-authenticator = callPackage ../os-specific/linux/google-authenticator { };
 
-  google-cloud-sdk = callPackage ../tools/admin/google-cloud-sdk { };
+  google-cloud-sdk = python2.pkgs.google-cloud-sdk;
 
   google-fonts = callPackage ../data/fonts/google-fonts { };
 
-  google-compute-engine = callPackage ../tools/virtualization/google-compute-engine {  };
+  google-compute-engine = python2.pkgs.google-compute-engine;
 
   gource = callPackage ../applications/version-management/gource { };
 
@@ -7576,6 +7576,8 @@ with pkgs;
     pythonPackages = python3Packages;
   };
 
+  watson-ruby = callPackage ../development/tools/misc/watson-ruby {};
+
   xc3sprog = callPackage ../development/tools/misc/xc3sprog { };
 
   xcbuild  = callPackage ../development/tools/xcbuild/wrapper.nix {
@@ -11372,6 +11374,8 @@ with pkgs;
   freeswitch = callPackage ../servers/sip/freeswitch {
     openssl = openssl_1_0_2;
   };
+
+  fusionInventory = callPackage ../servers/monitoring/fusion-inventory { };
 
   gatling = callPackage ../servers/http/gatling { };
 
@@ -16615,6 +16619,8 @@ with pkgs;
 
   twmn = libsForQt5.callPackage ../applications/misc/twmn { };
 
+  testssl = callPackage ../applications/networking/testssl { };
+
   umurmur = callPackage ../applications/networking/umurmur { };
 
   unigine-valley = callPackage ../applications/graphics/unigine-valley { };
@@ -18553,7 +18559,9 @@ with pkgs;
     sbcl = null;
   };
 
-  mxnet = callPackage ../applications/science/math/mxnet { };
+  mxnet = callPackage ../applications/science/math/mxnet {
+    inherit (linuxPackages) nvidia_x11;
+  };
 
   wxmaxima = callPackage ../applications/science/math/wxmaxima { wxGTK = wxGTK30; };
 
@@ -18881,9 +18889,9 @@ with pkgs;
 
   hplipWithPlugin = hplip.override { withPlugin = true; };
 
-  hplip_3_15_9 = callPackage ../misc/drivers/hplip/3.15.9.nix { };
+  hplip_3_16_11 = callPackage ../misc/drivers/hplip/3.16.11.nix { };
 
-  hplipWithPlugin_3_15_9 = hplip_3_15_9.override { withPlugin = true; };
+  hplipWithPlugin_3_16_11 = hplip.override { withPlugin = true; };
 
   epkowa = callPackage ../misc/drivers/epkowa { };
 
