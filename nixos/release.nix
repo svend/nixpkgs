@@ -278,11 +278,13 @@ in rec {
   tests.login = callTest tests/login.nix {};
   #tests.logstash = callTest tests/logstash.nix {};
   tests.mathics = callTest tests/mathics.nix {};
+  tests.mesos = callTest tests/mesos.nix {};
   tests.misc = callTest tests/misc.nix {};
   tests.mongodb = callTest tests/mongodb.nix {};
   tests.mumble = callTest tests/mumble.nix {};
   tests.munin = callTest tests/munin.nix {};
   tests.mysql = callTest tests/mysql.nix {};
+  tests.mysqlBackup = callTest tests/mysql-backup.nix {};
   tests.mysqlReplication = callTest tests/mysql-replication.nix {};
   tests.nat.firewall = callTest tests/nat.nix { withFirewall = true; };
   tests.nat.firewall-conntrack = callTest tests/nat.nix { withFirewall = true; withConntrackHelpers = true; };

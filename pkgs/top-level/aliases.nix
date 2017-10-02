@@ -69,6 +69,7 @@ mapAliases (rec {
   guileCairo = guile-cairo; # added 2017-09-24
   guileGnome = guile-gnome; # added 2017-09-24
   guile_lib = guile-lib; # added 2017-09-24
+  guileLint = guile-lint; # added 2017-09-27
   guile_ncurses = guile-ncurses; # added 2017-09-24
   gupnptools = gupnp-tools;  # added 2015-12-19
   gnustep-make = gnustep.make; # added 2016-7-6
@@ -125,6 +126,7 @@ mapAliases (rec {
   qwt6 = libsForQt5.qwt;  # added 2015-12-19
   rdiff_backup = rdiff-backup;  # added 2014-11-23
   rdmd = dtools;  # added 2017-08-19
+  robomongo = robo3t; #added 2017-09-28
   rssglx = rss-glx; #added 2015-03-25
   rubygems = throw "deprecated 2016-03-02: rubygems is now bundled with ruby";
   rustUnstable = rustNightly; # added 2016-11-29

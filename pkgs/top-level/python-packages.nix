@@ -3295,6 +3295,8 @@ in {
       sha256 = "d04bb2425086c3fe86f7bc48915290b13e798497839fbb18ab7f6dffcf98cc3a";
     };
 
+    outputs = [ "out" "dev" ];
+
     buildInputs = [ pkgs.openssl self.cryptography_vectors ]
                ++ optional stdenv.isDarwin pkgs.darwin.apple_sdk.frameworks.Security;
     propagatedBuildInputs = with self; [
@@ -7154,6 +7156,8 @@ in {
 
   pycassa = callPackage ../development/python-modules/pycassa { };
 
+  pyblake2 = callPackage ../development/python-modules/pyblake2 { };
+
   pybluez = buildPythonPackage rec {
     version = "unstable-20160819";
     pname = "pybluez";
@@ -7344,19 +7348,18 @@ in {
       sha256 = "0dhbzc4q0vsnv3aihy728aczg56xs6h9s1rmvr096q4lb6yln3w4";
     };
 
-    buildInputs = with self; [
+    checkInputs = with self; [
       docutils
       virtualenv
       webtest
       zope_component
-      zope_interface
-      plaster
-      plaster-pastedeploy
-      hupper
     ] ++ optional isPy26 unittest2;
 
     propagatedBuildInputs = with self; [
+      hupper
       PasteDeploy
+      plaster
+      plaster-pastedeploy
       repoze_lru
       repoze_sphinx_autointerface
       translationstring
@@ -8396,31 +8399,7 @@ in {
 
   django-raster = callPackage ../development/python-modules/django-raster { };
 
-  django_redis = buildPythonPackage rec {
-    name = "django-redis-${version}";
-    version = "4.2.0";
-
-    src = pkgs.fetchurl {
-      url = "mirror://pypi/d/django-redis/${name}.tar.gz";
-      sha256 = "9ad6b299458f7e6bfaefa8905f52560017369d82fb8fb0ed4b41adc048dbf11c";
-    };
-
-    doCheck = false;
-
-    buildInputs = [ self.mock ];
-
-    propagatedBuildInputs = with self; [
-      django
-      redis
-      msgpack
-    ];
-
-    meta = {
-      description = "Full featured redis cache backend for Django";
-      homepage = https://github.com/niwibe/django-redis;
-      license = licenses.bsd3;
-    };
-  };
+  django_redis = callPackage ../development/python-modules/django_redis { };
 
   django_reversion = buildPythonPackage rec {
     name = "django-reversion-${version}";
@@ -14030,6 +14009,8 @@ in {
        testtools testscenarios testrepository oslotest subunit
      ];
 
+     # breaks in sandboxing
+     doCheck = false;
    };
 
   oslo-messaging = buildPythonPackage rec {
@@ -16102,7 +16083,8 @@ in {
 
 
   pyalgotrade = buildPythonPackage {
-    name = "pyalogotrade-0.16";
+    name = "pyalgotrade-0.16";
+    disabled = isPy3k;
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/P/PyAlgoTrade/PyAlgoTrade-0.16.tar.gz";
@@ -17110,12 +17092,14 @@ in {
   };
 
   pyjwt = buildPythonPackage rec {
-    version = "1.4.2";
+    version = "1.5.3";
     name = "pyjwt-${version}";
 
-    src = pkgs.fetchurl {
-      url = "http://github.com/progrium/pyjwt/archive/${version}.tar.gz";
-      sha256 = "06vg84aicwkv0kli8i4jhg0kc6298cmh38ib058q01yxzk6q17gn";
+    src = pkgs.fetchFromGitHub {
+      owner = "progrium";
+      repo = "pyjwt";
+      rev = version;
+      sha256 = "109zb3ka2lvp00r9nawa0lmljfikvhcj5yny19kcipz8mqia1gs8";
     };
 
     buildInputs = with self; [ pytestrunner pytestcov pytest coverage ];
@@ -17817,6 +17801,8 @@ in {
       sha256 = "0d283g4zi0hr9papd24mjl70mi15gyzq6fx618rizi87dgipqqax";
     };
 
+    outputs = [ "out" "dev" ];
+
     preCheck = ''
       sed -i 's/test_set_default_verify_paths/noop/' tests/test_ssl.py
       # https://github.com/pyca/pyopenssl/issues/692
@@ -18425,26 +18411,8 @@ in {
 
   requests_oauthlib = callPackage ../development/python-modules/requests-oauthlib.nix { };
 
-  requests_toolbelt = buildPythonPackage rec {
-    version = "0.7.1";
-    name = "requests-toolbelt-${version}";
-
-    src = pkgs.fetchurl {
-      url = "https://github.com/sigmavirus24/requests-toolbelt/archive/${version}.tar.gz";
-      sha256 = "16grklnbgcfwqj3f39gw7fc9afi7xlp9gm7x8w6mi81dzhdxf50y";
-    };
-
-    propagatedBuildInputs = with self; [ requests ];
-
-    buildInputs = with self; [ betamax mock pytest ];
-
-    meta = {
-      description = "A toolbelt of useful classes and functions to be used with python-requests";
-      homepage = http://toolbelt.rtfd.org;
-      maintainers = with maintainers; [ matthiasbeyer jgeerds ];
-    };
-
-  };
+  requests-toolbelt = callPackage ../development/python-modules/requests-toolbelt { };
+  requests_toolbelt = self.requests-toolbelt; # Old attr, 2017-09-26
 
   retry_decorator = buildPythonPackage rec {
     name = "retry_decorator-1.0.0";
@@ -18581,22 +18549,7 @@ in {
 
   };
 
-  redis = buildPythonPackage rec {
-    name = "redis-2.10.5";
-
-    src = pkgs.fetchurl {
-      url = "mirror://pypi/r/redis/${name}.tar.gz";
-      sha256 = "0csmrkxb29x7xs9b51zplwkkq2hwnbh9jns1g85dykn5rxmaxysx";
-    };
-
-    # tests require a running redis
-    doCheck = false;
-
-    meta = {
-      description = "Python client for Redis key-value store";
-      homepage = "https://pypi.python.org/pypi/redis/";
-    };
-  };
+  redis = callPackage ../development/python-modules/redis { };
 
   rednose = buildPythonPackage rec {
     name = "rednose-${version}";
@@ -21941,27 +21894,7 @@ in {
     };
   };
 
-  twine = buildPythonPackage rec {
-    name = "twine-${version}";
-    version = "1.8.1";
-
-    src = pkgs.fetchurl {
-      url    = "mirror://pypi/t/twine/${name}.tar.gz";
-      sha256 = "68b663691a947b844f92853c992d42bb68b6333bffc9ab7f661346b001c1da82";
-    };
-
-    propagatedBuildInputs = with self; [ clint pkginfo requests requests_toolbelt ];
-
-    # Requires network
-    doCheck = false;
-
-    meta = {
-      description = "Collection of utilities for interacting with PyPI";
-      homepage = https://github.com/pypa/twine;
-      license = licenses.asl20;
-      maintainer = with maintainers; [ fridh ];
-    };
-  };
+  twine = callPackage ../development/python-modules/twine { };
 
   twisted = callPackage ../development/python-modules/twisted { };
 

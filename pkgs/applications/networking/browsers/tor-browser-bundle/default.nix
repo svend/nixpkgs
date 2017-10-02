@@ -1,7 +1,6 @@
 { stdenv
-, lib
-, fetchurl
 , fetchgit
+, fetchurl
 , symlinkJoin
 
 , tor
@@ -14,8 +13,20 @@
 , noto-fonts
 , noto-fonts-emoji
 
+# Audio support
+, audioSupport ? mediaSupport
+, apulse
+
+# Media support (implies audio support)
+, mediaSupport ? false
+, gstreamer
+, gst-plugins-base
+, gst-plugins-good
+, gst-ffmpeg
+, gmp
+, ffmpeg
+
 # Extensions, common
-, unzip
 , zip
 
 # HTTPS Everywhere
@@ -27,7 +38,10 @@
 
 # Customization
 , extraPrefs ? ""
+, extraExtensions ? [ ]
 }:
+
+with stdenv.lib;
 
 let
   tor-browser-build_src = fetchgit {
@@ -36,145 +50,17 @@ let
     sha256 = "0j37mqldj33fnzghxifvy6v8vdwkcz0i4z81prww64md5s8qcsa9";
   };
 
-  # Each extension drv produces an output comprising an unpacked .xpi
-  # named after the extension uuid, as it would appear under
-  # `firefox/extensions'.
-  firefoxExtensions = {
-    https-everywhere = stdenv.mkDerivation rec {
-      name = "https-everywhere-${version}";
-      version = "5.2.21";
-
-      extid = "https-everywhere-eff@eff.org";
-
-      src = fetchgit {
-        url = "https://git.torproject.org/https-everywhere.git";
-        rev = "refs/tags/${version}";
-        sha256 = "0z9madihh4b4z4blvfmh6w1hsv8afyi0x7b243nciq9r4w55xgfa";
-      };
-
-      nativeBuildInputs = [
-        git
-        libxml2 # xmllint
-        python27
-        python27Packages.lxml
-        rsync
-        unzip
-        zip
-      ];
-
-      unpackPhase = ''
-        cp -dR --no-preserve=mode "$src" src
-        cd src
-      '';
-
-      # Beware: the build expects translations/ to be non-empty (which it
-      # will be with submodules initialized).
-      buildPhase = ''
-        $shell ./makexpi.sh ${version} --no-recurse
-      '';
-
-      installPhase = ''
-        mkdir $out
-        unzip -d "$out/$extid" "pkg/https-everywhere-$version-eff.xpi"
-      '';
-
-      meta = {
-        homepage = https://gitweb.torproject.org/https-everywhere.git/;
-      };
-    };
-
-    noscript = stdenv.mkDerivation rec {
-      name = "noscript-${version}";
-      version = "5.0.10";
-
-      extid = "{73a6fe31-595d-460b-a920-fcc0f8843232}";
-
-      src = fetchurl {
-        url = "https://secure.informaction.com/download/releases/noscript-${version}.xpi";
-        sha256 = "18k5karbaj5mhd9cyjbqgik6044bw88rjalkh6anjanxbn503j6g";
-      };
-
-      nativeBuildInputs = [ unzip ];
-
-      unpackPhase = ":";
-
-      installPhase = ''
-        mkdir $out
-        unzip -d "$out/$extid" "$src"
-      '';
-    };
-
-    torbutton = stdenv.mkDerivation rec {
-      name = "torbutton-${version}";
-      version = "1.9.8.1";
-
-      extid = "torbutton@torproject.org";
-
-      src = fetchgit {
-        url = "https://git.torproject.org/torbutton.git";
-        rev = "refs/tags/${version}";
-        sha256 = "1amp0c9ky0a7fsa0bcbi6n6ginw7s2g3an4rj7kvc1lxmrcsm65l";
-      };
-
-      nativeBuildInputs = [ unzip zip ];
-
-      unpackPhase = ''
-        cp -dR --no-preserve=mode "$src" src
-        cd src
-      '';
-
-      buildPhase = ''
-        $shell ./makexpi.sh
-      '';
-
-      installPhase = ''
-        mkdir $out
-        unzip -d "$out/$extid" "pkg/torbutton-$version.xpi"
-      '';
-
-      meta = {
-        homepage = https://gitweb.torproject.org/torbutton.git/;
-      };
-    };
-
-    tor-launcher = stdenv.mkDerivation rec {
-      name = "tor-launcher-${version}";
-      version = "0.2.12.3";
-
-      extid = "tor-launcher@torproject.org";
-
-      src = fetchgit {
-        url = "https://git.torproject.org/tor-launcher.git";
-        rev = "refs/tags/${version}";
-        sha256 = "0126x48pjiy2zm4l8jzhk70w24hviaz560ffp4lb9x0ar615bc9q";
-      };
-
-      nativeBuildInputs = [ unzip zip ];
-
-      unpackPhase = ''
-        cp -dR --no-preserve=mode "$src" src
-        cd src
-      '';
-
-      buildPhase = ''
-        make package
-      '';
-
-      installPhase = ''
-        mkdir $out
-        unzip -d "$out/$extid" "pkg/tor-launcher-$version.xpi"
-      '';
-
-      meta = {
-        homepage = https://gitweb.torproject.org/tor-launcher.git/;
-      };
-    };
+  firefoxExtensions = import ./extensions.nix {
+    inherit stdenv fetchurl fetchgit zip
+      git libxml2 python27 python27Packages rsync;
   };
 
-  extensionsEnv = symlinkJoin {
-    name = "tor-browser-extensions";
-    paths = with firefoxExtensions; [ https-everywhere noscript torbutton tor-launcher ];
-  };
+  bundledExtensions = with firefoxExtensions; [
+    https-everywhere
+    noscript
+    torbutton
+    tor-launcher
+  ] ++ extraExtensions;
 
   fontsEnv = symlinkJoin {
     name = "tor-browser-fonts";
@@ -182,6 +68,21 @@ let
   };
 
   fontsDir = "${fontsEnv}/share/fonts";
+
+  gstPluginsPath = concatMapStringsSep ":" (x:
+    "${x}/lib/gstreamer-0.10") [
+      gstreamer
+      gst-plugins-base
+      gst-plugins-good
+      gst-ffmpeg
+    ];
+
+  gstLibPath = makeLibraryPath [
+    gstreamer
+    gst-plugins-base
+    gmp
+    ffmpeg
+  ];
 in
 stdenv.mkDerivation rec {
   name = "tor-browser-bundle-${version}";
@@ -193,6 +94,11 @@ stdenv.mkDerivation rec {
 
   buildPhase = ":";
 
+  # The following creates a customized firefox distribution.  For
+  # simplicity, we copy the entire base firefox runtime, to work around
+  # firefox's annoying insistence on resolving the installation directory
+  # relative to the real firefox executable.  A little tacky and
+  # inefficient but it works.
   installPhase = ''
     TBBUILD=${tor-browser-build_src}/projects/tor-browser
     TBDATA_PATH=TorBrowser-Data
@@ -220,6 +126,7 @@ stdenv.mkDerivation rec {
     lockPref("app.update.enabled", false);
     lockPref("extensions.update.autoUpdateDefault", false);
     lockPref("extensions.update.enabled", false);
+    lockPref("extensions.torbutton.updateNeeded", false);
     lockPref("extensions.torbutton.versioncheck_enabled", false);
 
     // Where to find the Nixpkgs tor executable & config
@@ -234,13 +141,19 @@ stdenv.mkDerivation rec {
     lockPref("extensions.torlauncher.control_port_use_ipc", true);
     lockPref("extensions.torlauncher.socks_port_use_ipc", true);
 
+    // Allow sandbox access to sound devices if using ALSA directly
+    ${if audioSupport then ''
+      pref("security.sandbox.content.write_path_whitelist", "/dev/snd/");
+    '' else ''
+      clearPref("security.sandbox.content.write_path_whitelist");
+    ''}
+
     // User customization
     ${extraPrefs}
     EOF
 
     # Preload extensions
-    # XXX: the fact that ln -s env browser/extensions fails, symlinkJoin seems a little redundant ...
-    ln -s -t browser/extensions ${extensionsEnv}"/"*
+    find ${toString bundledExtensions} -name '*.xpi' -exec ln -s -t browser/extensions '{}' '+'
 
     # Copy bundle data
     bundlePlatform=linux
@@ -260,20 +173,31 @@ stdenv.mkDerivation rec {
         > $TBDATA_PATH/fonts.conf
 
     # Generate a suitable wrapper
-    wrapper_PATH=${lib.makeBinPath [ coreutils ]}
-    wrapper_XDG_DATA_DIRS=${lib.concatMapStringsSep ":" (x: "${x}/share") [
+    wrapper_PATH=${makeBinPath [ coreutils ]}
+    wrapper_XDG_DATA_DIRS=${concatMapStringsSep ":" (x: "${x}/share") [
       hicolor_icon_theme
       shared_mime_info
     ]}
+
+    ${optionalString audioSupport ''
+      # apulse uses a non-standard library path ...
+      wrapper_LD_LIBRARY_PATH=${apulse}/lib/apulse''${wrapper_LD_LIBRARY_PATH:+:$wrapper_LD_LIBRARY_PATH}
+    ''}
+
+    ${optionalString mediaSupport ''
+      wrapper_LD_LIBRARY_PATH=${gstLibPath}''${wrapper_LD_LIBRARY_PATH:+:$wrapper_LD_LIBRARY_PATH}
+    ''}
 
     mkdir -p $out/bin
     cat >$out/bin/tor-browser <<EOF
     #! ${stdenv.shell} -eu
 
+    umask 077
+
     PATH=$wrapper_PATH
 
     readonly THE_HOME=\$HOME
-    TBB_HOME=\''${TBB_HOME:-\''${XDG_DATA_HOME:-$HOME/.local/share}/tor-browser}
+    TBB_HOME=\''${TBB_HOME:-\''${XDG_DATA_HOME:-\$HOME/.local/share}/tor-browser}
     if [[ \''${TBB_HOME:0:1} != / ]] ; then
       TBB_HOME=\$PWD/\$TBB_HOME
     fi
@@ -334,9 +258,21 @@ stdenv.mkDerivation rec {
     # XDG_DATA_DIRS is set to prevent searching system directories for
     # mime and icon data.
     #
+    # PULSE_{SERVER,COOKIE} is necessary for audio playback w/pulseaudio
+    #
+    # APULSE_PLAYBACK_DEVICE is for audio playback w/o pulseaudio (no capture yet)
+    #
+    # GST_PLUGIN_SYSTEM_PATH is for HD video playback
+    #
+    # GST_REGISTRY is set to devnull to minimize disk writes
+    #
+    # TOR_* is for using an external tor instance
+    #
     # Parameters lacking a default value below are *required* (enforced by
     # -o nounset).
     exec env -i \
+      LD_LIBRARY_PATH=$wrapper_LD_LIBRARY_PATH \
+      \
       TZ=":" \
       \
       DISPLAY="\$DISPLAY" \
@@ -348,10 +284,21 @@ stdenv.mkDerivation rec {
       XDG_CONFIG_HOME="\$XDG_CONFIG_HOME" \
       XDG_DATA_HOME="\$XDG_DATA_HOME" \
       XDG_CACHE_HOME="\$XDG_CACHE_HOME" \
+      XDG_RUNTIME_DIR="\$HOME/run" \
       \
       XDG_DATA_DIRS="$wrapper_XDG_DATA_DIRS" \
       \
       FONTCONFIG_FILE="$TBDATA_IN_STORE/fonts.conf" \
+      \
+      APULSE_PLAYBACK_DEVICE="\''${APULSE_PLAYBACK_DEVICE:-plug:dmix}" \
+      \
+      GST_PLUGIN_SYSTEM_PATH="${optionalString mediaSupport gstPluginsPath}" \
+      GST_REGISTRY="/dev/null" \
+      GST_REGISTRY_UPDATE="no" \
+      \
+      TOR_SKIP_LAUNCH="\''${TOR_SKIP_LAUNCH:-}" \
+      TOR_CONTROL_PORT="\''${TOR_CONTROL_PORT:-}" \
+      TOR_SOCKS_PORT="\''${TOR_SOCKS_PORT:-}" \
       \
       $self/firefox \
         -no-remote \
@@ -364,7 +311,7 @@ stdenv.mkDerivation rec {
     bash -n $out/bin/tor-browser
 
     echo "Checking wrapper ..."
-    DISPLAY="" XAUTHORITY="" DBUS_SESSION_BUS_ADDRESS="" TBB_HOME=$TMPDIR/tbb \
+    DISPLAY="" XAUTHORITY="" DBUS_SESSION_BUS_ADDRESS="" TBB_HOME=$(mktemp -d) \
     $out/bin/tor-browser -version >/dev/null
   '';
 

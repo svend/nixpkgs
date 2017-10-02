@@ -5,6 +5,9 @@ rec {
   bitcoin  = callPackage ./bitcoin.nix { withGui = true; };
   bitcoind = callPackage ./bitcoin.nix { withGui = false; };
 
+  bitcoin-abc  = callPackage ./bitcoin-abc.nix { withGui = true; };
+  bitcoind-abc = callPackage ./bitcoin-abc.nix { withGui = false; };
+
   bitcoin-unlimited  = callPackage ./bitcoin-unlimited.nix { withGui = true; };
   bitcoind-unlimited = callPackage ./bitcoin-unlimited.nix { withGui = false; };
 
@@ -43,7 +46,7 @@ rec {
   seth = callPackage ./seth.nix { };
   dapp = callPackage ./dapp.nix { };
 
-  hsevm = (haskellPackages.callPackage ./hsevm.nix {});
+  hevm = (haskellPackages.callPackage ./hevm.nix {});
 
   primecoin  = callPackage ./primecoin.nix { withGui = true; };
   primecoind = callPackage ./primecoin.nix { withGui = false; };
