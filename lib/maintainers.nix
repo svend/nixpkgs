@@ -200,6 +200,7 @@
   fadenb = "Tristan Helmich <tristan.helmich+nixos@gmail.com>";
   falsifian = "James Cook <james.cook@utoronto.ca>";
   fare = "Francois-Rene Rideau <fahree@gmail.com>";
+  fgaz = "Francesco Gazzetta <francygazz@gmail.com>";
   florianjacob = "Florian Jacob <projects+nixos@florianjacob.de>";
   flosse = "Markus Kohlhase <mail@markus-kohlhase.de>";
   fluffynukeit = "Daniel Austin <dan@fluffynukeit.com>";
@@ -652,6 +653,7 @@
   xvapx = "Marti Serra <marti.serra.coscollano@gmail.com>";
   xwvvvvwx = "David Terry <davidterry@posteo.de>";
   yarr = "Dmitry V. <savraz@gmail.com>";
+  yegortimoshenko = "Yegor Timoshenko <yegortimoshenko@gmail.com>";
   yochai = "Yochai <yochai@titat.info>";
   yorickvp = "Yorick van Pelt <yorickvanpelt@gmail.com>";
   yuriaisaka = "Yuri Aisaka <yuri.aisaka+nix@gmail.com>";
