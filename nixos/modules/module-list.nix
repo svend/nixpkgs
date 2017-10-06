@@ -9,7 +9,7 @@
   ./config/fonts/ghostscript.nix
   ./config/gnu.nix
   ./config/i18n.nix
-  ./config/krb5.nix
+  ./config/krb5/default.nix
   ./config/ldap.nix
   ./config/networking.nix
   ./config/no-x-libs.nix
@@ -269,6 +269,7 @@
   ./services/mail/offlineimap.nix
   ./services/mail/opendkim.nix
   ./services/mail/opensmtpd.nix
+  ./services/mail/pfix-srsd.nix
   ./services/mail/postfix.nix
   ./services/mail/postsrsd.nix
   ./services/mail/postgrey.nix
@@ -621,6 +622,7 @@
   ./services/web-servers/phpfpm/default.nix
   ./services/web-servers/shellinabox.nix
   ./services/web-servers/tomcat.nix
+  ./services/web-servers/traefik.nix
   ./services/web-servers/uwsgi.nix
   ./services/web-servers/varnish/default.nix
   ./services/web-servers/winstone.nix
