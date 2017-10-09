@@ -1446,6 +1446,8 @@ with pkgs;
 
   cuetools = callPackage ../tools/cd-dvd/cuetools { };
 
+  u3-tool = callPackage ../tools/filesystems/u3-tool { };
+
   unifdef = callPackage ../development/tools/misc/unifdef { };
 
   unionfs-fuse = callPackage ../tools/filesystems/unionfs-fuse { };
@@ -11776,7 +11778,8 @@ with pkgs;
     postgresql93
     postgresql94
     postgresql95
-    postgresql96;
+    postgresql96
+    postgresql100;
 
   postgresql_jdbc = callPackage ../servers/sql/postgresql/jdbc { };
 
