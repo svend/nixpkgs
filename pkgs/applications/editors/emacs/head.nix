@@ -39,7 +39,11 @@ stdenv.mkDerivation rec {
     sha256 = srcSha;
   };
 
-  patches = (lib.optional stdenv.isDarwin ./at-fdcwd.patch);
+  enableParallelBuilding = true;
+
+  patches =
+    [ ./clean-env.patch ]
+    ++ lib.optional stdenv.isDarwin ./at-fdcwd.patch;
 
   nativeBuildInputs = [ pkgconfig ]
     ++ lib.optionals srcRepo [ autoconf automake texinfo ]
