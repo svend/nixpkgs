@@ -781,7 +781,6 @@ with pkgs;
   bsod = callPackage ../misc/emulators/bsod { };
 
   btrfs-progs = callPackage ../tools/filesystems/btrfs-progs { };
-  btrfs-progs_4_4_1 = callPackage ../tools/filesystems/btrfs-progs/4.4.1.nix { };
 
   btrfs-dedupe = callPackage ../tools/filesystems/btrfs-dedupe/default.nix {};
 
@@ -5396,7 +5395,7 @@ with pkgs;
   clangWrapSelf = build: ccWrapperFun {
     cc = build;
     isClang = true;
-    stdenv = clangStdenv;
+    inherit stdenvNoCC;
     libc = glibc;
     extraPackages = [ libcxx libcxxabi ];
     nativeTools = false;
@@ -6319,11 +6318,11 @@ with pkgs;
 
   wla-dx = callPackage ../development/compilers/wla-dx { };
 
-  wrapCCWith = { name ? "", cc, libc, extraBuildCommands ? "" }: ccWrapperFun {
+  wrapCCWith = { name ? "", cc, libc, extraBuildCommands ? "" }: ccWrapperFun rec {
     nativeTools = targetPlatform == hostPlatform && stdenv.cc.nativeTools or false;
     nativeLibc = targetPlatform == hostPlatform && stdenv.cc.nativeLibc or false;
     nativePrefix = stdenv.cc.nativePrefix or "";
-    noLibc = (libc == null);
+    noLibc = !nativeLibc && (libc == null);
 
     isGNU = cc.isGNU or false;
     isClang = cc.isClang or false;
@@ -7449,12 +7448,6 @@ with pkgs;
 
   pmccabe = callPackage ../development/tools/misc/pmccabe { };
 
-  /* Make pkgconfig always return a nativeDrv, never a proper crossDrv,
-     because most usage of pkgconfig as buildInput (inheritance of
-     pre-cross nixpkgs) means using it using as nativeBuildInput
-     cross_renaming: we should make all programs use pkgconfig as
-     nativeBuildInput after the renaming.
-     */
   pkgconfig = callPackage ../development/tools/misc/pkgconfig {
     fetchurl = fetchurlBoot;
   };
@@ -11848,6 +11841,8 @@ with pkgs;
   s6 = callPackage ../tools/system/s6 { };
 
   s6-rc = callPackage ../tools/system/s6-rc { };
+
+  supervise = callPackage ../tools/system/supervise { };
 
   spamassassin = callPackage ../servers/mail/spamassassin {
     inherit (perlPackages) HTMLParser NetDNS NetAddrIP DBFile
@@ -16472,10 +16467,7 @@ with pkgs;
 
   smartdeblur = callPackage ../applications/graphics/smartdeblur { };
 
-  snapper = callPackage ../tools/misc/snapper {
-    btrfs-progs = btrfs-progs_4_4_1;
-    stdenv = overrideCC stdenv gcc5;
-  };
+  snapper = callPackage ../tools/misc/snapper { };
 
   snd = callPackage ../applications/audio/snd { };
 
