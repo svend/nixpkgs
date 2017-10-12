@@ -14997,6 +14997,8 @@ in {
 
   pandas = callPackage ../development/python-modules/pandas { };
 
+  pandas_0_17_1 = callPackage ../development/python-modules/pandas/0.17.1.nix { };
+
   xlrd = buildPythonPackage rec {
     name = "xlrd-${version}";
 
@@ -20551,6 +20553,8 @@ in {
       platforms = platforms.unix;
     };
   });
+
+  guzzle_sphinx_theme = callPackage ../development/python-modules/guzzle_sphinx_theme { };
 
   sphinx-testing = callPackage ../development/python-modules/sphinx-testing { };
 
