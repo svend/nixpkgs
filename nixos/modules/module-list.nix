@@ -35,11 +35,6 @@
   ./hardware/ksm.nix
   ./hardware/mcelog.nix
   ./hardware/network/b43.nix
-  ./hardware/network/intel-2100bg.nix
-  ./hardware/network/intel-2200bg.nix
-  ./hardware/network/intel-3945abg.nix
-  ./hardware/network/ralink.nix
-  ./hardware/network/rtl8192c.nix
   ./hardware/nitrokey.nix
   ./hardware/opengl.nix
   ./hardware/pcmcia.nix
@@ -104,6 +99,7 @@
   ./programs/ssh.nix
   ./programs/ssmtp.nix
   ./programs/sysdig.nix
+  ./programs/sway.nix
   ./programs/thefuck.nix
   ./programs/tmux.nix
   ./programs/venus.nix
@@ -136,8 +132,6 @@
   ./security/rtkit.nix
   ./security/wrappers/default.nix
   ./security/sudo.nix
-  ./service-managers/docker.nix
-  ./service-managers/trivial.nix
   ./services/admin/salt/master.nix
   ./services/admin/salt/minion.nix
   ./services/amqp/activemq/default.nix

@@ -3,7 +3,7 @@
   src, version, qtCompatVersion,
 
   coreutils, bison, flex, gdb, gperf, lndir, patchelf, perl, pkgconfig, python2,
-  ruby,
+  ruby, which,
   # darwin support
   darwin, libiconv, libcxx,
 
@@ -73,7 +73,7 @@ stdenv.mkDerivation {
     ++ lib.optional (postgresql != null) postgresql;
 
   nativeBuildInputs =
-    [ bison flex gperf lndir perl pkgconfig python2 ]
+    [ bison flex gperf lndir perl pkgconfig python2 which ]
     ++ lib.optional (!stdenv.isDarwin) patchelf;
 
   outputs = [ "out" "dev" "bin" ];
@@ -252,6 +252,9 @@ stdenv.mkDerivation {
       "-inotify"
       "-system-libjpeg"
       "-system-libpng"
+      # gold linker of binutils 2.28 generates duplicate symbols
+      # TODO: remove for newer version of binutils 
+      "-no-use-gold-linker"
     ]
 
     ++ lib.optionals stdenv.isDarwin [
