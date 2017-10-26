@@ -15522,13 +15522,20 @@ in {
   };
 
   piep = buildPythonPackage rec {
-    version = "0.8.0";
+    version = "0.8.1-dev";
     name = "piep-${version}";
-    disabled = isPy3k;
 
-    src = pkgs.fetchurl {
-      url = "mirror://pypi/p/piep/piep-${version}.tar.gz";
-      sha256 = "1wgkg1kc28jpya5k4zvbc9jmpa60b3d5c3gwxfbp15hw6smyqirj";
+    # The tests fail on python3:
+    #   File "/nix/store/rvwk3d63pxm98s2lvb3xvrzhwan5q4z2-python3-3.6.2/lib/python3.6/unittest/loader.py", line 213, in loadTestsFromName
+    #     raise TypeError("don't know how to make test from: %s" % obj)
+    # TypeError: don't know how to make test from: {'re': <module 're' from '/nix/store/rvwk3d63pxm98s2lvb3
+    doCheck = !isPy3k;
+
+    src = pkgs.fetchFromGitHub {
+      owner = "timbertson";
+      repo = "piep";
+      rev = "93c3256c9b3c061109f831f391de7a7913211b58";
+      sha256 = "10fg2h0zid1qq85ifr34k94qxn5ynr92m5hym6lnh6wzaf714q4i";
     };
 
     propagatedBuildInputs = with self; [pygments];
