@@ -632,6 +632,11 @@ in {
           touch "${cfg.statePath}/db-seeded"
         fi
 
+        # The gitlab:shell:create_hooks task seems broken for fixing links
+        # so we instead delete all the hooks and create them anew
+        rm ${cfg.statePath}/repositories/**/*.git/hooks
+        ${gitlab-rake}/bin/gitlab-rake gitlab:shell:create_hooks RAILS_ENV=production
+
         # Change permissions in the last step because some of the
         # intermediary scripts like to create directories as root.
         chown -R ${cfg.user}:${cfg.group} ${cfg.statePath}
@@ -641,7 +646,7 @@ in {
         chmod -R ug-s ${cfg.statePath}/repositories
         find ${cfg.statePath}/repositories -type d -print0 | xargs -0 chmod g+s
         chmod 770 ${cfg.statePath}/uploads
-        chown -R git ${cfg.statePath}/uploads
+        chown -R ${cfg.user} ${cfg.statePath}/uploads
         find ${cfg.statePath}/uploads -type f -exec chmod 0644 {} \;
         find ${cfg.statePath}/uploads -type d -not -path ${cfg.statePath}/uploads -exec chmod 0770 {} \;
       '';

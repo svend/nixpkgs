@@ -95,7 +95,10 @@ in {
 
   setuptools = callPackage ../development/python-modules/setuptools { };
 
-  vowpalwabbit = callPackage ../development/python-modules/vowpalwabbit { pythonPackages = self; };
+  vowpalwabbit = callPackage ../development/python-modules/vowpalwabbit {
+    pythonPackages = self;
+    boost = pkgs.boost160;
+  };
 
   acoustics = callPackage ../development/python-modules/acoustics { };
 
@@ -253,6 +256,10 @@ in {
     pythonPackages = self;
   };
 
+  pyqt56 = pkgs.libsForQt56.callPackage ../development/python-modules/pyqt/5.x.nix {
+    pythonPackages = self;
+  };
+
   pyqt5 = pkgs.libsForQt5.callPackage ../development/python-modules/pyqt/5.x.nix {
     pythonPackages = self;
   };
@@ -274,6 +281,8 @@ in {
   python-sql = callPackage ../development/python-modules/python-sql { };
 
   python-stdnum = callPackage ../development/python-modules/python-stdnum { };
+
+  python-utils = callPackage ../development/python-modules/python-utils { };
 
   pytimeparse =  callPackage ../development/python-modules/pytimeparse { };
 
@@ -10789,32 +10798,7 @@ in {
 
   jupyter_client = callPackage ../development/python-modules/jupyter_client { };
 
-  jupyter_core = buildPythonPackage rec {
-    version = "4.3.0";
-    name = "jupyter_core-${version}";
-
-    src = pkgs.fetchurl {
-      url = "mirror://pypi/j/jupyter_core/${name}.tar.gz";
-      sha256 = "a96b129e1641425bf057c3d46f4f44adce747a7d60107e8ad771045c36514d40";
-    };
-
-    buildInputs = with self; [ pytest mock ];
-    propagatedBuildInputs = with self; [ ipython traitlets];
-
-    checkPhase = ''
-      py.test
-    '';
-
-    # Several tests fail due to being in a chroot
-    doCheck = false;
-
-    meta = {
-      description = "Jupyter core package. A base package on which Jupyter projects rely";
-      homepage = http://jupyter.org/;
-      license = licenses.bsd3;
-      maintainers = with maintainers; [ fridh ];
-    };
-  };
+  jupyter_core = callPackage ../development/python-modules/jupyter_core { };
 
   jsonpath_rw = buildPythonPackage rec {
     name = "jsonpath-rw-${version}";
@@ -11643,6 +11627,8 @@ in {
     };
   };
 
+  meliae = callPackage ../development/python-modules/meliae {};
+
   memcached = buildPythonPackage rec {
     name = "memcached-1.51";
 
@@ -11891,23 +11877,7 @@ in {
     };
   };
 
-  mistune = buildPythonPackage rec {
-    version = "0.7.1";
-    name = "mistune-${version}";
-
-    src = pkgs.fetchurl {
-      url = "mirror://pypi/m/mistune/${name}.tar.gz";
-      sha256 = "6076dedf768348927d991f4371e5a799c6a0158b16091df08ee85ee231d929a7";
-    };
-
-    buildInputs = with self; [nose];
-
-    meta = {
-      description = "The fastest markdown parser in pure Python";
-      homepage = https://github.com/lepture/mistune;
-      license = licenses.bsd3;
-    };
-  };
+  mistune = callPackage ../development/python-modules/mistune { };
 
   brotlipy = buildPythonPackage rec {
     name = "brotlipy-${version}";
@@ -13140,6 +13110,8 @@ in {
     buildInputs = with self; [ nose ];
   };
 
+  nose_warnings_filters = callPackage ../development/python-modules/nose_warnings_filters { };
+
   notebook = callPackage ../development/python-modules/notebook { };
 
   notify = pkgs.stdenv.mkDerivation (rec {
@@ -13338,6 +13310,8 @@ in {
       license = licenses.free;
     };
   };
+
+  numpy-stl = callPackage ../development/python-modules/numpy-stl { };
 
   numtraits = buildPythonPackage rec {
     pname = "numtraits";
@@ -18309,22 +18283,6 @@ in {
     };
   };
 
-  # Remove before release of 17.09
-  requests_1 = buildPythonPackage rec {
-    name = "requests-1.2.3";
-    disabled = !pythonOlder "3.4";
-
-    src = pkgs.fetchurl {
-      url = "mirror://pypi/r/requests/${name}.tar.gz";
-      sha256 = "156bf3ec27ba9ec7e0cf8fbe02808718099d218de403eb64a714d73ba1a29ab1";
-    };
-
-    meta = {
-      description = "An Apache2 licensed HTTP library, written in Python, for human beings";
-      homepage = http://docs.python-requests.org/en/latest/;
-    };
-  };
-
   requests2 = throw "requests2 has been deprecated. Use requests instead.";
 
   # use requests, not requests_2
@@ -18923,25 +18881,9 @@ in {
     };
   };
 
-  rootpy = buildPythonPackage rec {
-    version = "0.9.0";
-    name = "rootpy-${version}";
+  root_numpy = callPackage ../development/python-modules/root_numpy { };
 
-    src = pkgs.fetchurl {
-      url = "mirror://pypi/r/rootpy/${name}.tar.gz";
-      sha256 = "04alx6afiyahhv816f6zpwnm0sx2jxgqpgqcn6kdw0wnpc9625cr";
-    };
-
-    disabled = isPy3k;
-
-    propagatedBuildInputs = with self; [ pkgs.root numpy matplotlib ];
-
-    meta = {
-      homepage = "http://www.rootpy.org";
-      license = licenses.gpl3;
-      description = "Pythonic interface to the ROOT framework";
-    };
-  };
+  rootpy = callPackage ../development/python-modules/rootpy { };
 
   rope = buildPythonPackage rec {
     version = "0.10.2";
@@ -26540,7 +26482,10 @@ EOF
 
   twilio = callPackage ../development/python-modules/twilio { };
 
-  uranium = callPackage ../development/python-modules/uranium { };
+  uranium = callPackage ../development/python-modules/uranium {
+    # https://github.com/Ultimaker/Cura/issues/2596
+    pyqt5 = self.pyqt56;
+  };
 
   vine = callPackage ../development/python-modules/vine { };
 

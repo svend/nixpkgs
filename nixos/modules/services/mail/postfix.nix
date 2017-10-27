@@ -28,7 +28,7 @@ let
 
   mainCf = let
     escape = replaceStrings ["$"] ["$$"];
-    mkList = items: "\n  " + concatMapStringsSep "\n  " escape items;
+    mkList = items: "\n  " + concatStringsSep "\n  " items;
     mkVal = value:
       if isList value then mkList value
         else " " + (if value == true then "yes"
@@ -62,7 +62,9 @@ let
     shlib_directory      = false;
     relayhost            = if cfg.lookupMX || cfg.relayHost == ""
                              then cfg.relayHost
-                             else "[${cfg.relayHost}]";
+                             else
+			       "[${cfg.relayHost}]"
+			       + optionalString (cfg.relayPort != null) ":${toString cfg.relayPort}";
     mail_spool_directory = "/var/spool/mail/";
     setgid_group         = setgidGroup;
   }
@@ -455,6 +457,17 @@ in
         default = "";
         description = "
           Mail relay for outbound mail.
+        ";
+      };
+
+      relayPort = mkOption {
+        type = types.nullOr types.int;
+        default = null;
+        example = 587;
+        description = "
+          Specify an optional port for outbound mail relay. (Note:
+          only used if an explicit <option>relayHost</option> is
+          defined.)
         ";
       };
 
