@@ -126,15 +126,6 @@ with pkgs;
     vs = vs90wrapper;
   };
 
-  fetchadc = callPackage ../build-support/fetchadc {
-    adc_user = if config ? adc_user
-      then config.adc_user
-      else throw "You need an adc_user attribute in your config to download files from Apple Developer Connection";
-    adc_pass = if config ? adc_pass
-      then config.adc_pass
-      else throw "You need an adc_pass attribute in your config to download files from Apple Developer Connection";
-  };
-
   fetchbower = callPackage ../build-support/fetchbower {
     inherit (nodePackages) bower2nix;
   };
@@ -152,8 +143,6 @@ with pkgs;
   };
 
   fetchgitPrivate = callPackage ../build-support/fetchgit/private.nix { };
-
-  fetchgitrevision = import ../build-support/fetchgitrevision runCommand git;
 
   fetchgitLocal = callPackage ../build-support/fetchgitlocal { };
 
@@ -574,6 +563,8 @@ with pkgs;
 
   dkimpy = pythonPackages.dkimpy;
 
+  ecdsautils = callPackage ../tools/security/ecdsautils { };
+
   elvish = callPackage ../shells/elvish { };
 
   encryptr = callPackage ../tools/security/encryptr {
@@ -889,6 +880,8 @@ with pkgs;
   clib = callPackage ../tools/package-management/clib { };
 
   colord-kde = libsForQt5.callPackage ../tools/misc/colord-kde {};
+
+  colpack = callPackage ../applications/science/math/colpack { };
 
   consul = callPackage ../servers/consul { };
 
@@ -1475,6 +1468,8 @@ with pkgs;
   m17n_db = callPackage ../tools/inputmethods/m17n-db { };
 
   m17n_lib = callPackage ../tools/inputmethods/m17n-lib { };
+
+  skktools = callPackage ../tools/inputmethods/skk/skktools { };
 
   ibus = callPackage ../tools/inputmethods/ibus {
     inherit (gnome3) dconf glib;
@@ -3960,6 +3955,8 @@ with pkgs;
 
   plex = callPackage ../servers/plex { enablePlexPass = config.plex.enablePlexPass or false; };
 
+  plexpy = callPackage ../servers/plexpy { python = python2; };
+
   ploticus = callPackage ../tools/graphics/ploticus {
     libpng = libpng12;
   };
@@ -4485,6 +4482,8 @@ with pkgs;
   srcml = callPackage ../applications/version-management/srcml { };
 
   sshfs-fuse = callPackage ../tools/filesystems/sshfs-fuse { };
+
+  sshlatex = callPackage ../tools/typesetting/sshlatex { };
 
   sshuttle = callPackage ../tools/security/sshuttle { };
 
@@ -6259,6 +6258,8 @@ with pkgs;
   sdcc = callPackage ../development/compilers/sdcc { };
 
   serpent = callPackage ../development/compilers/serpent { };
+
+  shmig = callPackage ../development/tools/database/shmig { };
 
   smlnjBootstrap = callPackage ../development/compilers/smlnj/bootstrap.nix { };
   smlnj = if stdenv.isDarwin
@@ -10790,6 +10791,8 @@ with pkgs;
 
   tet = callPackage ../development/tools/misc/tet { };
 
+  theft = callPackage ../development/libraries/theft { };
+
   thrift = callPackage ../development/libraries/thrift {
     inherit (pythonPackages) twisted;
   };
@@ -12432,6 +12435,20 @@ with pkgs;
     ];
   };
 
+  linux_4_4 = callPackage ../os-specific/linux/kernel/linux-4.4.nix {
+    kernelPatches =
+      [ kernelPatches.bridge_stp_helper
+        kernelPatches.p9_fixes
+        kernelPatches.cpu-cgroup-v2."4.4"
+        kernelPatches.modinst_arg_list_too_long
+      ]
+      ++ lib.optionals ((platform.kernelArch or null) == "mips")
+      [ kernelPatches.mips_fpureg_emu
+        kernelPatches.mips_fpu_sigill
+        kernelPatches.mips_ext3_n32
+      ];
+  };
+
   linux_4_9 = callPackage ../os-specific/linux/kernel/linux-4.9.nix {
     kernelPatches =
       [ kernelPatches.bridge_stp_helper
@@ -12654,6 +12671,7 @@ with pkgs;
   linuxPackages_hardened_copperhead = linuxPackagesFor pkgs.linux_hardened_copperhead;
   linuxPackages_mptcp = linuxPackagesFor pkgs.linux_mptcp;
   linuxPackages_rpi = linuxPackagesFor pkgs.linux_rpi;
+  linuxPackages_4_4 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_4);
   linuxPackages_4_9 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_9);
   linuxPackages_4_13 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_13);
   # Don't forget to update linuxPackages_latest!
@@ -14609,6 +14627,8 @@ with pkgs;
 
   rhythmbox = callPackage ../applications/audio/rhythmbox { };
 
+  gradio = callPackage ../applications/audio/gradio { };
+
   puddletag = callPackage ../applications/audio/puddletag { };
 
   w_scan = callPackage ../applications/video/w_scan { };
@@ -15028,7 +15048,9 @@ with pkgs;
 
   hue-cli = callPackage ../tools/networking/hue-cli { };
 
-  hugin = callPackage ../applications/graphics/hugin { };
+  hugin = callPackage ../applications/graphics/hugin {
+    wxGTK = wxGTK30;
+  };
 
   hugo = callPackage ../applications/misc/hugo { };
 
@@ -15795,6 +15817,8 @@ with pkgs;
   shotcut = libsForQt5.callPackage ../applications/video/shotcut {
     libmlt = mlt;
   };
+
+  shogun = callPackage ../applications/science/machine-learning/shogun { };
 
   smplayer = libsForQt5.callPackage ../applications/video/smplayer { };
 
@@ -16616,6 +16640,7 @@ with pkgs;
 
   stumpwm-git = stumpwm.override {
     version = "git";
+    inherit sbcl lispPackages;
   };
 
   sublime = callPackage ../applications/editors/sublime { };
@@ -17634,7 +17659,6 @@ with pkgs;
   digikam = libsForQt5.callPackage ../applications/graphics/digikam {
     inherit (plasma5) oxygen;
     inherit (kdeApplications) kcalcore;
-    boost = boost160;
   };
 
   displaycal = (newScope pythonPackages) ../applications/graphics/displaycal {};
