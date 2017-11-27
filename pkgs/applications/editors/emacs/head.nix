@@ -30,8 +30,8 @@ stdenv.mkDerivation rec {
   versionModifier = "-git-${builtins.substring 0 7 srcRev}";
 
   # nix-prefetch-git --rev refs/heads/emacs-26 git://git.sv.gnu.org/emacs.git
-  srcRev = "529a9c09d3f6b5d5a61b81b306bdb8ffa0da50f0";
-  srcSha = "07wblbic8rw957cbhygqdvk7f2r5nwilkg2qds4wiwsm01zk11g2";
+  srcRev = "0a85d12474e6551581bcf87de9129359c0f8c233";
+  srcSha = "1qq7zv00cy3ca2swif6nsyjjwhdfa0z6gzdsyy1wkadr058d8h63";
 
   src = fetchgit {
     url = "git://git.sv.gnu.org/emacs.git";
