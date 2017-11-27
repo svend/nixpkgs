@@ -220,6 +220,8 @@ in {
 
   pyaes = callPackage ../development/python-modules/pyaes { };
 
+  pyamf = callPackage ../development/python-modules/pyamf { };
+
   pyatspi = if isPy3k then callPackage ../development/python-modules/pyatspi { } else throw "pyatspi not supported for interpreter ${python.executable}";
 
   pycairo = callPackage ../development/python-modules/pycairo { };
@@ -4450,6 +4452,8 @@ in {
     };
   };
 
+  demjson = callPackage ../development/python-modules/demjson { };
+
   derpconf = self.buildPythonPackage rec {
     name = "derpconf-0.4.9";
 
@@ -4984,6 +4988,7 @@ in {
     checkPhase = ''
       py.test testing
     '';
+    __darwinAllowLocalNetworking = true;
     meta = {
       description = "Rapid multi-Python deployment";
       license = licenses.gpl2;
@@ -5445,6 +5450,7 @@ in {
   };
 
   google-cloud-sdk = callPackage ../tools/admin/google-cloud-sdk { };
+  google-cloud-sdk-gce = callPackage ../tools/admin/google-cloud-sdk { with-gce=true; };
 
   google-compute-engine = callPackage ../tools/virtualization/google-compute-engine { };
 
@@ -8030,11 +8036,12 @@ in {
 
   hg-git = buildPythonPackage rec {
     name = "hg-git-${version}";
-    version = "0.8.5";
+    version = "0.8.10";
+    disabled = isPy3k;
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/h/hg-git/${name}.tar.gz";
-      sha256 = "10j7l1p2wx7s5nb6s35z1f3mcz2svz9ilcm26f3la9h9c76b7jpm";
+      sha256 = "03dzcs4l7hzq59sgjhngxgmi34xfyd7jcxyjl0f68rwq8b1yqrp3";
     };
 
     propagatedBuildInputs = with self; [ dulwich ];
@@ -8639,28 +8646,7 @@ in {
     buildInputs = with self; [ nose ];
   };
 
-  ConfigArgParse = buildPythonPackage rec {
-    name = "ConfigArgParse-${version}";
-    version = "0.9.3";
-
-    src = pkgs.fetchurl {
-      url = "mirror://pypi/C/ConfigArgParse/ConfigArgParse-${version}.tar.gz";
-      sha256 = "0a984pvv7370yz7zbkl6s6i7yyl9myahx0m9jkjvg3hz5q8mf70l";
-    };
-
-    # no tests in tarball
-    doCheck = false;
-    propagatedBuildInputs = with self; [
-
-    ];
-    buildInputs = with self; [
-
-    ];
-
-    meta = with stdenv.lib; {
-      homepage = "https://github.com/zorro3/ConfigArgParse";
-    };
-  };
+  ConfigArgParse = callPackage ../development/python-modules/configargparse { };
 
   jsonschema = callPackage ../development/python-modules/jsonschema { };
 
@@ -10993,35 +10979,7 @@ in {
     };
   };
 
-  nototools = buildPythonPackage rec {
-    version = "git-2016-03-25";
-    name = "nototools-${version}";
-
-    src = pkgs.fetchFromGitHub {
-      owner = "googlei18n";
-      repo = "nototools";
-      rev = "4f7b067d1b18f59288e5eaee34db5b0abd3a3f63";
-      sha256 = "05brbkfg77ij4pmcrhq9302albzdalr9gv6jfdsbyyi2k8j85gbn";
-    };
-
-    propagatedBuildInputs = with self; [ fonttools numpy ];
-
-    postPatch = ''
-      sed -ie "s^join(_DATA_DIR_PATH,^join(\"$out/third_party/ucd\",^" nototools/unicode_data.py
-    '';
-
-    postInstall = ''
-      cp -r third_party $out
-    '';
-
-    disabled = isPy3k;
-
-    meta = {
-      description = "Noto fonts support tools and scripts plus web site generation";
-      license = licenses.asl20;
-      homepage = https://github.com/googlei18n/nototools;
-    };
-  };
+  nototools = callPackage ../data/fonts/noto-fonts/tools.nix { };
 
   rainbowstream = buildPythonPackage rec {
     name = "rainbowstream-${version}";
@@ -11868,21 +11826,7 @@ in {
 
   nbmerge = callPackage ../development/python-modules/nbmerge { };
 
-  nbxmpp = buildPythonPackage rec {
-    name = "nbxmpp-${version}";
-    version = "0.5.5";
-
-    src = pkgs.fetchurl {
-      url = "mirror://pypi/n/nbxmpp/${name}.tar.gz";
-      sha256 = "1gnzrzrdl4nii1sc5x8p5iw2ya5sl70j3nn34abqsny51p2pzmv6";
-    };
-
-    meta = {
-      homepage = "https://python-nbxmpp.gajim.org/";
-      description = "Non-blocking Jabber/XMPP module";
-      license = licenses.gpl3;
-    };
-  };
+  nbxmpp = callPackage ../development/python-modules/nbxmpp { };
 
   sleekxmpp = buildPythonPackage rec {
     name = "sleekxmpp-${version}";
@@ -14104,6 +14048,8 @@ in {
 
     propagatedBuildInputs = with self; [ cryptography pyasn1 ];
 
+    __darwinAllowLocalNetworking = true;
+
     # https://github.com/paramiko/paramiko/issues/449
     doCheck = !(isPyPy || isPy33);
     checkPhase = ''
@@ -15229,29 +15175,7 @@ in {
     };
   });
 
-  pybfd = buildPythonPackage rec {
-    name = "pybfd-0.1.1";
-
-    disabled = isPyPy || isPy3k;
-
-    src = pkgs.fetchurl {
-      url = "mirror://pypi/p/pybfd/${name}.tar.gz";
-      sha256 = "d99b32ad077e704ddddc0b488c83cae851c14919e5cbc51715d00464a1932df4";
-    };
-
-    preConfigure = ''
-      substituteInPlace setup.py \
-        --replace '"/usr/include"' '"${pkgs.gdb}/include"' \
-        --replace '"/usr/lib"' '"${pkgs.binutils.lib}/lib"'
-    '';
-
-    meta = {
-      homepage = https://github.com/Groundworkstech/pybfd;
-      description = "A Python interface to the GNU Binary File Descriptor (BFD) library";
-      license = licenses.gpl2;
-      platforms = platforms.linux;
-    };
-  };
+  pybfd = callPackage ../development/python-modules/pybfd { };
 
   pyblock = stdenv.mkDerivation rec {
     name = "pyblock-${version}";
@@ -17129,7 +17053,11 @@ in {
     };
   };
 
+  qtawesome = callPackage ../development/python-modules/qtawesome { };
+
   qtconsole = callPackage ../development/python-modules/qtconsole { };
+
+  qtpy = callPackage ../development/python-modules/qtpy { };
 
   quantities = buildPythonPackage rec {
     name = "quantities-0.10.1";
@@ -17497,24 +17425,7 @@ in {
 
   rootpy = callPackage ../development/python-modules/rootpy { };
 
-  rope = buildPythonPackage rec {
-    version = "0.10.2";
-    name = "rope-${version}";
-
-    disabled = isPy3k;
-
-    src = pkgs.fetchurl {
-      url = "mirror://pypi/r/rope/${name}.tar.gz";
-      sha256 = "0rdlvp8h74qs49wz1hx6qy8mgp2ddwlfs7z13h9139ynq04a3z7z";
-    };
-
-    meta = {
-      description = "Python refactoring library";
-      homepage = http://rope.sf.net;
-      maintainers = with maintainers; [ goibhniu ];
-      license = licenses.gpl2;
-    };
-  };
+  rope = callPackage ../development/python-modules/rope { };
 
   ropper = callPackage ../development/python-modules/ropper { };
 
@@ -18241,6 +18152,8 @@ in {
     cudaSupport = false;
     cudnnSupport = false;
   };
+
+  thespian = callPackage ../development/python-modules/thespian { };
 
   tidylib = buildPythonPackage rec {
     version = "0.2.4";
@@ -19048,9 +18961,7 @@ in {
     };
   });
 
-  spyder = callPackage ../applications/science/spyder {
-    rope = if isPy3k then null else self.rope;
-  };
+  spyder = callPackage ../applications/science/spyder { };
 
   sqlalchemy = callPackage ../development/python-modules/sqlalchemy { };
 
@@ -21398,6 +21309,7 @@ EOF
     };
   };
 
+  titlecase = callPackage ../development/python-modules/titlecase { };
 
   tracing = buildPythonPackage rec {
     name = "tracing-${version}";
