@@ -414,6 +414,7 @@
   michaelpj = "Michael Peyton Jones <michaelpj@gmail.com>";
   michalrus = "Michal Rus <m@michalrus.com>";
   michelk = "Michel Kuhlmann <michel@kuhlmanns.info>";
+  mickours = "Michael Mercier <mickours@gmail.com<";
   midchildan = "midchildan <midchildan+nix@gmail.com>";
   mikefaille = "Michaël Faille <michael@faille.io>";
   mikoim = "Eshin Kunishima <ek@esh.ink>";
@@ -422,6 +423,7 @@
   mirdhyn = "Merlin Gaillard <mirdhyn@gmail.com>";
   mirrexagon = "Andrew Abbott <mirrexagon@mirrexagon.com>";
   mjanczyk = "Marcin Janczyk <m@dragonvr.pl>";
+  mjp = "Mike Playle <mike@mythik.co.uk>"; # github = "MikePlayle";
   mlieberman85 = "Michael Lieberman <mlieberman85@gmail.com>";
   modulistic = "Pablo Costa <modulistic@gmail.com>";
   mog = "Matthew O'Gorman <mog-lists@rldn.net>";
@@ -435,6 +437,7 @@
   mpcsh = "Mark Cohen <m@mpc.sh>";
   mpscholten = "Marc Scholten <marc@mpscholten.de>";
   mpsyco = "Francis St-Amour <fr.st-amour@gmail.com>";
+  mrVanDalo = "Ingolf Wanger <contact@ingolf-wagner.de>";
   msackman = "Matthew Sackman <matthew@wellquite.org>";
   mschristiansen = "Mikkel Christiansen <mikkel@rheosystems.com>";
   msteen = "Matthijs Steen <emailmatthijs@gmail.com>";
@@ -482,7 +485,6 @@
   oxij = "Jan Malakhovski <oxij@oxij.org>";
   paholg = "Paho Lurie-Gregg <paho@paholg.com>";
   pakhfn = "Fedor Pakhomov <pakhfn@gmail.com>";
-  palo = "Ingolf Wanger <palipalo9@googlemail.com>";
   panaeon = "Vitalii Voloshyn <vitalii.voloshyn@gmail.com";
   paperdigits = "Mica Semrick <mica@silentumbrella.com>";
   pashev = "Igor Pashev <pashev.igor@gmail.com>";

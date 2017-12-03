@@ -95,7 +95,7 @@ self: super: {
       name = "git-annex-${drv.version}-src";
       url = "git://git-annex.branchable.com/";
       rev = "refs/tags/" + drv.version;
-      sha256 = "14449sllp81d23mnjwn1m658kzry5qvww2ykxkbkdcrlz6kl6dy0";
+      sha256 = "1bnnrwamw3d37fz7cwykxhi1ryy22dq8r6ld59gsbgcv23drqzax";
     };
   })).override {
     dbus = if pkgs.stdenv.isLinux then self.dbus else null;
@@ -453,8 +453,10 @@ self: super: {
   # https://github.com/basvandijk/threads/issues/10
   threads = dontCheck super.threads;
 
-  # https://github.com/purescript/purescript/pull/3041
-  purescript = doJailbreak super.purescript;
+  # https://github.com/NixOS/nixpkgs/issues/32138
+  purescript = super.purescript.override {
+    optparse-applicative = self.optparse-applicative_0_14_0_0;
+  };
 
   # Missing module.
   rematch = dontCheck super.rematch;            # https://github.com/tcrayford/rematch/issues/5
